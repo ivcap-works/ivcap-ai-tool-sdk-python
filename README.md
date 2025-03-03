@@ -1,12 +1,51 @@
-# ivcap_fastapi: Python helpers for building FastAPI based IVCAP services
+# ivcap_ai_tool: A python library for building AI tools for the IVCAP platform
 
 A python library containing various helper and middleware functions
-to support converting FastAPI based tools into IVCAP services.
+to simplify developing AI tools to be deployed on IVCAP.
 
 ## Content
 
+* [Register a Tool Function](#register)
+* [Start the Service](#start)
 * [Try-Later Middleware](#try-later)
 * [JSON-RPC Middleware](#json-rpc)
+
+### Register a Tool Function <a name="register"></a>
+
+```
+class Request(BaseModel):
+    jschema: str = Field("urn:sd:schema:some_tool.request.1", alias="$schema")
+    ...
+
+class Result(BaseModel):
+    jschema: str = Field("urn:sd:schema:some_tool.1", alias="$schema")
+    ...
+
+def some_tool(req: Request) -> Result:
+    """
+    Here should go a quite extensive description of what the tool can be
+    used for so that an agent can work out if this tool is useful in
+    a specific context.
+
+    DO NOT ADD PARAMTER AND RETURN DECRIPTIONS - DESCRIBE THEM IN THE `Request` MODEL
+    """
+    ...
+
+    return Result(...)
+
+add_tool_api_route(app, "/", some_tool, opts=ToolOptions(tags=["Great Tool"]))
+```
+
+### Start the Service <a name="start"></a>
+
+```
+app = FastAPI(
+  ..
+)
+
+if __name__ == "__main__":
+    start_tool_server(app, some_tool)
+```
 
 ### Try-Later Middleware <a name="try-later"></a>
 
