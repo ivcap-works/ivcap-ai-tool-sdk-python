@@ -68,4 +68,4 @@ def is_prime(req: Request) -> Result:
 add_tool_api_route(app, "/", is_prime)
 
 if __name__ == "__main__":
-    start_tool_server(app, is_prime, logger)
+    start_tool_server(app, is_prime, with_telemetry=True)

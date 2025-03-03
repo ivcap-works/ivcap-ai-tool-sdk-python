@@ -18,15 +18,15 @@ DOCKER_TAG_LOCAL=${DOCKER_NAME}:latest
 
 PROJECT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TARGET_PLATFORM := linux/$(shell go env GOARCH)
-RUN_DIR:=${PROJECT_DIR}/RUN
+PORT=8095
 SERVICE_URL=http://localhost:8099
 
 run:
 	env VERSION=$(VERSION) \
-		python ${PROJECT_DIR}/tool-service.py
+		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
 
 test-local:
-	curl -i -X POST -H "content-type: application/json" --data "{\"number\": 997}" http://localhost:8090
+	curl -i -X POST -H "content-type: application/json" --data "{\"number\": 997}" http://localhost:${PORT}
 
 submit-agent-query:
 	curl -i -X POST \
