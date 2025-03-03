@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap_ai_tool"
-version = "0.1.1"
+version = "0.4.0"
 description = "Helper functions for building AI Tools as IVCAP services"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
@@ -10,6 +10,11 @@ readme = "README.md"
 include = ["src/ivcap_ai_tool/py.typed"]
 
 [tool.poetry.dependencies]
+uuid6 = "2024.7.10"
+cachetools = "^5.5.2"
+opentelemetry-distro = "^0.51b0"
+opentelemetry-exporter-otlp = "^1.30.0"
+opentelemetry-instrumentation-fastapi = "^0.51b0"
 
 [tool.poetry.dev-dependencies]
 

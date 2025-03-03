@@ -1,20 +1,16 @@
 import os
 import sys
-from time import sleep
+import math
+from pydantic import BaseModel, Field
+from fastapi import FastAPI
+from signal import signal, SIGTERM
 
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
-sys.path.append(src_dir)
+sys.path.insert(0, src_dir)
 
-from fastapi import Body, FastAPI
-from signal import signal, SIGTERM
-
-from ivcap_fastapi import getLogger, service_log_config, logging_init
-from ivcap_ai_tool import create_tool_definition, print_tool_definition
-
-from pydantic import BaseModel, Field
-
-import math
+from ivcap_fastapi import getLogger, logging_init
+from ivcap_ai_tool import start_tool_server, add_tool_api_route
 
 logging_init()
 logger = getLogger("app")
@@ -43,53 +39,33 @@ app = FastAPI(
     root_path=os.environ.get("IVCAP_ROOT_PATH", "")
 )
 
-@app.post("/")
-def is_prime(number: int = Body(..., embed=True)) -> bool:
+class Request(BaseModel):
+    jschema: str = Field("urn:sd:schema:is-prime.request.1", alias="$schema")
+    number: int = Field(description="the number to check if prime")
+
+class Result(BaseModel):
+    jschema: str = Field("urn:sd:schema:is-prime.1", alias="$schema")
+    flag: bool = Field(description="true if number is prime, false otherwise")
+
+def is_prime(req: Request) -> Result:
     """
     Checks if a number is prime.
-
-    Args:
-        number: The number to check.
-
-    Returns:
-        True if the number is prime, False otherwise.
     """
+    number = req.number
     if number <= 1:
-        return False
+        return Result(flag=False)
     if number <= 3:
-        return True
+        return Result(flag=True)
     if number % 2 == 0 or number % 3 == 0:
-        return False
+        return Result(flag=False)
 
     for i in range(5, int(math.sqrt(number)) + 1, 6):
         if number % i == 0 or number % (i + 2) == 0:
-            return False
+            return Result(flag=False)
 
-    return True
+    return Result(flag=True)
 
-
-@app.get("/")
-def get_metadata():
-    return create_tool_definition(is_prime)
-
-# Allows platform to check if everything is OK
-@app.get("/_healtz")
-def healtz():
-    return {"version": os.environ.get("VERSION", "???")}
+add_tool_api_route(app, "/", is_prime)
 
 if __name__ == "__main__":
-    import argparse
-    import uvicorn
-
-    parser = argparse.ArgumentParser(description=title)
-    parser.add_argument('--host', type=str, default=os.environ.get("HOST", "0.0.0.0"), help='Host address')
-    parser.add_argument('--port', type=int, default=os.environ.get("PORT", "8090"), help='Port number')
-    parser.add_argument('--print-tool-description', action="store_true", help='Print tool description to stdout')
-    args = parser.parse_args()
-
-    if args.print_tool_description:
-        print_tool_definition(is_prime)
-        sys.exit(0)
-
-    logger.info(f"{title} - {os.getenv('VERSION')}")
-    uvicorn.run(app, host=args.host, port=args.port, log_config=service_log_config())
+    start_tool_server(app, is_prime, logger)
