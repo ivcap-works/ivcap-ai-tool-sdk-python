@@ -58,7 +58,7 @@ def start_tool_server(
     # Check for '_healtz' service
     healtz = find_first(app.routes, lambda r: r.path == "/_healtz")
     if healtz is None:
-        @app.get("/_healtz", tags=["system"])
+        @app.get("/_healtz", tags=["System"])
         def healtz():
             return {"version": os.environ.get("VERSION", "???")}
 
@@ -70,6 +70,8 @@ def start_tool_server(
         if with_telemetry == True or args.with_telemetry or endpoint != None:
             if endpoint == None:
                 logger.warning("requested --with-telemetry but exporter is not defined")
+            if os.environ.get("PYTHONPATH") == None:
+                 os.environ["PYTHONPATH"] = ""
             import opentelemetry.instrumentation.auto_instrumentation.sitecustomize
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
             logger.info(f"instrumenting for endpoint {endpoint}")

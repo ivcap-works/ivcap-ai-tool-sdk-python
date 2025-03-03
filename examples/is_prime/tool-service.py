@@ -10,7 +10,7 @@ src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
 sys.path.insert(0, src_dir)
 
 from ivcap_fastapi import getLogger, logging_init
-from ivcap_ai_tool import start_tool_server, add_tool_api_route
+from ivcap_ai_tool import start_tool_server, add_tool_api_route, ToolOptions
 
 logging_init()
 logger = getLogger("app")
@@ -65,7 +65,7 @@ def is_prime(req: Request) -> Result:
 
     return Result(flag=True)
 
-add_tool_api_route(app, "/", is_prime)
+add_tool_api_route(app, "/", is_prime, opts=ToolOptions(tags=["Prime Checker"]))
 
 if __name__ == "__main__":
-    start_tool_server(app, is_prime, with_telemetry=True)
+    start_tool_server(app, is_prime)

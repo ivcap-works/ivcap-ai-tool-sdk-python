@@ -22,7 +22,7 @@ PORT=8095
 SERVICE_URL=http://localhost:8099
 
 run:
-	env VERSION=$(VERSION) \
+	env VERSION=$(VERSION) PYTHONPATH="" \
 		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
 
 test-local:

@@ -6,7 +6,7 @@
 import asyncio
 from fastapi import FastAPI, Response, status, Request
 from pydantic import BaseModel, Field
-from typing import Optional, Callable, TypeVar
+from typing import Any, Dict, Optional, Callable, TypeVar
 from uuid6 import uuid6
 
 from ivcap_fastapi import getLogger
@@ -24,12 +24,12 @@ class ErrorModel(BaseModel):
 logger = getLogger("wrapper")
 
 class ToolOptions(BaseModel):
-    name: Optional[list[str]] = Field(None, description="Name to be used for this tool")
-    tag: Optional[list[str]] = Field(None, description="OpenAPI tag for this set of functions")
+    name: Optional[str] = Field(None, description="Name to be used for this tool")
+    tags: Optional[list[str]] = Field(None, description="OpenAPI tag for this set of functions")
     max_wait_time: Optional[float] = Field(5.0, description="max. time in seconds to wait for result and before returning RetryLater")
     refresh_interval: Optional[int] = Field(3, description="Time in seconds to wait before chacking again for a job result (used in RetryLater)")
     executor_opts: Optional[ExecutorOpts] = Field(None, description="Options for the executor")
-
+    post_route_opts: Optional[Dict[str, Any]] = Field({}, description="Addtitional options given the POST route constructor")
 
 # Define a generic type for Pydantic models
 T = TypeVar("T", bound=BaseModel)
@@ -73,9 +73,13 @@ def add_tool_api_route(
         context (Optional[ExecutionContext], optional): An optional context to be provided to every invocation of `worker_fn`. Defaults to None.
     """
     def_name, def_tag = _get_title_from_path(path_prefix)
-    if opts.tag is None:
-       opts.tag = def_tag
+    if opts.tags is None:
+        if def_tag == '':
+            def_tag = "Tool"
+        opts.tags = [def_tag]
     if opts.name is None:
+        if def_name == '':
+            def_name = "Execute the tool"
         opts.name = def_name
 
     output_model = _get_function_return_type(worker_fn)
@@ -88,7 +92,7 @@ def add_tool_api_route(
 def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
     input_model, _ = _get_input_type(worker_fn)
     output_model = _get_function_return_type(worker_fn)
-    summary, description = worker_fn.__doc__.split("\n", 1)
+    summary, description = (worker_fn.__doc__.lstrip() + "\n").split("\n", 1)
 
     async def route(data: input_model, req: Request) -> output_model:  # type: ignore
         job_id = str(uuid6())
@@ -98,8 +102,11 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
             queue.task_done()
             return _return_job_result(el, job_id)
         except asyncio.TimeoutError:
+            location = f"/jobs/{job_id}"
+            if path_prefix != "/":
+                location = path_prefix + location
             headers = {
-                "Location": f"{path_prefix}/{job_id}",
+                "Location": location,
                 "Retry-Later": f"{opts.refresh_interval}",
             }
             return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)
@@ -123,13 +130,15 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
     app.add_api_route(
         path_prefix,
         route,
+        # name=opts.name,
         summary=summary,
-        description=description,
+        description=description.strip(),
         methods=["POST"],
         responses=responses,
-        tags=[opts.tag],
+        tags=opts.tags,
         response_model_exclude_none=True,
         response_model_by_alias=True,
+        **opts.post_route_opts,
     )
 
 def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
@@ -145,14 +154,16 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
     responses = {
         400: { "model": ErrorModel, },
     }
-    path = "/" + "{job_id}" if path_prefix == "/" else f"{path_prefix}/" + "{job_id}"
+    path = "/jobs/" + "{job_id}"
+    if path_prefix != "/":
+        path = path_prefix + path
     app.add_api_route(
         path,
         route,
-        summary="Returns the description of this tool. Primarily used by agents.",
+        summary="Returns the result of a particular job.",
         methods=["GET"],
         responses=responses,
-        tags=[opts.tag],
+        tags=opts.tags,
         response_model_exclude_none=True,
         response_model_by_alias=True,
     )
@@ -175,7 +186,7 @@ def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable,
         route,
         summary="Returns the description of this tool. Primarily used by agents.",
         methods=["GET"],
-        tags=[opts.tag],
+        tags=opts.tags,
         response_model_exclude_none=True,
         response_model_by_alias=True,
     )
