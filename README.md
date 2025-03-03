@@ -12,7 +12,7 @@ to simplify developing AI tools to be deployed on IVCAP.
 
 ### Register a Tool Function <a name="register"></a>
 
-```
+```python
 class Request(BaseModel):
     jschema: str = Field("urn:sd:schema:some_tool.request.1", alias="$schema")
     ...
@@ -38,7 +38,7 @@ add_tool_api_route(app, "/", some_tool, opts=ToolOptions(tags=["Great Tool"]))
 
 ### Start the Service <a name="start"></a>
 
-```
+```python
 app = FastAPI(
   ..
 )
