@@ -7,8 +7,8 @@ to simplify developing AI tools to be deployed on IVCAP.
 
 * [Register a Tool Function](#register)
 * [Start the Service](#start)
-* [Try-Later Middleware](#try-later)
 * [JSON-RPC Middleware](#json-rpc)
+* [Try-Later Middleware](#try-later)
 
 ### Register a Tool Function <a name="register"></a>
 
@@ -27,7 +27,8 @@ def some_tool(req: Request) -> Result:
     used for so that an agent can work out if this tool is useful in
     a specific context.
 
-    DO NOT ADD PARAMTER AND RETURN DECRIPTIONS - DESCRIBE THEM IN THE `Request` MODEL
+    DO NOT ADD PARAMTER AND RETURN DECRIPTIONS -
+       DESCRIBE THEM IN THE `Request` MODEL
     """
     ...
 
@@ -45,6 +46,23 @@ app = FastAPI(
 
 if __name__ == "__main__":
     start_tool_server(app, some_tool)
+```
+
+### JSON-RPC Middleware <a name="json-rpc"></a>
+
+This middleware will convert any `POST /` with a payload
+following the [JSON-RPC](https://www.jsonrpc.org/specification)
+specification to an internal `POST /{method}` and will return
+the result formatted according to the JSON-RPC spec.
+
+```python
+from ivcap_fastapi import use_json_rpc_middleware
+
+app = FastAPI(
+  ..
+)
+
+use_json_rpc_middleware(app)
 ```
 
 ### Try-Later Middleware <a name="try-later"></a>
@@ -66,9 +84,9 @@ use_try_later_middleware(app)
 @app.post("/big_job")
 def big_job(req: Request) -> Response:
     jobID, expected_exec_time = scheduling_big_job(req)
-    raise TryLaterException(f"/jobs/{jobID}", expected_exec_time)
+    raise TryLaterException(f"/big_job/jobs/{jobID}", expected_exec_time)
 
-@app.get("/jobs/{jobID}")
+@app.get("/big_job/jobs/{jobID}")
 def get_job(jobID: str) -> Response:
     resp = find_result_for(job_id)
     return resp
@@ -78,15 +96,3 @@ Specifically, raising `TryLaterException(location, delay)` will
 return an HTTP response with a 204 status code with the additional
 HTTP headers `Location` and `Retry-Later` set to `location` and
 `delay` respectively.
-
-### JSON-RPC Middleware <a name="json-rpc"></a>
-
-This middleware will convert any `POST /` with a payload
-following the [JSON-RPC](https://www.jsonrpc.org/specification)
-specification to an internal `POST /{method}` and will return
-the result formatted according to the JSON-RPC spec.
-
-```python
-from ivcap_fastapi import use_json_rpc_middleware
-use_json_rpc_middleware(app)
-```
