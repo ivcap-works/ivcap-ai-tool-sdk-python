@@ -5,23 +5,15 @@
 #
 
 import inspect
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, get_type_hints
 from typing import (
     Any,
-    Awaitable,
     Callable,
-    List,
     Optional,
     Tuple,
-    Type,
     Union,
-    cast,
-    get_origin,
-    get_args,
 )
-import typing
-from pydantic import BaseModel, Field, create_model
-from pydantic.fields import FieldInfo
+from pydantic import BaseModel, Field
 
 from .utils import _get_input_type
 from .executor import ExecutionContext
@@ -37,8 +29,14 @@ class ToolDefinition(BaseModel):
     fn_signature: str
     fn_schema: dict
 
-def print_tool_definition(fn: Callable[..., Any], *, name: Optional[str] = None, description: Optional[str] = None) -> ToolDefinition:
-    td = create_tool_definition(fn, name, description)
+def print_tool_definition(
+    fn: Callable[..., Any],
+    *,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    id_prefix: str = "urn:sd-core:ai-tool",
+) -> ToolDefinition:
+    td = create_tool_definition(fn, name=name, description=description, id_prefix=id_prefix)
     print(td.model_dump_json(indent=2, by_alias=True))
 
 def create_tool_definition(
