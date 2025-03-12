@@ -1,0 +1,11 @@
+{
+  "$schema": "urn:sd:schema:ai-tester.request.1",
+  "call": {
+    "method": "GET",
+    "url": "http://ivcap.local/1/aspects",
+    "params": {
+      "schema": "urn:sd-core:schema:ai-tool.1",
+      "include-content": true
+    }
+  }
+}

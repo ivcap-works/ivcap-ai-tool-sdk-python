@@ -3,6 +3,9 @@
 A python library containing various helper and middleware functions
 to simplify developing AI tools to be deployed on IVCAP.
 
+> **Note:** A template git repositiory using this library can be found on github
+[ivcap-works/ivcap-python-ai-tool-template](https://github.com/ivcap-works/ivcap-python-ai-tool-template). You may clone that and start from there.
+
 ## Content
 
 * [Register a Tool Function](#register)

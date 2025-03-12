@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Any, Dict, Optional, Callable, TypeVar
 from uuid6 import uuid6
 
-from ivcap_fastapi import getLogger
+from ivcap_fastapi import getLogger, TryLaterException
 
 from .executor import ExecutionContext, ExecutionError, Executor, ExecutorOpts
 from .utils import _get_input_type, _get_function_return_type, _get_title_from_path
@@ -20,6 +20,12 @@ from .tool_definition import ToolDefinition, create_tool_definition
 class ErrorModel(BaseModel):
     message: str
     code: int
+
+class ExecutionErrorModel(BaseModel):
+    jschema: str = Field("urn:ivcap:schema.ai-tool.error.1", alias="$schema")
+    message: str
+    traceback: str
+
 
 logger = getLogger("wrapper")
 
@@ -95,21 +101,27 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
     summary, description = (worker_fn.__doc__.lstrip() + "\n").split("\n", 1)
 
     async def route(data: input_model, req: Request) -> output_model:  # type: ignore
-        job_id = str(uuid6())
+        job_id = req.headers.get("job-id")
+        if job_id == None:
+            job_id = str(uuid6())
+
+        if req.headers.get("prefer") == "respond-async":
+            timeout = 0
+        else:
+            toh = req.headers.get("timeout")
+            if toh != None:
+                timeout = int(toh)
+            else:
+                timeout = opts.max_wait_time
+
         queue = await executor.execute(data, job_id, req)
         try:
-            el = await asyncio.wait_for(queue.get(), timeout=opts.max_wait_time)
+            el = await asyncio.wait_for(queue.get(), timeout=timeout)
             queue.task_done()
-            return _return_job_result(el, job_id)
+            el = _return_job_result(el, job_id)
+            return el
         except asyncio.TimeoutError:
-            location = f"/jobs/{job_id}"
-            if path_prefix != "/":
-                location = path_prefix + location
-            headers = {
-                "Location": location,
-                "Retry-Later": f"{opts.refresh_interval}",
-            }
-            return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)
+            return _return_try_later(job_id, path_prefix, opts)
 
     responses = {
         204: {
@@ -146,6 +158,8 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
     def route(job_id: str) -> output_model: # type: ignore
         try:
             result = executor.lookup_job(job_id)
+            if result == None:
+                return _return_try_later(job_id, path_prefix, opts)
             return _return_job_result(result, job_id)
         except KeyError:
             return Response(status_code=status.HTTP_404_NOT_FOUND,
@@ -172,8 +186,10 @@ def _return_job_result(el, job_id):
     if isinstance(el, ExecutionError):
         if el.type == ValueError:
             m = ErrorModel(message=el.error, code=400)
-            return Response(status_code=status.HTTP_400_BAD_REQUEST, content=m)
-        raise Exception()
+            return Response(status_code=status.HTTP_400_BAD_REQUEST, content=m.model_dump_json(indent=2), media_type="application/json")
+
+        m = ExecutionErrorModel(message=el.error, traceback=el.traceback)
+        return  Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=m.model_dump_json(indent=2), media_type="application/json")
     else:
         return el
 
@@ -190,3 +206,14 @@ def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable,
         response_model_exclude_none=True,
         response_model_by_alias=True,
     )
+
+
+def _return_try_later(job_id: str, path_prefix: str, opts: ToolOptions):
+    location = f"/jobs/{job_id}"
+    if path_prefix != "/":
+        location = path_prefix + location
+    headers = {
+        "Location": location,
+        "Retry-Later": f"{opts.refresh_interval}",
+    }
+    return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)

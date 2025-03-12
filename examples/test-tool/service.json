@@ -1,8 +1,8 @@
 {
-  "$schema": "urn:ivcap:schema:service.2",
-  "id": "#SERVICE_ID#",
-  "name": "is-prime-tool",
-  "description": "AI tool to help determining if a number is a prime number.",
+  "$schema": "urn:ivcap:schema.service.2",
+  "$id": "#SERVICE_ID#",
+  "name": "ivcap-test-tool",
+  "description": "Test tool to exercise various aspects of the IVCAP platform.",
   "parameters": [],
   "policy": "urn:ivcap:policy:ivcap.open.service",
   "controller-schema": "urn:ivcap:schema.service.rest.1",
