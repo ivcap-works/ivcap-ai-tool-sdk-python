@@ -121,6 +121,7 @@ class Executor(Generic[T]):
             with tracer.start_as_current_span(f"RUN {fname}") as span:
                 span.set_attribute("job.id", job_id)
                 span.set_attribute("job.name", fname)
+                loop = None
                 try:
                     if asyncio.iscoroutinefunction(self.func):
                         loop = asyncio.new_event_loop()
@@ -133,6 +134,9 @@ class Executor(Generic[T]):
                 except Exception as ex:
                     span.record_exception(ex)
                     raise ex
+                finally:
+                    if loop != None:
+                        loop.close
 
 
         # Use the provided thread pool or create a new one

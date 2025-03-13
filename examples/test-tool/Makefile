@@ -39,6 +39,9 @@ test-echo-with-sleep:
 test-call-post:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT} | jq
 
+test-call-post-async:
+	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT}/async
+
 test-list-services:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-services.json http://localhost:${PORT} | jq
 
