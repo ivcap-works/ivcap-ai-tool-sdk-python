@@ -12,7 +12,7 @@ from uuid6 import uuid6
 from ivcap_fastapi import getLogger, TryLaterException
 
 from .executor import ExecutionContext, ExecutionError, Executor, ExecutorOpts
-from .utils import _get_input_type, _get_function_return_type, _get_title_from_path
+from .utils import _get_input_type, _get_function_return_type, _get_title_from_path, get_forwarded_header, get_public_url_prefix
 from .tool_definition import ToolDefinition, create_tool_definition
 
 
@@ -36,6 +36,7 @@ class ToolOptions(BaseModel):
     refresh_interval: Optional[int] = Field(3, description="Time in seconds to wait before chacking again for a job result (used in RetryLater)")
     executor_opts: Optional[ExecutorOpts] = Field(None, description="Options for the executor")
     post_route_opts: Optional[Dict[str, Any]] = Field({}, description="Addtitional options given the POST route constructor")
+    service_id: Optional[str] = Field(None, description="overriding the default service id")
 
 # Define a generic type for Pydantic models
 T = TypeVar("T", bound=BaseModel)
@@ -194,8 +195,14 @@ def _return_job_result(el, job_id):
         return el
 
 def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable, opts: ToolOptions):
-    async def route() -> ToolDefinition:  # type: ignore
-        return create_tool_definition(worker_fn, name=opts.name)
+    async def route(req: Request) -> ToolDefinition:  # type: ignore
+        service_id = opts.service_id
+        if service_id != None and service_id.startswith("/"):
+            # check if there is a forwarded header and prepand that
+            prefix = get_public_url_prefix(req)
+            service_id = f"{prefix}{service_id}"
+
+        return create_tool_definition(worker_fn, service_id=service_id)
 
     app.add_api_route(
         path_prefix,

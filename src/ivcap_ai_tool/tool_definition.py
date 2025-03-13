@@ -5,6 +5,7 @@
 #
 
 import inspect
+import os
 from typing import Any, Callable, Optional, get_type_hints
 from typing import (
     Any,
@@ -18,13 +19,19 @@ from pydantic import BaseModel, Field
 from .utils import _get_input_type
 from .executor import ExecutionContext
 
-TOOL_SCHEMA = "urn:sd-core:schema:ai-tool.1"
+TOOL_SCHEMA = "urn:sd-core:schema.ai-tool.1"
+
+SERVICE_ID_PLACEHOLDER = "#SERVICE_ID#"
 
 class ToolDefinition(BaseModel):
     jschema: str = Field(default=TOOL_SCHEMA, alias="$schema")
     id: str
+
+    model_config = {
+        "populate_by_name": True,
+    }
     name: str
-    service_id: str = Field(default="#SERVICE_ID#", alias="service-id")
+    service_id: str = Field(alias="service-id")
     description: str
     fn_signature: str
     fn_schema: dict
@@ -32,21 +39,26 @@ class ToolDefinition(BaseModel):
 def print_tool_definition(
     fn: Callable[..., Any],
     *,
-    name: Optional[str] = None,
+    service_id: Optional[str] = None,
     description: Optional[str] = None,
     id_prefix: str = "urn:sd-core:ai-tool",
 ) -> ToolDefinition:
-    td = create_tool_definition(fn, name=name, description=description, id_prefix=id_prefix)
+    td = create_tool_definition(fn, service_id=service_id, description=description, id_prefix=id_prefix)
     print(td.model_dump_json(indent=2, by_alias=True))
 
 def create_tool_definition(
     fn: Callable[..., Any], *,
-    name: Optional[str] = None,
+    service_id: Optional[str] = None,
     description: Optional[str] = None,
     id_prefix: str = "urn:sd-core:ai-tool",
 ) -> ToolDefinition:
-    name = name or fn.__name__
+    name = fn.__name__
     signature, description = _generate_function_description(fn, name, exclude_types=[ExecutionContext])
+
+    if service_id == None:
+        service_id = os.getenv("IVCAP_SERVICE_ID")
+    if service_id == None:
+        service_id = SERVICE_ID_PLACEHOLDER
 
     #fn_sig = inspect.signature(fn)
     input_type, _ = _get_input_type(fn)
@@ -54,6 +66,7 @@ def create_tool_definition(
     td = ToolDefinition(
         id=f"{id_prefix}.{name}",
         name=name,
+        service_id=service_id,
         description=description,
         fn_signature=signature,
         fn_schema=input_type.model_json_schema(),

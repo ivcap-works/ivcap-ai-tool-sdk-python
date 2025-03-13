@@ -31,7 +31,7 @@ run-with-proxy:
 		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
 
 test-echo:
-	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}
+	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}/
 
 test-echo-with-sleep:
 	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\", \"sleep\":5}" http://localhost:${PORT}
@@ -47,6 +47,13 @@ test-list-services:
 
 test-list-tools:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-tools.json http://localhost:${PORT} | jq
+
+print-tool-description:
+	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
+        "${SERVICE_NAME}" + "${account_id}"));'))
+	env VERSION=$(VERSION) PYTHONPATH="" IVCAP_SERVICE_ID=${service_id} \
+		python ${PROJECT_DIR}/tool-service.py --print-tool-description
+
 
 install:
 	pip install -r requirements.txt

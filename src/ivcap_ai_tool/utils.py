@@ -89,6 +89,7 @@ def _get_function_return_type(func):
     # return param_types, return_type
     return return_type
 
+
 def find_first(iterable, condition):
     """
     Returns the first item in the iterable for which the condition is True.
@@ -98,3 +99,51 @@ def find_first(iterable, condition):
         if condition(item):
             return item
     return None
+
+from fastapi import Request
+from typing import Optional, Type, Callable, TypeVar, Any, get_type_hints, Union, Dict, Tuple
+from urllib.parse import unquote
+
+from pydantic import BaseModel
+
+def get_public_url_prefix(req: Request) -> str:
+    """Return the public url prefix for `req`.
+
+    First checks for a `Forwarded` http header and if
+    absent uses the request's `base_ur;` variable.
+
+    Args:
+        req (Request): A FastAPI request instance
+
+    Returns:
+        str: A url as string
+    """
+    fw = get_forwarded_header(req)
+    if fw != None:
+        prefix = f"{fw.get('proto', 'http')}:://{fw.get('for')}"
+    else:
+        prefix = str(req.base_url).rstrip("/")
+    return prefix
+
+
+def get_forwarded_header(request: Request) -> Optional[Dict[str, str]]:
+    """
+    Parses the "Forwarded" HTTP header according to RFC 7239.
+    Returns a dictionary containing the parsed header values, or None if the header is missing.
+    """
+    header_value = request.headers.get("Forwarded")
+    if not header_value:
+        return None
+
+    parsed_values: Dict[str, str] = {}
+    for element in header_value.split(";"):
+        parts = element.split("=", 1)
+        if len(parts) == 2:
+            key = parts[0].strip()
+            value = parts[1].strip()
+            # Remove quotes if present
+            if value.startswith('"') and value.endswith('"'):
+                value = value[1:-1]
+            parsed_values[key] = value
+
+    return parsed_values

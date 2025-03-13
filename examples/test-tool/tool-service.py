@@ -148,7 +148,7 @@ def make_request(req: CallTester) -> Any:
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"]))
+add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"))
 add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
 if __name__ == "__main__":
