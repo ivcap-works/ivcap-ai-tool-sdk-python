@@ -34,7 +34,7 @@ test-echo:
 	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}
 
 test-echo-with-sleep:
-	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\", \"sleep\":500}" http://localhost:${PORT}
+	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\", \"sleep\":5}" http://localhost:${PORT}
 
 test-call-post:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT} | jq

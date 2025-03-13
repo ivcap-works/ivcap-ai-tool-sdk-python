@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from fastapi import FastAPI, Request as FRequest
 import requests
 from signal import signal, SIGTERM
+from asyncio import sleep as async_sleep
 
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
@@ -103,6 +104,26 @@ def tester(req: Request, freq: FRequest) -> Result:
     result.run_time = round(time() - start_time, 2)
     return result
 
+async def async_tester(req: Request, freq: FRequest) -> Result:
+    """
+    Run various tests in 'async' mode
+    """
+    result = Result(run_time=0, request=RequestContext.from_freq(freq))
+    start_time = time()  # Start timer
+
+    if req.echo != None:
+        result.echo = req.echo
+
+    if req.call != None:
+        raise Exception("not implemented")
+
+    if req.sleep > 0:
+        await async_sleep(req.sleep)
+
+    result.run_time = round(time() - start_time, 2)
+    return result
+
+
 def make_request(req: CallTester) -> Any:
     """
     Makes a generic HTTP request.
@@ -128,6 +149,7 @@ def make_request(req: CallTester) -> Any:
         return {"error": str(e)}
 
 add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"]))
+add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
 if __name__ == "__main__":
     start_tool_server(app, tester)

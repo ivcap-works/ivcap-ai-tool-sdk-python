@@ -122,7 +122,14 @@ class Executor(Generic[T]):
                 span.set_attribute("job.id", job_id)
                 span.set_attribute("job.name", fname)
                 try:
-                    return self.func(param, **kwargs)
+                    if asyncio.iscoroutinefunction(self.func):
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        res = loop.run_until_complete(self.func(param, **kwargs))
+                        loop.close()  # Clean up event loop
+                        return res
+                    else:
+                        return self.func(param, **kwargs)
                 except Exception as ex:
                     span.record_exception(ex)
                     raise ex
