@@ -6,7 +6,7 @@
 import argparse
 from logging import Logger
 from typing import Any, Callable, Dict, Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 import uvicorn
 import os
 import sys
@@ -63,19 +63,24 @@ def start_tool_server(
             return {"version": os.environ.get("VERSION", "???")}
 
     logger.info(f"{title} - {os.getenv('VERSION')}")
-        # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
+    # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
+
+    from .context import set_context
+    set_context()
 
     if not with_telemetry == False:
-        endpoint = os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')
-        if with_telemetry == True or args.with_telemetry or endpoint != None:
-            if endpoint == None:
-                logger.warning("requested --with-telemetry but exporter is not defined")
-            if os.environ.get("PYTHONPATH") == None:
-                 os.environ["PYTHONPATH"] = ""
-            import opentelemetry.instrumentation.auto_instrumentation.sitecustomize
-            from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-            logger.info(f"instrumenting for endpoint {endpoint}")
-            FastAPIInstrumentor.instrument_app(app)
+        if with_telemetry == True or args.with_telemetry:
+            from .context import otel_instrument
+            otel_instrument(app, logger)
+
+    @app.middleware("http")
+    async def _add_version(request: Request, call_next) -> Response:
+        from .version import __version__
+        resp = await call_next(request)
+        resp.headers["Ivcap-AI-Tool-Version"] = __version__
+        return resp
+
+    #app.middleware("http")(_add_version)
 
     if run_opts is None:
         run_opts = {}

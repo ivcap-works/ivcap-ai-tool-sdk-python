@@ -10,11 +10,14 @@ readme = "README.md"
 include = ["src/ivcap_ai_tool/py.typed"]
 
 [tool.poetry.dependencies]
+python = ">=3.8"
 uuid6 = "2024.7.10"
 cachetools = "^5.5.2"
 opentelemetry-distro = "^0.51b0"
 opentelemetry-exporter-otlp = "^1.30.0"
 opentelemetry-instrumentation-fastapi = "^0.51b0"
+opentelemetry-instrumentation-requests = "^0.51b0"
+opentelemetry-instrumentation-httpx = "^0.51b0"
 
 [tool.poetry.dev-dependencies]
 
@@ -23,7 +26,7 @@ fastapi = { version = "^0.111.1", extras = ["standard"] }
 pytest = "^7.1.3"
 pytest-cov = "^4.1.0"
 Sphinx = "^5.2.3"
-myst-nb = "^0.17.1"
+# myst-nb = "^1.2.0"
 autoapi = "^2.0.1"
 sphinx-autoapi = "^2.0.0"
 sphinx-rtd-theme = "^1.0.0"

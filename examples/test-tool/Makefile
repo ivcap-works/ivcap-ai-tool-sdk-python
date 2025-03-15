@@ -36,8 +36,17 @@ test-echo:
 test-echo-with-sleep:
 	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\", \"sleep\":5}" http://localhost:${PORT}
 
+test-echo-with-auth:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		--data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}/
+
 test-call-post:
-	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT} | jq
+	curl -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		--data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT} | jq
 
 test-call-post-async:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT}/async

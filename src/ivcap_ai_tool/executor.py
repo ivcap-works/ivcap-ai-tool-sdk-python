@@ -5,6 +5,7 @@
 #
 import asyncio
 import concurrent.futures
+import threading
 import traceback
 from typing import Any, Callable, Generic, Optional, TypeVar, Union
 from cachetools import TTLCache
@@ -12,6 +13,7 @@ from fastapi import Request
 from pydantic import BaseModel, Field
 from ivcap_fastapi import getLogger
 from opentelemetry import trace
+
 
 from .utils import _get_input_type
 
@@ -36,11 +38,25 @@ class ExecutionError(BaseModel):
     type: type # type of error
     traceback: str
 
+class ExecutionContext(threading.local):
+    job_id: Optional[str] = None
+    authorization: Optional[str] = None
+
 class Executor(Generic[T]):
     """
     A generic class that executes a function in a thread pool and returns the result via an asyncio Queue.
     The generic type T represents the return type of the function.
     """
+
+    _exex_ctxt = ExecutionContext()
+
+    @classmethod
+    def job_id(cls) -> str:
+        return cls._exex_ctxt.job_id
+
+    @classmethod
+    def job_authorization(cls) -> str:
+        return cls._exex_ctxt.authorization
 
     def __init__(
         self,
@@ -117,6 +133,8 @@ class Executor(Generic[T]):
             if self.request_param is not None:
                 kwargs[self.request_param] = req
 
+            self._exex_ctxt.job_id = job_id
+            self._exex_ctxt.authorization = req.headers.get("authorization")
             fname = self.func.__name__
             with tracer.start_as_current_span(f"RUN {fname}") as span:
                 span.set_attribute("job.id", job_id)
@@ -135,6 +153,8 @@ class Executor(Generic[T]):
                     span.record_exception(ex)
                     raise ex
                 finally:
+                    self._exex_ctxt.job_id = None
+                    self._exex_ctxt.authorizaton = None
                     if loop != None:
                         loop.close
 
