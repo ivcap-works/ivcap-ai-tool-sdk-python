@@ -14,6 +14,7 @@ import sys
 from ivcap_fastapi import service_log_config, getLogger
 from .tool_definition import print_tool_definition
 from .utils import find_first
+from .context import set_context, otel_instrument
 
 def start_tool_server(
     app:FastAPI,
@@ -65,22 +66,17 @@ def start_tool_server(
     logger.info(f"{title} - {os.getenv('VERSION')}")
     # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
 
-    from .context import set_context
     set_context()
 
-    if not with_telemetry == False:
-        if with_telemetry == True or args.with_telemetry:
-            from .context import otel_instrument
-            otel_instrument(app, logger)
+    otel_instrument(app, with_telemetry, logger)
 
-    @app.middleware("http")
     async def _add_version(request: Request, call_next) -> Response:
         from .version import __version__
         resp = await call_next(request)
         resp.headers["Ivcap-AI-Tool-Version"] = __version__
         return resp
 
-    #app.middleware("http")(_add_version)
+    app.middleware("http")(_add_version)
 
     if run_opts is None:
         run_opts = {}

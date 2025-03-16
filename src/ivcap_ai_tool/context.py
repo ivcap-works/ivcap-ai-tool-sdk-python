@@ -1,3 +1,9 @@
+#
+# Copyright (c) 2023 Commonwealth Scientific and Industrial Research Organisation (CSIRO). All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file. See the AUTHORS file for names of contributors.
+#
+
 # Various "patches" to maiontain context between incoming requests
 # and calls to external services within a "session"
 #
@@ -5,14 +11,19 @@ import functools
 from logging import Logger
 from ivcap_fastapi import getLogger
 import os
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI
 
-def otel_instrument(app: FastAPI, logger: Logger):
+def otel_instrument(app: FastAPI, with_telemetry: Literal[True] | None, logger: Logger):
+    if with_telemetry == False:
+        return
     endpoint = os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')
     if endpoint == None:
-        logger.warning("requested --with-telemetry but exporter is not defined")
+        if with_telemetry == True:
+            logger.warning("requested --with-telemetry but exporter is not defined")
+        return
+
     if os.environ.get("PYTHONPATH") == None:
             os.environ["PYTHONPATH"] = ""
     import opentelemetry.instrumentation.auto_instrumentation.sitecustomize # force internal settings
@@ -56,7 +67,9 @@ def extend_requests():
 def _modify_headers(headers, url):
     from .executor import Executor
 
-    headers["ivcap-job-id"] = Executor.job_id()
+    job_id = Executor.job_id()
+    if job_id != None: # OTEL messages won't have a jobID
+        headers["ivcap-job-id"] = job_id
     auth = Executor.job_authorization()
     if auth != None and url == "http://ivcap.local":
         headers["authorization"] = auth

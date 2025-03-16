@@ -101,7 +101,7 @@ service-register: # tool-register # docker-publish
 	@if [[ ${account_id} != urn:ivcap:account:* ]]; then echo "ERROR: No IVCAP account found"; exit -1; fi
 	@$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
         "${SERVICE_NAME}" + "${account_id}"));'))
-	@$(eval image:=$(shell ivcap --context gke-dev package list ${DOCKER_TAG}))
+	@$(eval image:=$(shell ivcap package list ${DOCKER_TAG}))
 	@if [[ -z "${image}" ]]; then echo "ERROR: No uploaded docker image '${DOCKER_TAG}' found"; exit -1; fi
 	@echo "ServiceID: ${service_id}"
 	cat ${PROJECT_DIR}/${IVCAP_SERVICE_FILE} \
