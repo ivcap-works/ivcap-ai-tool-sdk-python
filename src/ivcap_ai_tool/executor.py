@@ -12,7 +12,8 @@ from cachetools import TTLCache
 from fastapi import Request
 from pydantic import BaseModel, Field
 from ivcap_fastapi import getLogger
-from opentelemetry import trace
+from opentelemetry import trace, context
+from opentelemetry.context.context import Context
 
 
 from .utils import _get_input_type
@@ -126,7 +127,9 @@ class Executor(Generic[T]):
                     event_loop,
                 )
 
-        def _run(param: Any):
+        def _run(param: Any, ctxt: Context):
+            context.attach(ctxt) # OTEL
+
             kwargs = {}
             if self.context_param is not None:
                 kwargs[self.context_param] = self.context
@@ -163,7 +166,7 @@ class Executor(Generic[T]):
         use_pool = self.thread_pool or concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         # Submit the function to the thread pool
-        future = use_pool.submit(_run, param)
+        future = use_pool.submit(_run, param, context.get_current())
         future.add_done_callback(_callback)
 
         # If we created a new pool, we should clean it up when done
