@@ -56,22 +56,23 @@ def extend_requests():
     def _send(
         self: Session, request: PreparedRequest, **kwargs: Any
     ):
-        logger.info(f"Intercepting request to {request.url}")
-        _modify_headers(request.headers, request.url)
+        logger.debug(f"Intercepting 'requests' request to {request.url}")
+        _modify_headers(request.headers, request.url, logger)
         # Call original method
         return wrapped_send(self, request, **kwargs)
 
     # Apply wrapper
     Session.send = _send
 
-def _modify_headers(headers, url):
+def _modify_headers(headers, url, logger):
     from .executor import Executor
 
     job_id = Executor.job_id()
     if job_id != None: # OTEL messages won't have a jobID
         headers["ivcap-job-id"] = job_id
     auth = Executor.job_authorization()
-    if auth != None and url == "http://ivcap.local":
+    if auth != None and url.startswith("http://ivcap.local"):
+        logger.debug(f"Adding 'Authorization' header")
         headers["authorization"] = auth
 
 def extend_httpx():
@@ -103,8 +104,8 @@ def extend_httpx():
     # Save original function
     wrapped_send = httpx.Client.send
     def _send(self, request, **kwargs):
-        logger.info(f"Intercepting request to {request.url}")
-        _modify_headers(request.headers, request.url)
+        logger.debug(f"Intercepting 'httpx' request to {request.url}")
+        _modify_headers(request.headers, request.url, logger)
         # Call original method
         return wrapped_send(self, request, **kwargs)
     # Apply wrapper
