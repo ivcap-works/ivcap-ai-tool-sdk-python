@@ -1,5 +1,10 @@
 # ivcap_ai_tool: A python library for building AI tools for the IVCAP platform
 
+<a href="https://scan.coverity.com/projects/ivcap-works-ivcap-ai-tool-sdk-python">
+  <img alt="Coverity Scan Build Status"
+       src="https://img.shields.io/coverity/scan/31491.svg"/>
+</a>
+
 A python library containing various helper and middleware functions
 to simplify developing AI tools to be deployed on IVCAP.
 

@@ -82,23 +82,34 @@ def extend_httpx():
     from .executor import Executor
     logger = getLogger("app.httpx")
 
+    # # Save original function
+    # wrapped_request = httpx.Client.request
+
+    # @functools.wraps(wrapped_request)
+    # def _request(self, method, url, **kwargs):
+    #     logger.info(f"Intercepting request to {url}")
+
+    #     # Modify headers
+    #     if "headers" not in kwargs:
+    #         kwargs["headers"] = {}
+    #     _modify_headers(kwargs["headers"], url)
+
+    #     # Call original method
+    #     return wrapped_request(self, method, url, **kwargs)
+
+    # # Apply wrapper
+    # httpx.Client.request = _request
+
     # Save original function
-    wrapped_request = httpx.Client.request
-
-    @functools.wraps(wrapped_request)
-    def _request(self, method, url, **kwargs):
-        logger.info(f"Intercepting request to {url}")
-
-        # Modify headers
-        if "headers" not in kwargs:
-            kwargs["headers"] = {}
-        _modify_headers(kwargs["headers"], url)
-
+    wrapped_send = httpx.Client.send
+    def _send(self, request, **kwargs):
+        logger.info(f"Intercepting request to {request.url}")
+        _modify_headers(request.headers, request.url)
         # Call original method
-        return wrapped_request(self, method, url, **kwargs)
-
+        return wrapped_send(self, request, **kwargs)
     # Apply wrapper
-    httpx.Client.request = _request
+    httpx.Client.send = _send
+
 
 def set_context():
     extend_requests()
