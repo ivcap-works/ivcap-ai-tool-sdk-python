@@ -10,6 +10,7 @@ import requests
 from signal import signal, SIGTERM
 from asyncio import sleep as async_sleep
 
+
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
 sys.path.insert(0, src_dir)
@@ -58,10 +59,20 @@ class CallTester(BaseModel):
         ge=1  # Minimum value of 1 second to prevent infinite waiting
     )
 
+class ChatMessage(BaseModel):
+    content: str = Field(..., description="The content of this message.")
+    role: str = Field(..., description="The role of the messages author.")
+    name: Optional[str] = Field(None, description="An optional name for the participant.")
+
+class LlmTester(BaseModel):
+    messages: List[ChatMessage] = Field(..., description="A list of messages to be passed to the LLM.")
+    model: Optional[str] = Field("gpt-3.5-turbo", description="The LLM model to use [gpt-3.5-turbo].")
+
 class Request(BaseModel):
     jschema: str = Field("urn:sd:schema:ai-tester.request.1", alias="$schema")
     echo: Optional[str] = Field(None, description="a string to echo in result")
     call: Optional[CallTester] = Field(None, description="Optionally call a service")
+    llm: Optional[LlmTester] = Field(None, description="Optionally callan LLM's completion service")
     sleep: Optional[int] = Field(0, description="the number of seconds to sleep before replying")
 
 class RequestContext(BaseModel):
@@ -81,6 +92,7 @@ class Result(BaseModel):
     jschema: str = Field("urn:sd:schema:ai-tester.1", alias="$schema")
     echo: Optional[str] = Field(None, description="echos string from request")
     call_result: Optional[Dict] = Field(None, description="result of executing the 'call'")
+    llm_result: Optional[Dict] = Field(None, description="result of executing the 'llm'")
     request: RequestContext = Field(description="information on the incoming request")
     run_time: float = Field(description="time in seconds this job took")
 
@@ -97,6 +109,9 @@ def tester(req: Request, freq: FRequest) -> Result:
 
     if req.call != None:
         result.call_result = make_request(req.call)
+
+    if req.llm != None:
+        result.llm_result = completion(req.llm)
 
     if req.sleep > 0:
         sleep(req.sleep)
@@ -117,11 +132,39 @@ async def async_tester(req: Request, freq: FRequest) -> Result:
     if req.call != None:
         raise Exception("not implemented")
 
+    if req.llm != None:
+        result.llm_result = await async_completion(req.llm)
+
     if req.sleep > 0:
         await async_sleep(req.sleep)
 
     result.run_time = round(time() - start_time, 2)
     return result
+
+def completion(req: LlmTester):
+    import openai
+
+    client =  create_openai_client(openai.OpenAI)
+    response = client.chat.completions.create(model=req.model, messages=req.messages)
+    return format_llm_response(response)
+
+async def async_completion(req: LlmTester):
+    import openai
+
+    client =  create_openai_client(openai.AsyncOpenAI)
+    response = await client.chat.completions.create(model=req.model, messages=req.messages)
+    return format_llm_response(response)
+
+def format_llm_response(response):
+    messages = [c.message.model_dump() for c in response.choices]
+    usage = response.usage.model_dump()
+    return {"messages": messages, "usage": usage}
+
+def create_openai_client(f):
+    if os.getenv("LITELLM_PROXY") == None:
+        return f()
+    else:
+        return f(base_url=os.getenv("LITELLM_PROXY"), api_key="not-needed")
 
 
 def make_request(req: CallTester) -> Any:
@@ -152,4 +195,12 @@ add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], servic
 add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
 if __name__ == "__main__":
-    start_tool_server(app, tester)
+    import argparse
+    def custom_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
+        parser.add_argument('--litellm-proxy', type=str, help='Address of the the LiteLlmProxy')
+        args = parser.parse_args()
+        if args.litellm_proxy != None:
+            os.setenv("LITELLM_PROXY", args.litellm_proxy)
+        return args
+
+    start_tool_server(app, tester, custom_args=custom_args)

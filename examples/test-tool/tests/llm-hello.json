@@ -1,0 +1,11 @@
+{
+  "$schema": "urn:sd:schema:ai-tester.request.1",
+  "llm": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello!"
+      }
+    ]
+  }
+}

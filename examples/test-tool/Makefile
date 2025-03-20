@@ -13,7 +13,8 @@ DOCKER_DOMAIN=$(shell echo ${PROVIDER_NAME} | sed -E 's/[-:]/_/g')
 DOCKER_NAME=$(shell echo ${SERVICE_NAME} | sed -E 's/-/_/g')
 DOCKER_VERSION=${GIT_COMMIT}
 DOCKER_TAG=${DOCKER_NAME}:${DOCKER_VERSION}
-DOCKER_TAG_LOCAL=${DOCKER_NAME}:latest
+DOCKER_VERSION=${GIT_COMMIT}
+DOCKER_TAG_LOCAL=${DOCKER_NAME}:${DOCKER_VERSION}
 
 PROJECT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TARGET_PLATFORM := linux/$(shell go env GOARCH)
@@ -29,6 +30,9 @@ run-with-proxy:
 	env VERSION=$(VERSION) PYTHONPATH="" \
 		http_proxy=${HTTP_PROXY} \
 		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
+
+run-litellm:
+	env $(shell cat .env | xargs) litellm --port 4000 -m gpt-3.5-turbo -m gpt-4
 
 test-echo:
 	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}/
@@ -56,6 +60,17 @@ test-list-services:
 
 test-list-tools:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-tools.json http://localhost:${PORT} | jq
+
+test-llm:
+	curl -X POST -H "content-type: application/json" -H "Timeout: 60" --data @${PROJECT_DIR}/tests/llm-hello.json http://localhost:${PORT} | jq
+
+test-llm-with-auth:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		-H "Timeout: 60" \
+		--data @${PROJECT_DIR}/tests/llm-hello.json \
+		http://localhost:${PORT}
 
 print-tool-description:
 	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
@@ -131,7 +146,7 @@ docker-publish: docker-build
 	@$(MAKE) PUSH_FROM="--local " docker-publish-common
 
 docker-publish-common:
-	$(eval log:=$(shell ivcap --context gke-dev package push --force ${PUSH_FROM}${DOCKER_TAG} | tee /dev/tty))
+	$(eval log:=$(shell ivcap package push --force ${PUSH_FROM}${DOCKER_TAG} | tee /dev/tty))
 	$(eval SERVICE_IMG := $(shell echo ${log} | sed -E "s/.*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.*) pushed/\1/"))
 	@if [ "${SERVICE_IMG}" == "" ] || [ "${SERVICE_IMG}" == "${DOCKER_TAG}" ]; then \
 		echo "service package push failed"; \
