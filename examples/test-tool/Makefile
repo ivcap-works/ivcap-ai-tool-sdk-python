@@ -56,7 +56,10 @@ test-call-post-async:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT}/async
 
 test-list-services:
-	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-services.json http://localhost:${PORT} | jq
+	curl -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		--data @${PROJECT_DIR}/tests/list-services.json http://localhost:${PORT} | jq
 
 test-list-tools:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-tools.json http://localhost:${PORT} | jq
@@ -105,7 +108,8 @@ docker-build:
 		--platform=${TARGET_PLATFORM} \
 		--build-arg VERSION=${VERSION} \
 		-f ${PROJECT_DIR}/Dockerfile \
-		${PROJECT_DIR} ${DOCKER_BILD_ARGS}
+		${DOCKER_BILD_ARGS} \
+		${PROJECT_DIR}
 	@echo "\nFinished building docker image ${DOCKER_NAME}\n"
 
 SERVICE_IMG := ${DOCKER_DEPLOY}
