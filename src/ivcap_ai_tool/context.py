@@ -12,6 +12,8 @@ from logging import Logger
 from ivcap_fastapi import getLogger
 import os
 from typing import Any, Literal
+from httpx import URL as URLx
+from urllib.parse import urlparse
 
 from fastapi import FastAPI
 
@@ -71,9 +73,20 @@ def _modify_headers(headers, url, logger):
     if job_id != None: # OTEL messages won't have a jobID
         headers["ivcap-job-id"] = job_id
     auth = Executor.job_authorization()
-    if auth != None and url.startswith("http://ivcap.local"):
-        logger.debug(f"Adding 'Authorization' header")
-        headers["authorization"] = auth
+    if auth != None:
+        hostname = _get_hostname(url)
+        if hostname.endswith(".local"):
+            logger.debug(f"Adding 'Authorization' header")
+            headers["authorization"] = auth
+
+def _get_hostname(url):
+    try:
+        if isinstance(url, URLx):
+            return url.host
+        if isinstance(url, str):
+            return urlparse(url).hostname
+    except Exception:
+        return ""
 
 def extend_httpx():
     try:
