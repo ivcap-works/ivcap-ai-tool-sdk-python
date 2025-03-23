@@ -58,7 +58,7 @@ def extend_requests():
     def _send(
         self: Session, request: PreparedRequest, **kwargs: Any
     ):
-        logger.debug(f"Intercepting 'requests' request to {request.url}")
+        logger.debug(f"Instrumenting 'requests' request to {request.url}")
         _modify_headers(request.headers, request.url, logger)
         # Call original method
         return wrapped_send(self, request, **kwargs)
@@ -75,7 +75,7 @@ def _modify_headers(headers, url, logger):
     auth = Executor.job_authorization()
     if auth != None:
         hostname = _get_hostname(url)
-        if hostname.endswith(".local"):
+        if hostname.endswith(".local") or hostname.endswith(".minikube"):
             logger.debug(f"Adding 'Authorization' header")
             headers["authorization"] = auth
 
@@ -96,33 +96,24 @@ def extend_httpx():
     from .executor import Executor
     logger = getLogger("app.httpx")
 
-    # # Save original function
-    # wrapped_request = httpx.Client.request
-
-    # @functools.wraps(wrapped_request)
-    # def _request(self, method, url, **kwargs):
-    #     logger.info(f"Intercepting request to {url}")
-
-    #     # Modify headers
-    #     if "headers" not in kwargs:
-    #         kwargs["headers"] = {}
-    #     _modify_headers(kwargs["headers"], url)
-
-    #     # Call original method
-    #     return wrapped_request(self, method, url, **kwargs)
-
-    # # Apply wrapper
-    # httpx.Client.request = _request
-
     # Save original function
     wrapped_send = httpx.Client.send
     def _send(self, request, **kwargs):
-        logger.debug(f"Intercepting 'httpx' request to {request.url}")
+        logger.debug(f"Instrumenting 'httpx' request to {request.url}")
         _modify_headers(request.headers, request.url, logger)
         # Call original method
         return wrapped_send(self, request, **kwargs)
     # Apply wrapper
     httpx.Client.send = _send
+
+    wrapped_asend = httpx.AsyncClient.send
+    def _asend(self, request, **kwargs):
+        logger.debug(f"Instrumenting 'httpx' async request to {request.url}")
+        _modify_headers(request.headers, request.url, logger)
+        return wrapped_asend(self, request, **kwargs)
+    httpx.AsyncClient.send = _asend
+
+
 
 
 def set_context():

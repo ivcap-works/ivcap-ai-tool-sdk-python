@@ -144,9 +144,13 @@ async def async_tester(req: Request, freq: FRequest) -> Result:
 def completion(req: LlmTester):
     import openai
 
-    client =  create_openai_client(openai.OpenAI)
-    response = client.chat.completions.create(model=req.model, messages=req.messages)
-    return format_llm_response(response)
+    try:
+        client =  create_openai_client(openai.OpenAI)
+        response = client.chat.completions.create(model=req.model, messages=req.messages)
+        return format_llm_response(response)
+    except Exception as ex:
+        logger.warning(f"llm execution failed - {ex}")
+        raise ex
 
 async def async_completion(req: LlmTester):
     import openai
@@ -161,10 +165,11 @@ def format_llm_response(response):
     return {"messages": messages, "usage": usage}
 
 def create_openai_client(f):
-    if os.getenv("LITELLM_PROXY") == None:
+    base_url = os.getenv("LITELLM_PROXY")
+    if base_url == None:
         return f()
     else:
-        return f(base_url=os.getenv("LITELLM_PROXY"), api_key="not-needed")
+        return f(base_url=f"{base_url}/v1", api_key="not-needed")
 
 
 def make_request(req: CallTester) -> Any:
