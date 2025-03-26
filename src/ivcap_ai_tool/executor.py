@@ -59,6 +59,16 @@ class Executor(Generic[T]):
     def job_authorization(cls) -> str:
         return cls._exex_ctxt.authorization
 
+    @classmethod
+    def wait_for_exit_ready(cls):
+        """The server is calling this method when a shutdown request arrived. It will
+        proceed with the shutdown when this method returns.
+
+        We may implement functionality to only return when all active jobs have finsihed, as well as not
+        accepting any new incoming requests.
+        """
+        pass
+
     def __init__(
         self,
         func: Callable[..., T],

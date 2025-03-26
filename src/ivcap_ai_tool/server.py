@@ -10,8 +10,11 @@ from fastapi import FastAPI, Request, Response
 import uvicorn
 import os
 import sys
+import signal
 
 from ivcap_fastapi import service_log_config, getLogger
+
+from ivcap_ai_tool.executor import Executor
 from .tool_definition import print_tool_definition
 from .utils import find_first
 from .context import set_context, otel_instrument
@@ -80,4 +83,16 @@ def start_tool_server(
 
     if run_opts is None:
         run_opts = {}
-    uvicorn.run(app, host=args.host, port=args.port, log_config=service_log_config(), **run_opts)
+
+    class Server(uvicorn.Server):
+        def handle_exit(self, sig: int, frame: any) -> None:
+            logger.info(f"Received request for shutdown. Waiting for all running requests to finish first.")
+            Executor.wait_for_exit_ready()
+            super().handle_exit(sig, frame)
+
+    server = Server(config=uvicorn.Config(app, host=args.host, port=args.port, log_config=service_log_config(), **run_opts))
+
+    # Start the server
+    server.run()
+
+    # uvicorn.run(app, host=args.host, port=args.port, log_config=service_log_config(), **run_opts)

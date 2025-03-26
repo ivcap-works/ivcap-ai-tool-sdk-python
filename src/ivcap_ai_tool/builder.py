@@ -105,7 +105,7 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
         job_id = req.headers.get("job-id")
         if job_id == None:
             job_id = str(uuid6())
-
+        logger.info(f"starting job {path_prefix}/jobs/{job_id}")
         if req.headers.get("prefer") == "respond-async":
             timeout = 0
         else:
