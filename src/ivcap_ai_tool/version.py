@@ -14,3 +14,6 @@ except ImportError:
         __version__ = pkg_resources.get_distribution('ivcap_ai_tool').version
     except Exception:
         pass
+
+def get_version():
+    return __version__

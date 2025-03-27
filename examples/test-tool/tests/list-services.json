@@ -2,6 +2,6 @@
   "$schema": "urn:sd:schema:ai-tester.request.1",
   "call": {
     "method": "GET",
-    "url": "http://ivcap.local/1/services2/791b421d-e277-5e59-8a58-4b58559bf812"
+    "url": "http://ivcap.local/1/services2"
   }
 }

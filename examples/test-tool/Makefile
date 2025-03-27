@@ -49,6 +49,14 @@ test-list-services:
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 		--data @${PROJECT_DIR}/tests/list-services.json http://localhost:${PORT} | jq
 
+test-list-services-ivcap:
+	curl -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap --context gke-dev context get access-token --refresh-token)" \
+		-H "Timeout: 60" \
+		--data @${PROJECT_DIR}/tests/list-services.json \
+		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs | jq
+
 test-list-tools:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-tools.json http://localhost:${PORT} | jq
 
@@ -73,6 +81,14 @@ test-llm-minikube:
 		-H "Timeout: 60" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		http://ivcap.minikube/1/services2/${SERVICE_ID}/jobs
+
+test-llm-ivcap:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap --context gke-dev context get access-token --refresh-token)" \
+		-H "Timeout: 60" \
+		--data @${PROJECT_DIR}/tests/llm-hello.json \
+		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs
 
 print-tool-description:
 	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \

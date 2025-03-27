@@ -16,7 +16,6 @@ from .utils import _get_input_type, _get_function_return_type, _get_title_from_p
 from .tool_definition import ToolDefinition, create_tool_definition
 
 
-
 class ErrorModel(BaseModel):
     message: str
     code: int

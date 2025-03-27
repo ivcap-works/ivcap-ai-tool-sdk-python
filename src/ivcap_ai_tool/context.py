@@ -75,7 +75,7 @@ def _modify_headers(headers, url, logger):
     auth = Executor.job_authorization()
     if auth != None:
         hostname = _get_hostname(url)
-        if hostname.endswith(".local") or hostname.endswith(".minikube"):
+        if hostname.endswith(".local") or hostname.endswith(".minikube") or hostname.endswith(".ivcap.net"):
             logger.debug(f"Adding 'Authorization' header")
             headers["authorization"] = auth
 

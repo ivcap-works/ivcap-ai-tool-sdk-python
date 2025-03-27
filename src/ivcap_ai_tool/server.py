@@ -14,7 +14,8 @@ import signal
 
 from ivcap_fastapi import service_log_config, getLogger
 
-from ivcap_ai_tool.executor import Executor
+from .executor import Executor
+from .version import get_version
 from .tool_definition import print_tool_definition
 from .utils import find_first
 from .context import set_context, otel_instrument
@@ -66,7 +67,7 @@ def start_tool_server(
         def healtz():
             return {"version": os.environ.get("VERSION", "???")}
 
-    logger.info(f"{title} - {os.getenv('VERSION')}")
+    logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}")
     # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
 
     set_context()
