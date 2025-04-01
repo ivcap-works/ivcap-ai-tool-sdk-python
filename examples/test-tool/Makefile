@@ -78,7 +78,7 @@ test-llm-minikube:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
-		-H "Timeout: 60" \
+		-H "Timeout: 10" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		http://ivcap.minikube/1/services2/${SERVICE_ID}/jobs
 
@@ -89,6 +89,15 @@ test-llm-ivcap:
 		-H "Timeout: 60" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs
+
+REQUEST=echo.json
+test-local-debug:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		-H "Timeout: 60" \
+		--data @${PROJECT_DIR}/tests/${REQUEST} \
+		http://localhost:8088/1/services2/${SERVICE_ID}/jobs
 
 print-tool-description:
 	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
