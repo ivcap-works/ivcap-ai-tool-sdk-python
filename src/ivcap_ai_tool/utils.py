@@ -4,10 +4,11 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import inspect
+import os
 import re
 from typing import Optional, Type, Callable, TypeVar, Any, get_type_hints, Union, Dict, Tuple
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 
 def _get_title_from_path(path: str) -> Tuple[str, str]:
@@ -102,7 +103,7 @@ def find_first(iterable, condition):
 
 from fastapi import Request
 from typing import Optional, Type, Callable, TypeVar, Any, get_type_hints, Union, Dict, Tuple
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 from pydantic import BaseModel
 
@@ -147,3 +148,9 @@ def get_forwarded_header(request: Request) -> Optional[Dict[str, str]]:
             parsed_values[key] = value
 
     return parsed_values
+
+def get_ivcap_url() -> HttpUrl:
+    """
+    Returns the sidecar URL from the request headers.
+    """
+    return urlparse(os.getenv("IVCAP_BASE_URL"))

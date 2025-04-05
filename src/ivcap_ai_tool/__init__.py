@@ -11,5 +11,5 @@ from .tool_definition import ToolDefinition, print_tool_definition, create_tool_
 from .server import start_tool_server
 
 from .builder import add_tool_api_route, ToolOptions
-from .executor import ExecutionContext
+from .executor import ExecutionContext, BinaryResult
 from .utils import get_public_url_prefix

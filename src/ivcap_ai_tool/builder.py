@@ -4,15 +4,16 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import asyncio
+import json
 from fastapi import FastAPI, Response, status, Request
 from pydantic import BaseModel, Field
 from typing import Any, Dict, Optional, Callable, TypeVar
 from uuid6 import uuid6
 
-from ivcap_fastapi import getLogger, TryLaterException
+from ivcap_fastapi import getLogger
 
-from .executor import ExecutionContext, ExecutionError, Executor, ExecutorOpts
-from .utils import _get_input_type, _get_function_return_type, _get_title_from_path, get_forwarded_header, get_public_url_prefix
+from .executor import ExecutionContext, ExecutionError, Executor, ExecutorOpts, IvcapResult
+from .utils import _get_input_type, _get_function_return_type, _get_title_from_path, get_public_url_prefix
 from .tool_definition import ToolDefinition, create_tool_definition
 
 
@@ -24,6 +25,8 @@ class ExecutionErrorModel(BaseModel):
     jschema: str = Field("urn:ivcap:schema.ai-tool.error.1", alias="$schema")
     message: str
     traceback: str
+
+JOB_URN_PREFIX = "urn:ivcap:job:"
 
 
 logger = getLogger("wrapper")
@@ -104,6 +107,9 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
         job_id = req.headers.get("job-id")
         if job_id == None:
             job_id = str(uuid6())
+        elif job_id.startswith(JOB_URN_PREFIX):
+            job_id = job_id[len(JOB_URN_PREFIX):]
+
         logger.info(f"starting job {path_prefix}/jobs/{job_id}")
         if req.headers.get("prefer") == "respond-async":
             timeout = 0
@@ -116,7 +122,9 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
 
         queue = await executor.execute(data, job_id, req)
         try:
+            logger.info(f"job {job_id} waiting for result message on {queue}")
             el = await asyncio.wait_for(queue.get(), timeout=timeout)
+            logger.info(f"job {job_id} got result message on {queue}")
             queue.task_done()
             el = _return_job_result(el, job_id)
             return el
@@ -156,6 +164,8 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
 def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
     output_model = _get_function_return_type(worker_fn)
     def route(job_id: str) -> output_model: # type: ignore
+        if job_id.startswith(JOB_URN_PREFIX):
+            job_id = job_id[len(JOB_URN_PREFIX):]
         try:
             result = executor.lookup_job(job_id)
             if result == None:
@@ -183,15 +193,22 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
     )
 
 def _return_job_result(el, job_id):
-    if isinstance(el, ExecutionError):
+    h = { "job-id": JOB_URN_PREFIX + job_id }
+    if isinstance(el, IvcapResult):
+        return  Response(status_code=status.HTTP_200_OK, content=el.content, media_type=el.content_type, headers=h)
+    elif isinstance(el, ExecutionError):
         if el.type == ValueError:
             m = ErrorModel(message=el.error, code=400)
-            return Response(status_code=status.HTTP_400_BAD_REQUEST, content=m.model_dump_json(indent=2), media_type="application/json")
+            status_code=status.HTTP_400_BAD_REQUEST
+        else:
+            m = ExecutionErrorModel(message=el.error, traceback=el.traceback)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        m = ExecutionErrorModel(message=el.error, traceback=el.traceback)
-        return  Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=m.model_dump_json(indent=2), media_type="application/json")
-    else:
-        return el
+        return Response(status_code=status_code, content=m.model_dump_json(indent=2), media_type="application/json", headers=h)
+
+    msg = json.dumps({"error": "please report unexpected internal error - unexpected result type {type(el)}"})
+    return  Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=msg, media_type="application/json", headers=h)
+
 
 def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable, opts: ToolOptions):
     async def route(req: Request) -> ToolDefinition:  # type: ignore
@@ -221,5 +238,6 @@ def _return_try_later(job_id: str, path_prefix: str, opts: ToolOptions):
     headers = {
         "Location": location,
         "Retry-Later": f"{opts.refresh_interval}",
+        "Ivcap-Self-Report-Result": "true"
     }
     return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)
