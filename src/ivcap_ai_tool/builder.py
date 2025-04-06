@@ -110,7 +110,6 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
         elif job_id.startswith(JOB_URN_PREFIX):
             job_id = job_id[len(JOB_URN_PREFIX):]
 
-        logger.info(f"starting job {path_prefix}/jobs/{job_id}")
         if req.headers.get("prefer") == "respond-async":
             timeout = 0
         else:
@@ -119,16 +118,16 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
                 timeout = int(toh)
             else:
                 timeout = opts.max_wait_time
+        logger.info(f"starting job {path_prefix}/jobs/{job_id} - timeout: {timeout} seconds")
 
         queue = await executor.execute(data, job_id, req)
         try:
-            logger.info(f"job {job_id} waiting for result message on {queue}")
             el = await asyncio.wait_for(queue.get(), timeout=timeout)
-            logger.info(f"job {job_id} got result message on {queue}")
             queue.task_done()
             el = _return_job_result(el, job_id)
             return el
         except asyncio.TimeoutError:
+            logger.info(f"... defer job result to later - {job_id}")
             return _return_try_later(job_id, path_prefix, opts)
 
     responses = {

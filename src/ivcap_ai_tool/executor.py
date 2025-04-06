@@ -317,9 +317,9 @@ class Executor(Generic[T]):
                         data=content,
                     )
                 break
-            except httpx.RequestError as e:
+            except Exception as e:
                 attempt += 1
-                logger.warning(f"{job_id}: attempt #{attempt} failed to push result - will try again in {wait_time} sec - {e}")
+                logger.info(f"{job_id}: attempt #{attempt} failed to push result - will try again in {wait_time} sec - {type(e)}: {e}")
                 sleep(wait_time)
                 wait_time *= 2
 
