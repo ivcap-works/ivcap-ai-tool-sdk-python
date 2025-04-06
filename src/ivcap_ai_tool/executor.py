@@ -281,6 +281,12 @@ class Executor(Generic[T]):
 
     def _push_result(self, result: any, job_id: str):
         """Actively push result to sidecar, fail quietly."""
+        ivcap_url = get_ivcap_url()
+        if ivcap_url is None:
+            logger.warning(f"{job_id}: no ivcap url found - cannot push result")
+            return
+        url = urlunparse(ivcap_url._replace(path=f"/results/{job_id}"))
+
         content_type="text/plain"
         content="SOMETHING WENT WRONG _ PLEASE REPORT THIS ERROR"
 
@@ -307,16 +313,19 @@ class Executor(Generic[T]):
 
         wait_time = 1
         attempt = 0
+        headers = {
+            "Content-Type": content_type,
+            "Authorization": self.__class__.job_authorization(),
+        }
         while attempt < MAX_DELIVER_RESULT_ATTEMPTS:
             try:
-                url = get_ivcap_url()._replace(path=f"/results/{job_id}")
-                with httpx.Client() as client:
-                    client.post(
-                        url=urlunparse(url),
-                        headers={"Content-Type": content_type},
-                        data=content,
-                    )
-                break
+                response = httpx.post(
+                    url=url,
+                    headers=headers,
+                    data=content,
+                )
+                response.raise_for_status()
+                return
             except Exception as e:
                 attempt += 1
                 logger.info(f"{job_id}: attempt #{attempt} failed to push result - will try again in {wait_time} sec - {type(e)}: {e}")

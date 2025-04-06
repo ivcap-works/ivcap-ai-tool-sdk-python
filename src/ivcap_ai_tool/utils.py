@@ -153,4 +153,7 @@ def get_ivcap_url() -> HttpUrl:
     """
     Returns the sidecar URL from the request headers.
     """
-    return urlparse(os.getenv("IVCAP_BASE_URL"))
+    base = os.getenv("IVCAP_BASE_URL")
+    if base == "":
+        return None
+    return urlparse(base)
