@@ -60,7 +60,7 @@ class ExecutionError(BaseModel):
     jschema: str = Field("urn:ivcap:schema.ai-tool.error.1", alias="$schema")
     error: str = Field(description="Error message")
     type: str = Field(description="Error type")
-    traceback: Optional[str]
+    traceback: Optional[str] = Field(None, description="traceback")
 
 class Executor(Generic[T]):
     """
@@ -194,16 +194,27 @@ class Executor(Generic[T]):
                         loop.close()  # Clean up event loop
                     else:
                         res = self.func(param, **kwargs)
-                    _process_result(res)
-                except Exception as ex:
+                except BaseException as ex:
                     span.record_exception(ex)
-                    raise ex
+                    logger.error(f"while executing {job_id} - {ex}")
+                    res = ExecutionError(
+                        error=str(ex),
+                        type=type(ex).__name__,
+                        traceback=traceback.format_exc()
+                    )
                 finally:
                     self.__class__._active_jobs.discard(job_id)
-                    self._exex_ctxt.job_id = None
-                    self._exex_ctxt.authorizaton = None
-                    if loop != None:
-                        loop.close
+
+                try:
+                    _process_result(res)
+                except BaseException as ex:
+                    logger.error(f"while delivering result fo {job_id} - {ex}")
+
+                self._exex_ctxt.job_id = None
+                self._exex_ctxt.authorizaton = None
+                if loop != None:
+                    loop.close
+
 
 
         # Use the provided thread pool or create a new one
@@ -231,6 +242,8 @@ class Executor(Generic[T]):
         return self.job_cache[job_id]
 
     def _verify_result(self, result: any, job_id: str) -> any:
+        if isinstance(result, ExecutionError):
+            return result
         if isinstance(result, BaseModel):
             try:
                 return IvcapResult(
@@ -244,8 +257,7 @@ class Executor(Generic[T]):
                 return ExecutionError(
                     error=msg,
                     type=type(ex).__name__,
-                    isErroe=True,
-                    raw=result
+                    traceback=traceback.format_exc()
                 )
         if isinstance(result, BinaryResult):
             return IvcapResult(content=result.content, content_type=result.content_type)
@@ -289,7 +301,7 @@ class Executor(Generic[T]):
 
         content_type="text/plain"
         content="SOMETHING WENT WRONG _ PLEASE REPORT THIS ERROR"
-
+        is_error = False
         if not (isinstance(result, ExecutionError) or isinstance(result, IvcapResult)):
             msg = f"{job_id}: expected 'BinaryResult' or 'ExecutionError' but got {type(result)}"
             logger.warning(msg)
@@ -302,20 +314,24 @@ class Executor(Generic[T]):
             content = result.content
             content_type = result.content_type
         else:
-            if isinstance(result, ExecutionError):
-                content = result.model_dump_json(by_alias=True)
-                content_type = "application/json"
-            else:
+            is_error = True
+            if not isinstance(result, ExecutionError):
                 # this should never happen
                 logger.error(f"{job_id}: expected 'ExecutionError' but got {type(result)}")
-                content = json.dumps({"error": "please report unexpected internal error - expected 'ExecutionError' but got {type(result)}"})
-                content_type = "application/json"
+                result = ExecutionError(
+                    error="please report unexpected internal error - expected 'ExecutionError' but got {type(result)}",
+                    type="internal_error",
+                )
+            content = result.model_dump_json(by_alias=True)
+            content_type = "application/json"
+
 
         wait_time = 1
         attempt = 0
         headers = {
             "Content-Type": content_type,
             "Authorization": self.__class__.job_authorization(),
+            "Is-Error": str(is_error),
         }
         while attempt < MAX_DELIVER_RESULT_ATTEMPTS:
             try:
