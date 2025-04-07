@@ -7,15 +7,20 @@ IVCAP_SERVICE_FILE=service.json
 PORT=8095
 SERVICE_URL=http://localhost:8099
 HTTP_PROXY=http://localhost:9999
+TIMEOUT=3
 
 include Makefile.common
 
 run:
-	env VERSION=$(VERSION) PYTHONPATH="" \
+	env VERSION=$(VERSION) \
+		PYTHONPATH="" \
+		IVCAP_BASE_URL="http://ivcap.local" \
 		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
 
 run-with-proxy:
 	env VERSION=$(VERSION) PYTHONPATH="" \
+		PYTHONPATH=${PROJECT_DIR}/../../src \
+		IVCAP_BASE_URL="http://ivcap.local" \
 		http_proxy=${HTTP_PROXY} \
 		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
 
@@ -23,20 +28,34 @@ run-litellm:
 	env $(shell cat .env | xargs) litellm --port 4000 -m gpt-3.5-turbo -m gpt-4
 
 test-echo:
-	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}/
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "timeout:${TIMEOUT}" \
+		 --data "{\"echo\": \"Hello World!\"}" \
+		 http://localhost:${PORT}/
 
 test-echo-with-sleep:
 	curl -i -X POST -H "content-type: application/json" --data "{\"echo\": \"Hello World!\", \"sleep\":5}" http://localhost:${PORT}
 
+JOB_ID=urn:ivcap:job:ef3cdd2a-ab66-4419-ac2c-acc14b3a5fa8
 test-echo-with-auth:
 	curl -i -X POST \
 		-H "content-type: application/json" \
+		-H "job-id: ${JOB_ID}" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 		--data "{\"echo\": \"Hello World!\"}" http://localhost:${PORT}/
+
+test-error:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "job-id: ${JOB_ID}" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		--data @${PROJECT_DIR}/tests/raise_error.json http://localhost:${PORT}/
 
 test-call-post:
 	curl -X POST \
 		-H "content-type: application/json" \
+		-H "Timeout: ${TIMEOUT}" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 		--data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT} | jq
 
@@ -53,7 +72,7 @@ test-list-services-ivcap:
 	curl -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap --context gke-dev context get access-token --refresh-token)" \
-		-H "Timeout: 60" \
+		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/list-services.json \
 		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs | jq
 
@@ -62,7 +81,7 @@ test-list-tools:
 
 test-llm:
 	curl -X POST -H "content-type: application/json" \
-	-H "Timeout: 60" \
+	-H "Timeout: ${TIMEOUT}" \
 	-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 	--data @${PROJECT_DIR}/tests/llm-hello.json http://localhost:${PORT} | jq
 
@@ -70,7 +89,7 @@ test-llm-with-auth:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
-		-H "Timeout: 60" \
+		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		http://localhost:${PORT}
 
@@ -78,15 +97,23 @@ test-llm-minikube:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
-		-H "Timeout: 10" \
+		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
+		http://ivcap.minikube/1/services2/${SERVICE_ID}/jobs
+
+test-echo-minikube:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		-H "Timeout: ${TIMEOUT}" \
+		--data @${PROJECT_DIR}/tests/echo.json \
 		http://ivcap.minikube/1/services2/${SERVICE_ID}/jobs
 
 test-llm-ivcap:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap --context gke-dev context get access-token --refresh-token)" \
-		-H "Timeout: 60" \
+		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs
 
@@ -95,7 +122,7 @@ test-local-debug:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
-		-H "Timeout: 60" \
+		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/${REQUEST} \
 		http://localhost:8088/1/services2/${SERVICE_ID}/jobs
 
@@ -114,7 +141,9 @@ docker-run: #docker-build
 	docker run -it \
 		-p ${PORT}:${PORT} \
 		--user ${DOCKER_USER} \
-		-e LITELLM_PROXY=http://192.168.68.104:4000 \
+		-e LITELLM_PROXY=http://192.168.68.103:4000 \
+		-e IVCAP_BASE_URL="http://ivcap.local" \
+		-e http_proxy=http://192.168.68.103:9999 \
 		--platform=${TARGET_PLATFORM} \
 		--rm \
 		${DOCKER_TAG} --port ${PORT}

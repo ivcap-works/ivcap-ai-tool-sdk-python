@@ -43,7 +43,10 @@ service-register: # tool-register # docker-publish
 	cat ${PROJECT_DIR}/${IVCAP_SERVICE_FILE} \
 	| sed 's|#DOCKER_IMG#|${image}|' \
 	| sed 's|#SERVICE_ID#|${SERVICE_ID}|' \
-  | ivcap aspect update ${SERVICE_ID} -f - --timeout 600
+  | ivcap aspect update --policy urn:ivcap:policy:ivcap.open.metadata ${SERVICE_ID} -f - --timeout 600
+
+service-register-minikube:
+	@$(MAKE) TARGET_ARCH=${TARGET_ARCH} service-register
 
 tool-register: #docker-publish
 	$(eval account_id=$(shell ivcap context get account-id))
@@ -55,13 +58,13 @@ tool-register: #docker-publish
 	@if [[ -z "${tool_id}" ]]; then echo "ERROR: No Tool ID found"; exit -1; fi
 	docker run --rm ${DOCKER_NAME} --print-tool-description  2>/dev/null \
 	| sed 's|#SERVICE_ID#|${service_id}|' \
-	| ivcap aspect update ${service_id} -f - --timeout 600
+	| ivcap aspect update --policy urn:ivcap:policy:ivcap.open.metadata  ${service_id} -f - --timeout 600
 
 docker-publish: TARGET_ARCH=amd64
 docker-publish: docker-build
 	@echo "INFO: Publishing docker image '${DOCKER_NAME}_${TARGET_ARCH}:${GIT_COMMIT}' for '${TARGET_ARCH}'"
 	docker tag ${DOCKER_NAME}_${TARGET_ARCH} ${DOCKER_NAME}_${TARGET_ARCH}:${GIT_COMMIT}
-	$(eval size:=$(shell docker inspect ${DOCKER_NAME}_${TARGET_ARCH}:${GIT_COMMIT} --format='{{.Size}}' | tr -cd '0-9'))
+	$(eval size:=$(shell docker inspect ${DOCKER_NAME}_${TARGET_ARCH}:${DOCKER_VERSION} --format='{{.Size}}' | tr -cd '0-9'))
 	$(eval imageSize:=$(shell expr ${size} + 0 ))
 	@echo "... imageSize is ${imageSize}"
 	@$(MAKE) PUSH_FROM="--local " DOCKER_TAG=${DOCKER_NAME}_${TARGET_ARCH}:${GIT_COMMIT} docker-publish-common

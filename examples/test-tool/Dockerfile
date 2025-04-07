@@ -9,7 +9,7 @@ FROM --platform=${BUILD_PLATFORM} python:3.12.9-slim-bookworm AS builder
 WORKDIR /app
 RUN pip install -U pip
 COPY requirements.txt ./
-RUN pip install -r requirements.txt --force-reinstall
+RUN pip install -r requirements.txt
 
 # Get service files
 ADD tool-service.py  ./

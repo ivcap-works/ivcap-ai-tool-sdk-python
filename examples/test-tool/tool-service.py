@@ -74,6 +74,7 @@ class Request(BaseModel):
     call: Optional[CallTester] = Field(None, description="Optionally call a service")
     llm: Optional[LlmTester] = Field(None, description="Optionally callan LLM's completion service")
     sleep: Optional[int] = Field(0, description="the number of seconds to sleep before replying")
+    raise_error: Optional[str] = Field(None, description="raise an error with this message")
 
 class RequestContext(BaseModel):
     headers: List[Tuple[str, str]]
@@ -115,6 +116,9 @@ def tester(req: Request, freq: FRequest) -> Result:
 
     if req.sleep > 0:
         sleep(req.sleep)
+
+    if req.raise_error:
+        raise BaseException(req.raise_error)
 
     result.run_time = round(time() - start_time, 2)
     return result
