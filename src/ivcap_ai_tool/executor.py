@@ -196,7 +196,7 @@ class Executor(Generic[T]):
                         res = self.func(param, **kwargs)
                 except BaseException as ex:
                     span.record_exception(ex)
-                    logger.error(f"while executing {job_id} - {ex}")
+                    logger.error(f"while executing {job_id} - {type(ex).__name__}: {ex}")
                     res = ExecutionError(
                         error=str(ex),
                         type=type(ex).__name__,
