@@ -29,7 +29,10 @@ MAX_DELIVER_RESULT_ATTEMPTS = 4
 logger = getLogger("executor")
 tracer = trace.get_tracer("executor")
 
-class ExecutionContext(threading.local):
+class ExecutionContext:
+    pass
+
+class JobContext(threading.local):
     job_id: Optional[str] = None
     authorization: Optional[str] = None
 
@@ -68,16 +71,16 @@ class Executor(Generic[T]):
     The generic type T represents the return type of the function.
     """
 
-    _exex_ctxt = ExecutionContext()
+    _job_ctxt = JobContext()
     _active_jobs = set() # keep track of active jobs to block shutdown until they are done
 
     @classmethod
     def job_id(cls) -> str:
-        return cls._exex_ctxt.job_id
+        return cls._job_ctxt.job_id
 
     @classmethod
     def job_authorization(cls) -> str:
-        return cls._exex_ctxt.authorization
+        return cls._job_ctxt.authorization
 
     @classmethod
     def active_jobs(cls) -> List[str]:
@@ -102,7 +105,7 @@ class Executor(Generic[T]):
         func: Callable[..., T],
         *,
         opts: Optional[ExecutorOpts],
-        context: Optional[ExecutionContext] = None
+        context: Optional[JobContext] = None
     ):
         """
         Initialize the Executor with a function and an optional thread pool.
@@ -125,12 +128,17 @@ class Executor(Generic[T]):
         self.context = context
         self.context_param = None
         self.request_param = None
+        self.job_ctxt_param = None
         _, extras = _get_input_type(func)
         for k, v in extras.items():
             if isinstance(context, v):
                 self.context_param = k
-            if v == Request:
+            elif v == Request:
                 self.request_param  = k
+            elif v == JobContext:
+                self.job_ctxt_param  = k
+            else:
+                raise Exception(f"unexpected function parameter '{k}'")
 
     async def execute(self, param: Any, job_id: str, req: Request) -> asyncio.Queue[Union[T, ExecutionError]]:
         """
@@ -177,9 +185,11 @@ class Executor(Generic[T]):
                 kwargs[self.context_param] = self.context
             if self.request_param is not None:
                 kwargs[self.request_param] = req
+            if self.job_ctxt_param is not None:
+                kwargs[self.job_ctxt_param] = self._job_ctxt
 
-            self._exex_ctxt.job_id = job_id
-            self._exex_ctxt.authorization = req.headers.get("authorization")
+            self._job_ctxt.job_id = job_id
+            self._job_ctxt.authorization = req.headers.get("authorization")
             fname = self.func.__name__
             with tracer.start_as_current_span(f"RUN {fname}") as span:
                 span.set_attribute("job.id", job_id)
@@ -210,8 +220,8 @@ class Executor(Generic[T]):
                 except BaseException as ex:
                     logger.error(f"while delivering result fo {job_id} - {ex}")
 
-                self._exex_ctxt.job_id = None
-                self._exex_ctxt.authorizaton = None
+                self._job_ctxt.job_id = None
+                self._job_ctxt.authorizaton = None
                 if loop != None:
                     loop.close
 

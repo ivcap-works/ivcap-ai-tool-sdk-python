@@ -10,6 +10,8 @@ import requests
 from signal import signal, SIGTERM
 from asyncio import sleep as async_sleep
 
+from ivcap_ai_tool.executor import ExecutionContext, JobContext
+
 
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
@@ -98,7 +100,10 @@ class Result(BaseModel):
     run_time: float = Field(description="time in seconds this job took")
 
 
-def tester(req: Request, freq: FRequest) -> Result:
+class ExecCtxt(ExecutionContext, BaseModel):
+    msg: str
+
+def tester(req: Request, freq: FRequest, ctxt: ExecCtxt, jobCtxt: JobContext) -> Result:
     """
     Run various tests
     """
@@ -200,7 +205,7 @@ def make_request(req: CallTester) -> Any:
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"))
+add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"), context=ExecCtxt(msg="Boo!"))
 add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
 if __name__ == "__main__":
