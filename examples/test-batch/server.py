@@ -39,7 +39,7 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
                 schema = job.get("$schema", "")
                 if schema.startswith("urn:ivcap:schema.service.batch.done"):
                     logger.info("no more jobs - we are done")
-                    os.system.exit(0)
+                    sys.exit(0)
 
                 job_id = job.get("id", "unknown_job_id")  # Provide a default value if "id" is missing
                 result = do_job(job, worker_fn, input_model, output_model, logger)
@@ -74,7 +74,7 @@ def fetch_job(url: str, logger: Logger) -> Any:
             time.sleep(wait_time)
             wait_time *= 2
     logger.info("cannot contact sidecar - bailing out")
-    os.system.exit(255)
+    sys.exit(255)
 
 def do_job(
     job: Any,
