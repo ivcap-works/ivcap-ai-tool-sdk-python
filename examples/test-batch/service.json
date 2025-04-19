@@ -1,0 +1,29 @@
+{
+  "$schema": "urn:ivcap:schema.service.2",
+  "$id": "#SERVICE_ID#",
+  "name": "ivcap-test-batch",
+  "description": "Test batch service to exercise various aspects of the IVCAP platform.",
+  "parameters": [],
+  "policy": "urn:ivcap:policy:ivcap.open.service",
+  "controller-schema": "urn:ivcap:schema.service.batch.1",
+  "controller": {
+    "$schema": "urn:ivcap:schema.service.batch.1",
+    "image": "#DOCKER_IMG#",
+    "command": [
+      "python",
+      "/app/batch_service.py"
+    ],
+    "resources": {
+      "limits": {
+        "cpu": "500m",
+        "ephemeral-storage": "1Gi",
+        "memory": "1Gi"
+      },
+      "requests": {
+        "cpu": "500m",
+        "ephemeral-storage": "1Gi",
+        "memory": "1Gi"
+      }
+    }
+  }
+}
