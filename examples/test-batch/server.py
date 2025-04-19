@@ -1,10 +1,10 @@
 
-from dataclasses import Field, dataclass
+from dataclasses import dataclass
 import io
 import json
 import time
 import traceback
-from typing import BinaryIO, Callable
+from typing import BinaryIO, Callable, Union
 import argparse
 from logging import Logger
 from typing import Any, Callable, Dict, Optional
@@ -15,10 +15,12 @@ import uvicorn
 import os
 import sys
 import signal
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import requests  # Import the requests library
 
 from ivcap_fastapi import service_log_config, getLogger
+# Number of attempt to request a new job before giving up
+MAX_REQUEST_JOB_ATTEMPTS = 4
 
 def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_model: type[BaseModel], logger: Logger):
     ivcap_url = get_ivcap_url()
@@ -28,7 +30,7 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
     url = urlunparse(ivcap_url._replace(path=f"/next_job"))
     logger.info(f"... checking for work at '{url}'")
     try:
-        response = requests.get(url)
+        response = fetch_job(url, logger)
         response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
 
         while True:
@@ -40,7 +42,7 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
                     os.system.exit(0)
 
                 job_id = job.get("id", "unknown_job_id")  # Provide a default value if "id" is missing
-                result = do_job(response, worker_fn, input_model, output_model, logger)
+                result = do_job(job, worker_fn, input_model, output_model, logger)
                 result = verify_result(result, job_id)
             except Exception as e:
                 result = ExecutionError(
@@ -57,6 +59,22 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
         logger.warning(f"Error during request: {e}")
     except Exception as e:
         logger.warning(f"Error processing job: {e}")
+
+def fetch_job(url: str, logger: Logger) -> Any:
+    wait_time = 1
+    attempt = 0
+    while attempt < MAX_REQUEST_JOB_ATTEMPTS:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response
+        except Exception as e:
+            attempt += 1
+            logger.info(f"attempt #{attempt} failed to fetch new job - will try again in {wait_time} sec - {type(e)}: {e}")
+            time.sleep(wait_time)
+            wait_time *= 2
+    logger.info("cannot contact sidecar - bailing out")
+    os.system.exit(255)
 
 def do_job(
     job: Any,
