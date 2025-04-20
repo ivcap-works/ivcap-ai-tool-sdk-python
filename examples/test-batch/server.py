@@ -30,11 +30,11 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
     url = urlunparse(ivcap_url._replace(path=f"/next_job"))
     logger.info(f"... checking for work at '{url}'")
     try:
-        response = fetch_job(url, logger)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
 
         while True:
+            result = None
             try:
+                response = fetch_job(url, logger)
                 job = response.json()
                 schema = job.get("$schema", "")
                 if schema.startswith("urn:ivcap:schema.service.batch.done"):
@@ -43,7 +43,7 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
 
                 job_id = job.get("id", "unknown_job_id")  # Provide a default value if "id" is missing
                 result = do_job(job, worker_fn, input_model, output_model, logger)
-                result = verify_result(result, job_id)
+                result = verify_result(result, job_id, logger)
             except Exception as e:
                 result = ExecutionError(
                     error=str(e),
@@ -52,8 +52,9 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
                 )
                 logger.warning(f"job {job_id} failed - {result.error}")
             finally:
-                logger.info(f"job {job_id} finished, sending result message")
-                push_result(result, job_id)
+                if result is not None:
+                    logger.info(f"job {job_id} finished, sending result message")
+                    push_result(result, job_id, None, logger)
 
     except requests.exceptions.RequestException as e:
         logger.warning(f"Error during request: {e}")
@@ -267,7 +268,7 @@ def push_result(result: any, job_id: str, authorization: str, logger):
         "Content-Type": content_type,
         "Is-Error": str(is_error),
     }
-    if authorization is not None or authorization != "":
+    if not (authorization == None or authorization == ""):
         headers["Authorization"] = authorization
 
     while attempt < MAX_DELIVER_RESULT_ATTEMPTS:
