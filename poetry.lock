@@ -911,6 +911,18 @@ files = [
 ]
 
 [[package]]
+name = "ivcap-fastapi"
+version = "0.3.1"
+description = "Helper functions for building FastAPI based IVCAP services"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "ivcap_fastapi-0.3.1-py2.py3-none-any.whl", hash = "sha256:0a23db12156e3b678b58fcccf4c69663c7550f4b529c9629a6420d8fbf001f71"},
+    {file = "ivcap_fastapi-0.3.1.tar.gz", hash = "sha256:d622a2b62bf299f6f90d97cc5bae02fcba4e89166290bcd635f7e0b4328f1428"},
+]
+
+[[package]]
 name = "jinja2"
 version = "3.1.6"
 description = "A very fast and expressive template engine."
@@ -2677,4 +2689,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8"
-content-hash = "b0e1b1910ceb01eeddbe5a76326fc8fc99ce21a1428c387d8d0804054681c7a6"
+content-hash = "29d5894d91971b8fe8606b546974f280680808d4c122c05ca5842a25473a4f39"
