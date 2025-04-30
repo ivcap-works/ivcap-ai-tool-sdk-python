@@ -49,8 +49,8 @@ class IvcapResult(BinaryResult):
 T = TypeVar('T')
 
 class ExecutorOpts(BaseModel):
-    job_cache_size: Optional[int] = Field(1000, description="size of job cache")
-    job_cache_ttl: Optional[int] = Field(600, description="TTL of job entries in the job cache")
+    job_cache_size: Optional[int] = Field(10000, description="size of job cache")
+    job_cache_ttl: Optional[int] = Field(3600, description="TTL of job entries in the job cache")
     max_workers: Optional[int] = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
 
 class ExecutionError(BaseModel):
