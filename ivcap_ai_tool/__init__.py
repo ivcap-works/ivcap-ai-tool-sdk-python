@@ -13,3 +13,4 @@ from .executor import ExecutionContext, BinaryResult
 from .utils import get_public_url_prefix
 from .secret import SecretMgrClient
 from .decorators import ivcap_ai_tool
+from .logger import logging_init
