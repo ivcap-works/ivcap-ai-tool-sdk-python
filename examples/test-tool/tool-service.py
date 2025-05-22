@@ -1,49 +1,39 @@
 import os
 import sys
-import math
 from time import sleep, time
 from typing import List, Optional, Tuple
-from httpcore import URL
+import httpx
 from pydantic import BaseModel, Field
-from fastapi import FastAPI, Request as FRequest
+from fastapi import Request as FRequest
 import requests
-from signal import signal, SIGTERM
 from asyncio import sleep as async_sleep
 
-from ivcap_ai_tool.executor import ExecutionContext, JobContext
-
+from ivcap_ai_tool.executor import JobContext
 
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
 sys.path.insert(0, src_dir)
 
-from ivcap_fastapi import getLogger, logging_init
-from ivcap_ai_tool import start_tool_server, add_tool_api_route, ToolOptions
+from ivcap_service import getLogger, Service
+from ivcap_ai_tool import start_tool_server, ivcap_ai_tool, ToolOptions, logging_init
 
 logging_init()
 logger = getLogger("app")
 
-# shutdown pod cracefully
-signal(SIGTERM, lambda _1, _2: sys.exit(0))
 
-title="AI Test Tool for IVCAP"
-description = """
+service = Service(
+    name="AI Test Tool for IVCAP",
+    description= """
 Test tool to exercise various aspects of the IVCAP platform.
-"""
-
-app = FastAPI(
-    title=title,
-    description=description,
-    version=os.environ.get("VERSION", "???"),
+""",
     contact={
         "name": "Max Ott",
         "email": "max.ott@data61.csiro.au",
     },
-    license_info={
+    license={
         "name": "MIT",
         "url": "https://opensource.org/license/MIT",
     },
-    docs_url="/api",
 )
 
 from typing import Optional, Dict, Any
@@ -100,10 +90,11 @@ class Result(BaseModel):
     run_time: float = Field(description="time in seconds this job took")
 
 
-class ExecCtxt(ExecutionContext, BaseModel):
-    msg: str
+# class ExecCtxt(ExecutionContext, BaseModel):
+#     msg: str
 
-def tester(req: Request, freq: FRequest, ctxt: ExecCtxt, jobCtxt: JobContext) -> Result:
+@ivcap_ai_tool("/", opts=ToolOptions(tags=["Test Tool"], service_id="/"))
+def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
     """
     Run various tests
     """
@@ -128,6 +119,7 @@ def tester(req: Request, freq: FRequest, ctxt: ExecCtxt, jobCtxt: JobContext) ->
     result.run_time = round(time() - start_time, 2)
     return result
 
+@ivcap_ai_tool("/async", opts=ToolOptions(tags=["Test Tool"], service_id="/"))
 async def async_tester(req: Request, freq: FRequest) -> Result:
     """
     Run various tests in 'async' mode
@@ -180,7 +172,6 @@ def create_openai_client(f):
     else:
         return f(base_url=f"{base_url}/v1", api_key="not-needed")
 
-
 def make_request(req: CallTester) -> Any:
     """
     Makes a generic HTTP request.
@@ -191,7 +182,7 @@ def make_request(req: CallTester) -> Any:
     try:
         url = str(req.url)
         params = req.params
-        response = requests.request(
+        response = httpx.request(
             method=req.method.upper(),
             url=url,
             params=params,
@@ -205,8 +196,8 @@ def make_request(req: CallTester) -> Any:
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"), context=ExecCtxt(msg="Boo!"))
-add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
+# add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"), context=ExecCtxt(msg="Boo!"))
+# add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
 if __name__ == "__main__":
     import argparse
@@ -217,4 +208,4 @@ if __name__ == "__main__":
             os.setenv("LITELLM_PROXY", args.litellm_proxy)
         return args
 
-    start_tool_server(app, tester, custom_args=custom_args)
+    start_tool_server(service, custom_args=custom_args)

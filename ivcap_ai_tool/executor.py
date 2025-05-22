@@ -4,24 +4,22 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import asyncio
-import httpx
 from dataclasses import dataclass
 import io
 import concurrent.futures
-import json
 import threading
 from time import sleep
 import traceback
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Union, BinaryIO
-from urllib.parse import urlunparse
+from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
 from cachetools import TTLCache
 from fastapi import Request
 from pydantic import BaseModel, Field
-from ivcap_fastapi import getLogger
+from ivcap_service import getLogger
 from opentelemetry import trace, context
 from opentelemetry.context.context import Context
 
-from .utils import _get_input_type, get_ivcap_url
+from ivcap_service import get_input_type, push_result, verify_result
+from ivcap_service import IvcapResult, BinaryResult, ExecutionError
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
@@ -32,22 +30,12 @@ tracer = trace.get_tracer("executor")
 class ExecutionContext:
     pass
 
+class ThreadLocal(threading.local):
+    pass
+
 class JobContext(threading.local):
     job_id: Optional[str] = None
     authorization: Optional[str] = None
-
-@dataclass
-class BinaryResult():
-    """If the result of the tool is a non json serialisable object, return an
-    instance of this class indicating the content-type and the actual
-    result either as a byte array or a file handle to a binary content (`open(..., "rb")`)"""
-    content_type: str = Field(description="Content type of result serialised")
-    content: Union[bytes, str, io.BufferedReader] = Field(description="Content to send, either as byte array or file handle")
-
-@dataclass
-class IvcapResult(BinaryResult):
-    isError: bool = False
-    raw: Any = None
 
 T = TypeVar('T')
 
@@ -55,15 +43,6 @@ class ExecutorOpts(BaseModel):
     job_cache_size: Optional[int] = Field(10000, description="size of job cache")
     job_cache_ttl: Optional[int] = Field(3600, description="TTL of job entries in the job cache")
     max_workers: Optional[int] = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
-
-class ExecutionError(BaseModel):
-    """
-    Pydantic model for execution errors.
-    """
-    jschema: str = Field("urn:ivcap:schema.ai-tool.error.1", alias="$schema")
-    error: str = Field(description="Error message")
-    type: str = Field(description="Error type")
-    traceback: Optional[str] = Field(None, description="traceback")
 
 class Executor(Generic[T]):
     """
@@ -129,7 +108,7 @@ class Executor(Generic[T]):
         self.context_param = None
         self.request_param = None
         self.job_ctxt_param = None
-        _, extras = _get_input_type(func)
+        _, extras = get_input_type(func)
         for k, v in extras.items():
             if isinstance(context, v):
                 self.context_param = k
@@ -159,7 +138,7 @@ class Executor(Generic[T]):
         def _process_result(result):
             """Verify the result, add it to the queue, and report it to IVCAP."""
             try:
-                result = self._verify_result(result, job_id)
+                result = verify_result(result, job_id, logger)
             except Exception as e:
                 result = ExecutionError(
                     error=str(e),
@@ -174,7 +153,7 @@ class Executor(Generic[T]):
                     result_queue.put(result),
                     event_loop,
                 )
-                self._push_result(result, job_id)
+                push_result(result, job_id)
                 self.__class__._active_jobs.discard(job_id)
 
         def _run(param: Any, ctxt: Context):
@@ -250,112 +229,3 @@ class Executor(Generic[T]):
             KeyError: Unknown job - may have already expired
         """
         return self.job_cache[job_id]
-
-    def _verify_result(self, result: any, job_id: str) -> any:
-        if isinstance(result, ExecutionError):
-            return result
-        if isinstance(result, BaseModel):
-            try:
-                return IvcapResult(
-                    content=result.model_dump_json(by_alias=True),
-                    content_type="application/json",
-                    raw=result,
-                )
-            except Exception as ex:
-                msg = f"{job_id}: cannot json serialise pydantic isntance - {str(ex)}"
-                logger.warning(msg)
-                return ExecutionError(
-                    error=msg,
-                    type=type(ex).__name__,
-                    traceback=traceback.format_exc()
-                )
-        if isinstance(result, BinaryResult):
-            return IvcapResult(content=result.content, content_type=result.content_type)
-        if isinstance(result, str):
-            return IvcapResult(content=result, content_type="text/plain", raw=result)
-        if isinstance(result, bytes):
-            # If it's a byte array, return it as is
-            return IvcapResult(
-                content=result,
-                content_type="application/octet-stream",
-                raw=result,
-            )
-        if isinstance(result, BinaryIO):
-            # If it's a file handler, return it as is
-            return IvcapResult(
-                content=result,
-                content_type="application/octet-stream",
-                raw=result
-            )
-        # normal model which should be serialisable
-        try:
-            result = IvcapResult(
-                content=json.dumps(result),
-                content_type="application/json"
-            )
-        except Exception as ex:
-            msg = f"{job_id}: cannot json serialise result - {str(ex)}"
-            logger.warning(msg)
-            result = ExecutionError(
-                error=msg,
-                type=type(ex).__name__,
-            )
-
-    def _push_result(self, result: any, job_id: str):
-        """Actively push result to sidecar, fail quietly."""
-        ivcap_url = get_ivcap_url()
-        if ivcap_url is None:
-            logger.warning(f"{job_id}: no ivcap url found - cannot push result")
-            return
-        url = urlunparse(ivcap_url._replace(path=f"/results/{job_id}"))
-
-        content_type="text/plain"
-        content="SOMETHING WENT WRONG _ PLEASE REPORT THIS ERROR"
-        is_error = False
-        if not (isinstance(result, ExecutionError) or isinstance(result, IvcapResult)):
-            msg = f"{job_id}: expected 'BinaryResult' or 'ExecutionError' but got {type(result)}"
-            logger.warning(msg)
-            result = ExecutionError(
-                error=msg,
-                type='InternalError',
-            )
-
-        if isinstance(result, IvcapResult):
-            content = result.content
-            content_type = result.content_type
-        else:
-            is_error = True
-            if not isinstance(result, ExecutionError):
-                # this should never happen
-                logger.error(f"{job_id}: expected 'ExecutionError' but got {type(result)}")
-                result = ExecutionError(
-                    error="please report unexpected internal error - expected 'ExecutionError' but got {type(result)}",
-                    type="internal_error",
-                )
-            content = result.model_dump_json(by_alias=True)
-            content_type = "application/json"
-
-
-        wait_time = 1
-        attempt = 0
-        headers = {
-            "Content-Type": content_type,
-            "Authorization": self.__class__.job_authorization(),
-            "Is-Error": str(is_error),
-        }
-        while attempt < MAX_DELIVER_RESULT_ATTEMPTS:
-            try:
-                response = httpx.post(
-                    url=url,
-                    headers=headers,
-                    data=content,
-                )
-                response.raise_for_status()
-                return
-            except Exception as e:
-                attempt += 1
-                logger.info(f"{job_id}: attempt #{attempt} failed to push result - will try again in {wait_time} sec - {type(e)}: {e}")
-                sleep(wait_time)
-                wait_time *= 2
-
-        logger.warning(f"{job_id}: giving up pushing result after {attempt} attempts")

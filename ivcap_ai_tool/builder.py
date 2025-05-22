@@ -7,14 +7,14 @@ import asyncio
 import json
 from fastapi import FastAPI, Response, status, Request
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Optional, Callable, TypeVar
+from typing import Any, Dict, List, Optional, Callable, TypeVar
 from uuid6 import uuid6
 
-from ivcap_fastapi import getLogger
+from ivcap_service import getLogger, get_function_return_type, get_input_type, create_tool_definition
+from ivcap_service import IvcapResult, ToolDefinition, ExecutionError
 
-from .executor import ExecutionContext, ExecutionError, Executor, ExecutorOpts, IvcapResult
-from .utils import _get_input_type, _get_function_return_type, _get_title_from_path, get_public_url_prefix
-from .tool_definition import ToolDefinition, create_tool_definition
+from .executor import ExecutionContext, Executor, ExecutorOpts
+from .utils import get_title_from_path, get_public_url_prefix
 
 
 class ErrorModel(BaseModel):
@@ -27,7 +27,6 @@ class ExecutionErrorModel(BaseModel):
     traceback: str
 
 JOB_URN_PREFIX = "urn:ivcap:job:"
-
 
 logger = getLogger("wrapper")
 
@@ -43,10 +42,19 @@ class ToolOptions(BaseModel):
 # Define a generic type for Pydantic models
 T = TypeVar("T", bound=BaseModel)
 
+WorkerFn = Callable[[BaseModel, Optional[ExecutionContext], Optional[Response]], BaseModel]
+
+class ToolDescription(BaseModel):
+    name: str
+    path_prefix: str
+    worker_fn: WorkerFn
+
+tools: List[ToolDescription] = []
+
 def add_tool_api_route(
     app: FastAPI,
     path_prefix: str,
-    worker_fn: Callable[[BaseModel, Optional[ExecutionContext], Optional[Response]], BaseModel],
+    worker_fn: WorkerFn,
     *,
     opts: Optional[ToolOptions] = ToolOptions(),
     context: Optional[ExecutionContext] = None
@@ -81,7 +89,7 @@ def add_tool_api_route(
         opts (Optional[ToolOptions], optional): Additional behaviour settings. Defaults to ToolOptions().
         context (Optional[ExecutionContext], optional): An optional context to be provided to every invocation of `worker_fn`. Defaults to None.
     """
-    def_name, def_tag = _get_title_from_path(path_prefix)
+    def_name, def_tag = get_title_from_path(path_prefix)
     if opts.tags is None:
         if def_tag == '':
             def_tag = "Tool"
@@ -91,16 +99,18 @@ def add_tool_api_route(
             def_name = "Execute the tool"
         opts.name = def_name
 
-    output_model = _get_function_return_type(worker_fn)
+    output_model = get_function_return_type(worker_fn)
     executor = Executor[output_model](worker_fn, opts=opts.executor_opts, context=context)
+
+    tools.append(ToolDescription(name=worker_fn.__name__, path_prefix=path_prefix, worker_fn=worker_fn))
 
     _add_do_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_tool_def_route(app, path_prefix, worker_fn, opts)
 
 def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
-    input_model, _ = _get_input_type(worker_fn)
-    output_model = _get_function_return_type(worker_fn)
+    input_model, _ = get_input_type(worker_fn)
+    output_model = get_function_return_type(worker_fn)
     summary, description = (worker_fn.__doc__.lstrip() + "\n").split("\n", 1)
 
     async def route(data: input_model, req: Request) -> output_model:  # type: ignore
@@ -161,7 +171,7 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
     )
 
 def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
-    output_model = _get_function_return_type(worker_fn)
+    output_model = get_function_return_type(worker_fn)
     def route(job_id: str) -> output_model: # type: ignore
         if job_id.startswith(JOB_URN_PREFIX):
             job_id = job_id[len(JOB_URN_PREFIX):]
@@ -205,7 +215,7 @@ def _return_job_result(el, job_id):
 
         return Response(status_code=status_code, content=m.model_dump_json(indent=2), media_type="application/json", headers=h)
 
-    msg = json.dumps({"error": "please report unexpected internal error - unexpected result type {type(el)}"})
+    msg = json.dumps({"error": f"please report unexpected internal error - unexpected result type {type(el)}"})
     return  Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=msg, media_type="application/json", headers=h)
 
 

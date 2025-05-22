@@ -9,15 +9,15 @@
 #
 import functools
 from logging import Logger
-from ivcap_fastapi import getLogger
+from ivcap_service import getLogger
 import os
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 from httpx import URL as URLx
 from urllib.parse import urlparse
 
 from fastapi import FastAPI
 
-def otel_instrument(app: FastAPI, with_telemetry: Literal[True] | None, logger: Logger):
+def otel_instrument(app: FastAPI, with_telemetry: Optional[Literal[True]], logger: Logger):
     if with_telemetry == False:
         return
     endpoint = os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')
@@ -112,9 +112,6 @@ def extend_httpx():
         _modify_headers(request.headers, request.url, logger)
         return wrapped_asend(self, request, **kwargs)
     httpx.AsyncClient.send = _asend
-
-
-
 
 def set_context():
     extend_requests()

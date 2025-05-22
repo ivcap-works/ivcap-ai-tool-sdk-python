@@ -2,7 +2,7 @@
   "$schema": "urn:sd:schema:ai-tester.request.1",
   "call": {
     "method": "POST",
-    "url": "http://httpbin.org/post",
+    "url": "http://httpbin.org/post/f+a",
     "data": {
       "name": "Alice"
     }
