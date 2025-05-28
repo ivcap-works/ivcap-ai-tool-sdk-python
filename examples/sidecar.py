@@ -12,6 +12,15 @@ TEST_LOAD_PATH = os.path.join(os.path.dirname(__file__), "test_request.json")
 
 from fastapi import Header
 
+@app.middleware("http")
+async def decode_path(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("//ivcap.minikube"):
+        p = path[len('//ivcap.minikube'):]
+        request.scope["path"] = p
+    response = await call_next(request)
+    return response
+
 @app.get("/next_job")
 async def next_job():
     try:

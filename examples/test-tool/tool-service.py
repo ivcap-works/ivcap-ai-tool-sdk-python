@@ -101,6 +101,7 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
     result = Result(run_time=0, request=RequestContext.from_freq(freq))
     start_time = time()  # Start timer
 
+    jobCtxt.report.step_started("main", f"Start tool execution for {freq.url}")
     if req.echo != None:
         result.echo = req.echo
 
@@ -117,6 +118,7 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
         raise BaseException(req.raise_error)
 
     result.run_time = round(time() - start_time, 2)
+    jobCtxt.report.step_finished("main", f"Finished tool execution in {result.run_time} seconds")
     return result
 
 @ivcap_ai_tool("/async", opts=ToolOptions(tags=["Test Tool"], service_id="/"))

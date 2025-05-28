@@ -19,7 +19,7 @@ from opentelemetry import trace, context
 from opentelemetry.context.context import Context
 
 from ivcap_service import get_input_type, push_result, verify_result
-from ivcap_service import IvcapResult, BinaryResult, ExecutionError
+from ivcap_service import ExecutionError, EventReporter
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
@@ -36,6 +36,7 @@ class ThreadLocal(threading.local):
 class JobContext(threading.local):
     job_id: Optional[str] = None
     authorization: Optional[str] = None
+    report: Optional[EventReporter]
 
 T = TypeVar('T')
 
@@ -60,6 +61,10 @@ class Executor(Generic[T]):
     @classmethod
     def job_authorization(cls) -> str:
         return cls._job_ctxt.authorization
+
+    @classmethod
+    def event_reporter(cls) -> EventReporter:
+        return cls._job_ctxt.report
 
     @classmethod
     def active_jobs(cls) -> List[str]:
@@ -169,6 +174,7 @@ class Executor(Generic[T]):
 
             self._job_ctxt.job_id = job_id
             self._job_ctxt.authorization = req.headers.get("authorization")
+            self._job_ctxt.report = EventReporter()
             fname = self.func.__name__
             with tracer.start_as_current_span(f"RUN {fname}") as span:
                 span.set_attribute("job.id", job_id)

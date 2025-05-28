@@ -116,6 +116,7 @@ def start_tool_server(
         return JobContext(
             job_id=Executor.job_id(),
             job_authorization=Executor.job_authorization(),
+            report=Executor.event_reporter(),
         )
     set_context(get_context)
 
