@@ -19,7 +19,7 @@ from opentelemetry import trace, context
 from opentelemetry.context.context import Context
 
 from ivcap_service import get_input_type, push_result, verify_result
-from ivcap_service import ExecutionError, EventReporter
+from ivcap_service import ExecutionError, EventReporter, JobContext as BaseJobContext
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
@@ -120,6 +120,8 @@ class Executor(Generic[T]):
             elif v == Request:
                 self.request_param  = k
             elif v == JobContext:
+                self.job_ctxt_param  = k
+            elif v == BaseJobContext:
                 self.job_ctxt_param  = k
             else:
                 raise Exception(f"unexpected function parameter '{k}'")
