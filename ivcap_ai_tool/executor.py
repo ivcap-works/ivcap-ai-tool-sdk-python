@@ -36,7 +36,7 @@ class ThreadLocal(threading.local):
 class JobContext(threading.local):
     job_id: Optional[str] = None
     authorization: Optional[str] = None
-    report: Optional[EventReporter]
+    report: Optional[EventReporter] = None
 
 T = TypeVar('T')
 
@@ -44,6 +44,19 @@ class ExecutorOpts(BaseModel):
     job_cache_size: Optional[int] = Field(10000, description="size of job cache")
     job_cache_ttl: Optional[int] = Field(3600, description="TTL of job entries in the job cache")
     max_workers: Optional[int] = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
+
+def get_event_reporter() -> Optional[EventReporter]:
+    """Get the current event reporter from the job context."""
+    if Executor._job_ctxt is None:
+        return None
+    return Executor._job_ctxt.report
+
+def get_job_id() -> Optional[EventReporter]:
+    """Get the current job ID from the job context."""
+    if Executor._job_ctxt is None:
+        return None
+    return Executor._job_ctxt.job_id
+
 
 class Executor(Generic[T]):
     """
@@ -176,7 +189,7 @@ class Executor(Generic[T]):
 
             self._job_ctxt.job_id = job_id
             self._job_ctxt.authorization = req.headers.get("authorization")
-            self._job_ctxt.report = EventReporter()
+            self._job_ctxt.report = EventReporter(job_id = job_id)
             fname = self.func.__name__
             with tracer.start_as_current_span(f"RUN {fname}") as span:
                 span.set_attribute("job.id", job_id)
