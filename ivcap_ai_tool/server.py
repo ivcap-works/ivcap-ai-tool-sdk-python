@@ -60,7 +60,7 @@ def start_tool_server(
     app.title = service.name
     app.version = service.version or os.environ.get("VERSION", "???")
     app.contact = dict(service.contact) if service.contact else None
-    app.license_info = service.license
+    app.license_info = dict(service.license) if service.license else None
 
     title =service.name
     if logger is None:
