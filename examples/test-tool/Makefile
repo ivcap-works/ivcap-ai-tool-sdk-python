@@ -1,28 +1,31 @@
-SERVICE_TITLE=AI tool to test various platform aspects
-SERVICE_NAME=test-tool
+# SERVICE_TITLE=AI tool to test various platform aspects
+# SERVICE_NAME=test-tool
 
-TOOL_FILE=tool-service.py
-IVCAP_SERVICE_FILE=service.json
+# TOOL_FILE=tool-service.py
+# IVCAP_SERVICE_FILE=service.json
+PROJECT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 
 PORT=8095
 SERVICE_URL=http://localhost:8099
 HTTP_PROXY=http://localhost:9999
 TIMEOUT=3
 
-include Makefile.common
+#include Makefile.common
 
 run:
 	env VERSION=$(VERSION) \
 		PYTHONPATH="" \
-		IVCAP_BASE_URL="http://ivcap.local" \
-		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
+		PORT=${PORT} \
+		poetry ivcap run
 
 run-with-proxy:
 	env VERSION=$(VERSION) PYTHONPATH="" \
 		PYTHONPATH=${PROJECT_DIR}/../../src \
 		IVCAP_BASE_URL="http://ivcap.local" \
 		http_proxy=${HTTP_PROXY} \
-		python ${PROJECT_DIR}/tool-service.py --port ${PORT}
+		PORT=${PORT} \
+		poetry ivcap run
 
 run-litellm:
 	env $(shell cat .env | xargs) litellm --port 4000 -m gpt-3.5-turbo -m gpt-4
@@ -79,6 +82,9 @@ test-list-services-ivcap:
 test-list-tools:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/list-tools.json http://localhost:${PORT} | jq
 
+test-wordle:
+	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/wordle.json http://localhost:${PORT} | jq
+
 test-llm:
 	curl -X POST -H "content-type: application/json" \
 	-H "Timeout: ${TIMEOUT}" \
@@ -126,32 +132,32 @@ test-local-debug:
 		--data @${PROJECT_DIR}/tests/${REQUEST} \
 		http://localhost:8088/1/services2/${SERVICE_ID}/jobs
 
-print-tool-description:
-	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
-        "${SERVICE_NAME}" + "${account_id}"));'))
-	env VERSION=$(VERSION) PYTHONPATH="" IVCAP_SERVICE_ID=${service_id} \
-		python ${PROJECT_DIR}/tool-service.py --print-tool-description
+# print-tool-description:
+# 	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
+#         "${SERVICE_NAME}" + "${account_id}"));'))
+# 	env VERSION=$(VERSION) PYTHONPATH="" IVCAP_SERVICE_ID=${service_id} \
+# 		python ${PROJECT_DIR}/tool-service.py --print-tool-description
 
 
-install:
-	pip install -r requirements.txt
+# install:
+# 	pip install -r requirements.txt
 
-docker-run: DOCKER_TAG=${DOCKER_NAME}_${TARGET_ARCH}:${DOCKER_VERSION}
-docker-run: #docker-build
-	docker run -it \
-		-p ${PORT}:${PORT} \
-		--user ${DOCKER_USER} \
-		-e LITELLM_PROXY=http://192.168.68.103:4000 \
-		-e IVCAP_BASE_URL="http://ivcap.local" \
-		-e http_proxy=http://192.168.68.103:9999 \
-		--platform=${TARGET_PLATFORM} \
-		--rm \
-		${DOCKER_TAG} --port ${PORT}
+# docker-run: DOCKER_TAG=${DOCKER_NAME}_${TARGET_ARCH}:${DOCKER_VERSION}
+# docker-run: #docker-build
+# 	docker run -it \
+# 		-p ${PORT}:${PORT} \
+# 		--user ${DOCKER_USER} \
+# 		-e LITELLM_PROXY=http://192.168.68.103:4000 \
+# 		-e IVCAP_BASE_URL="http://ivcap.local" \
+# 		-e http_proxy=http://192.168.68.103:9999 \
+# 		--platform=${TARGET_PLATFORM} \
+# 		--rm \
+# 		${DOCKER_TAG} --port ${PORT}
 
-docker-debug: #docker-build
-	docker run -it \
-		-p 8090:8090 \
-		--user ${DOCKER_USER} \
-		--platform=${TARGET_PLATFORM} \
-		--entrypoint bash \
-		${DOCKER_TAG_LOCAL}
+# docker-debug: #docker-build
+# 	docker run -it \
+# 		-p 8090:8090 \
+# 		--user ${DOCKER_USER} \
+# 		--platform=${TARGET_PLATFORM} \
+# 		--entrypoint bash \
+# 		${DOCKER_TAG_LOCAL}

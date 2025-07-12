@@ -1,0 +1,26 @@
+[project]
+name = "test-tool"
+version = "0.1.0"
+description = "AI tool to test various platform aspects"
+authors = [
+    {name = "Max Ott",email = "max.ott@data61.csiro.au"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "ivcap-ai-tool (>=0.7.7,<0.8.0)",
+    "openai (>=1.95.1,<2.0.0)"
+]
+
+[tool.poetry-plugin-ivcap]
+service-file = "tool-service.py"
+service-id = "urn:ivcap:service:3165bf7f-5851-5c32-bbf5-3d89c476368e"
+service-type = "lambda"
+port = 8095
+# policy = "urn:ivcap:policy:ivcap.open.metadata"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

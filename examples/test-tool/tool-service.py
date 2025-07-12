@@ -17,6 +17,8 @@ sys.path.insert(0, src_dir)
 from ivcap_service import getLogger, Service
 from ivcap_ai_tool import start_tool_server, ivcap_ai_tool, ToolOptions, logging_init
 
+from wordle import WordleProps, WordleResult, play_random_wordle
+
 logging_init()
 logger = getLogger("app")
 
@@ -65,6 +67,7 @@ class Request(BaseModel):
     echo: Optional[str] = Field(None, description="a string to echo in result")
     call: Optional[CallTester] = Field(None, description="Optionally call a service")
     llm: Optional[LlmTester] = Field(None, description="Optionally callan LLM's completion service")
+    wordle:Optional[WordleProps] = Field(None, description="Optionally play a wordle game")
     sleep: Optional[int] = Field(0, description="the number of seconds to sleep before replying")
     raise_error: Optional[str] = Field(None, description="raise an error with this message")
 
@@ -86,9 +89,9 @@ class Result(BaseModel):
     echo: Optional[str] = Field(None, description="echos string from request")
     call_result: Optional[Dict] = Field(None, description="result of executing the 'call'")
     llm_result: Optional[Dict] = Field(None, description="result of executing the 'llm'")
+    wordle_result: Optional[WordleResult] = Field(None, description="result of executing the 'wordle' game")
     request: RequestContext = Field(description="information on the incoming request")
     run_time: float = Field(description="time in seconds this job took")
-
 
 # class ExecCtxt(ExecutionContext, BaseModel):
 #     msg: str
@@ -110,6 +113,9 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
 
     if req.llm != None:
         result.llm_result = completion(req.llm)
+
+    if req.wordle != None:
+        result.wordle_result = play_random_wordle(req.wordle)
 
     if req.sleep > 0:
         sleep(req.sleep)
@@ -137,6 +143,9 @@ async def async_tester(req: Request, freq: FRequest) -> Result:
 
     if req.llm != None:
         result.llm_result = await async_completion(req.llm)
+
+    if req.wordle != None:
+        result.wordle_result = play_random_wordle(req.wordle)
 
     if req.sleep > 0:
         await async_sleep(req.sleep)
