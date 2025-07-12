@@ -85,6 +85,9 @@ test-list-tools:
 test-wordle:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/wordle.json http://localhost:${PORT} | jq
 
+test-oom-error:
+	curl -i -H "Timeout: 20" -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/cause_oom_error.json http://localhost:${PORT}
+
 test-llm:
 	curl -X POST -H "content-type: application/json" \
 	-H "Timeout: ${TIMEOUT}" \

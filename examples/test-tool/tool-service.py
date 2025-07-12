@@ -68,6 +68,7 @@ class Request(BaseModel):
     call: Optional[CallTester] = Field(None, description="Optionally call a service")
     llm: Optional[LlmTester] = Field(None, description="Optionally callan LLM's completion service")
     wordle:Optional[WordleProps] = Field(None, description="Optionally play a wordle game")
+    create_oom_error: Optional[bool] = Field(False, description="Optionally cause an OOM error")
     sleep: Optional[int] = Field(0, description="the number of seconds to sleep before replying")
     raise_error: Optional[str] = Field(None, description="raise an error with this message")
 
@@ -117,6 +118,12 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
     if req.wordle != None:
         result.wordle_result = play_random_wordle(req.wordle)
 
+    if req.create_oom_error:
+        # This will eventually raise a MemoryError or be killed by the OS
+        data = []
+        while True:
+            data.append(' ' * 100_000_000)
+
     if req.sleep > 0:
         sleep(req.sleep)
 
@@ -146,6 +153,12 @@ async def async_tester(req: Request, freq: FRequest) -> Result:
 
     if req.wordle != None:
         result.wordle_result = play_random_wordle(req.wordle)
+
+    if req.create_oom_error:
+        # This will eventually raise a MemoryError or be killed by the OS
+        data = []
+        while True:
+            data.append(' ' * 100_000_000)
 
     if req.sleep > 0:
         await async_sleep(req.sleep)
