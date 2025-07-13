@@ -1,5 +1,13 @@
 {
   "version": 1,
+  "filters": {
+    "suppress_paths": {
+      "()": "ivcap_ai_tool.logger.SuppressPathsFilter",
+      "targets": [
+        "/_healtz"
+      ]
+    }
+  },
   "formatters": {
     "default": {
       "format": "%(asctime)s %(levelname)s (%(name)s): %(message)s",
@@ -25,7 +33,10 @@
     "access": {
       "formatter": "access",
       "class": "logging.StreamHandler",
-      "stream": "ext://sys.stdout"
+      "stream": "ext://sys.stdout",
+      "filters": [
+        "suppress_paths"
+      ]
     },
     "uvicorn_error": {
       "class": "logging.StreamHandler",

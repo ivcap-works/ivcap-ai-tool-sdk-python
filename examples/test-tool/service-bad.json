@@ -1,31 +1,35 @@
 {
   "$schema": "urn:ivcap:schema.service.2",
-  "$id": "#SERVICE_ID#",
-  "name": "ivcap-test-tool",
-  "description": "Test tool to exercise various aspects of the IVCAP platform.",
+  "$id": "urn:ivcap:service:3165bf7f-5851-5c32-bbf5-3d89c4763699",
+  "name": "FAILS: AI Test Tool for IVCAP",
+  "description": "Run various tests",
   "parameters": [],
+  "contact": {
+    "name": "Max Ott",
+    "email": "max.ott@data61.csiro.au"
+  },
+  "license": {
+    "name": "MIT",
+    "url": "https://opensource.org/license/MIT"
+  },
   "policy": "urn:ivcap:policy:ivcap.open.service",
   "controller-schema": "urn:ivcap:schema.service.rest.1",
   "controller": {
     "$schema": "urn:ivcap:schema.service.rest.1",
-    "image": "#DOCKER_IMG#",
-    "port": 8090,
+    "image": "45a06508-5c3a-4678-8e6d-e6399bf27538/test_tool_amd64:2bbc417",
     "command": [
       "python",
-      "/app/tool-service.py"
+      "/app/bad.py"
     ],
     "resources": {
       "limits": {
         "cpu": "500m",
-        "ephemeral-storage": "1Gi",
         "memory": "1Gi"
       },
       "requests": {
         "cpu": "500m",
-        "ephemeral-storage": "1Gi",
         "memory": "1Gi"
       }
-    },
-    "ready-url": "/_healtz"
+    }
   }
 }

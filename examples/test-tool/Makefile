@@ -19,6 +19,12 @@ run:
 		PORT=${PORT} \
 		poetry ivcap run
 
+run-from-source:
+	env VERSION=$(VERSION) \
+		PYTHONPATH=${PROJECT_DIR}/../.. \
+		PORT=${PORT} \
+		poetry ivcap run
+
 run-with-proxy:
 	env VERSION=$(VERSION) PYTHONPATH="" \
 		PYTHONPATH=${PROJECT_DIR}/../../src \
