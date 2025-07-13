@@ -735,21 +735,21 @@ type = ["pytest-mypy"]
 
 [[package]]
 name = "ivcap-ai-tool"
-version = "0.7.7"
+version = "0.7.9"
 description = "Helper functions for building AI Tools as IVCAP services"
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "ivcap_ai_tool-0.7.7-py3-none-any.whl", hash = "sha256:e2b490961ea92ab205504fc21fd4f4dfac85d3f77bb021528d90e03aa8b3a902"},
-    {file = "ivcap_ai_tool-0.7.7.tar.gz", hash = "sha256:bfcb8e472c9183be6265b3675c5fe8c6ee4201d1f5cdfb648c50bf3dda24eb44"},
+    {file = "ivcap_ai_tool-0.7.9-py3-none-any.whl", hash = "sha256:e6ae4cb326b1e36214a69582527131aafb5ebb365d195f15fd931aef4e135c8f"},
+    {file = "ivcap_ai_tool-0.7.9.tar.gz", hash = "sha256:a5105f0ffa0fe703d1b7c5e19e3dc44275e78ea3a6e9d0419f5707aa7ccaae42"},
 ]
 
 [package.dependencies]
 cachetools = ">=5.5.2,<6.0.0"
 fastapi = ">=0.115.12,<0.116.0"
 google-cloud-secret-manager = "2.22.0"
-ivcap-service = ">=0.5.6,<0.6.0"
+ivcap-service = ">=0.5.9,<0.6.0"
 jwt = ">=1.3.1,<2.0.0"
 opentelemetry-instrumentation-fastapi = ">=0.51b0,<0.52"
 uuid6 = "2024.7.10"
@@ -757,14 +757,14 @@ uvicorn = ">=0.34.2,<0.35.0"
 
 [[package]]
 name = "ivcap-service"
-version = "0.5.8"
+version = "0.5.9"
 description = "SDK library for building services for the IVCAP platform"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "ivcap_service-0.5.8-py3-none-any.whl", hash = "sha256:6902641cd5bdcf2edb3d6cc70bdb3a2c434c48f4f4112a5b5af3ca6a0c5d830a"},
-    {file = "ivcap_service-0.5.8.tar.gz", hash = "sha256:ad799fa7840b0d483a28ff373a1672adf32cf3f3ff355adde840f19e4ad2eba1"},
+    {file = "ivcap_service-0.5.9-py3-none-any.whl", hash = "sha256:4615d53820c2a23494afcc66de0ec62508db3640a3d9072f9d1fef1e66bbaf4f"},
+    {file = "ivcap_service-0.5.9.tar.gz", hash = "sha256:a01505bd84105eb9957476966213d315462d70e4fc0bdb048d1841e43742d31b"},
 ]
 
 [package.dependencies]
@@ -1688,4 +1688,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "280a6175182bf948a1a4f2b5fcb53c789ceaddfac5b263b0591b69f1807b4963"
+content-hash = "fdbb8ea98800677a14c428e8a5fb7815c1c2a7523c5aea4cfd103efd3c2b0862"

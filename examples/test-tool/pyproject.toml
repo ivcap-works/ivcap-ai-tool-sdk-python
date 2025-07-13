@@ -9,7 +9,7 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 dependencies = [
-    "ivcap-ai-tool (>=0.7.7,<0.8.0)",
+    "ivcap-ai-tool (>=0.7.9,<0.8.0)",
     "openai (>=1.95.1,<2.0.0)"
 ]
 
