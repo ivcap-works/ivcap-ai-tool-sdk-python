@@ -113,7 +113,6 @@ def start_tool_server(
 
     def get_context():
         jctxt = get_job_context()
-        logger.debug(f"job: {jctxt.job_id}")
         if jctxt.job_id is None:
             logger.warning("missing job context in thread")
             return None

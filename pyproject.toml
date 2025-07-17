@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap_ai_tool"
-version = "0.7.10"
+version = "0.7.11"
 description = "Helper functions for building AI Tools as IVCAP services"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
