@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap_ai_tool"
-version = "0.7.9"
+version = "0.7.10"
 description = "Helper functions for building AI Tools as IVCAP services"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
@@ -16,7 +16,7 @@ cachetools = "^5.5.2"
 opentelemetry-instrumentation-fastapi = "^0.51b0"
 jwt = "^1.3.1"
 google-cloud-secret-manager = "2.22.0"
-ivcap-service = ">=0.5.9,<0.6.0"
+ivcap-service = "^0.5.10"
 fastapi = "^0.115.12"
 uvicorn = "^0.34.2"
 

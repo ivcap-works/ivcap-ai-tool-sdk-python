@@ -15,7 +15,7 @@ import sys
 
 from ivcap_service import Service, service_log_config, getLogger, print_tool_definition, otel_instrument, set_context
 
-from .executor import Executor
+from .executor import Executor, get_job_context
 from .version import get_version
 from .utils import find_first
 #from .context import set_context, otel_instrument
@@ -111,13 +111,13 @@ def start_tool_server(
     logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}")
     # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
 
-    from ivcap_service import JobContext
     def get_context():
-        return JobContext(
-            job_id=Executor.job_id(),
-            job_authorization=Executor.job_authorization(),
-            report=Executor.event_reporter(),
-        )
+        jctxt = get_job_context()
+        logger.debug(f"job: {jctxt.job_id}")
+        if jctxt.job_id is None:
+            logger.warning("missing job context in thread")
+            return None
+        return jctxt
     set_context(get_context)
 
     otel_instrument(with_telemetry, lambda _: FastAPIInstrumentor.instrument_app(app), logger)

@@ -4,8 +4,7 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import asyncio
-from dataclasses import dataclass
-import io
+import contextvars
 import concurrent.futures
 import threading
 from time import sleep
@@ -19,7 +18,8 @@ from opentelemetry import trace, context
 from opentelemetry.context.context import Context
 
 from ivcap_service import get_input_type, push_result, verify_result
-from ivcap_service import ExecutionError, EventReporter, JobContext as BaseJobContext, create_event_reporter
+from ivcap_service import ExecutionError, JobContext as BaseJobContext, create_event_reporter
+from ivcap_service import JobContext
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
@@ -33,11 +33,6 @@ class ExecutionContext:
 class ThreadLocal(threading.local):
     pass
 
-class JobContext(threading.local):
-    job_id: Optional[str] = None
-    authorization: Optional[str] = None
-    report: Optional[EventReporter] = None
-
 T = TypeVar('T')
 
 class ExecutorOpts(BaseModel):
@@ -45,17 +40,10 @@ class ExecutorOpts(BaseModel):
     job_cache_ttl: Optional[int] = Field(3600, description="TTL of job entries in the job cache")
     max_workers: Optional[int] = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
 
-def get_event_reporter() -> Optional[EventReporter]:
-    """Get the current event reporter from the job context."""
-    if Executor._job_ctxt is None:
-        return None
-    return Executor._job_ctxt.report
+job_context = contextvars.ContextVar('ivcap', default=JobContext())
 
-def get_job_id() -> Optional[EventReporter]:
-    """Get the current job ID from the job context."""
-    if Executor._job_ctxt is None:
-        return None
-    return Executor._job_ctxt.job_id
+def get_job_context() -> JobContext:
+    return job_context.get()
 
 
 class Executor(Generic[T]):
@@ -64,20 +52,8 @@ class Executor(Generic[T]):
     The generic type T represents the return type of the function.
     """
 
-    _job_ctxt = JobContext()
+    # _job_ctxt = JobContext()
     _active_jobs = set() # keep track of active jobs to block shutdown until they are done
-
-    @classmethod
-    def job_id(cls) -> str:
-        return cls._job_ctxt.job_id
-
-    @classmethod
-    def job_authorization(cls) -> str:
-        return cls._job_ctxt.authorization
-
-    @classmethod
-    def event_reporter(cls) -> EventReporter:
-        return cls._job_ctxt.report
 
     @classmethod
     def active_jobs(cls) -> List[str]:
@@ -178,18 +154,21 @@ class Executor(Generic[T]):
 
         def _run(param: Any, ctxt: Context):
             context.attach(ctxt) # OTEL
-
+            authorization = req.headers.get("authorization")
+            jctxt = JobContext(
+                job_id=job_id,
+                job_authorization = authorization,
+                report = create_event_reporter(job_id=job_id, job_authorization=authorization),
+            )
+            job_context.set(jctxt)
             kwargs = {}
             if self.context_param is not None:
                 kwargs[self.context_param] = self.context
             if self.request_param is not None:
                 kwargs[self.request_param] = req
             if self.job_ctxt_param is not None:
-                kwargs[self.job_ctxt_param] = self._job_ctxt
+                kwargs[self.job_ctxt_param] = jctxt # self._job_ctxt
 
-            self._job_ctxt.job_id = job_id
-            self._job_ctxt.authorization = req.headers.get("authorization")
-            self._job_ctxt.report = create_event_reporter(job_id=job_id, job_authorization=self._job_ctxt.authorization)
             fname = self.func.__name__
             with tracer.start_as_current_span(f"RUN {fname}") as span:
                 span.set_attribute("job.id", job_id)
@@ -220,8 +199,7 @@ class Executor(Generic[T]):
                 except BaseException as ex:
                     logger.error(f"while delivering result fo {job_id} - {ex}")
 
-                self._job_ctxt.job_id = None
-                self._job_ctxt.authorizaton = None
+                job_context.set(JobContext())
                 if loop != None:
                     loop.close
 

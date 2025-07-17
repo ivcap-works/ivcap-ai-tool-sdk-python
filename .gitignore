@@ -155,3 +155,4 @@ dmypy.json
 .DS_Store
 
 .direnv
+TMP/

@@ -1,7 +1,7 @@
 {
   "$schema": "urn:sd:schema:ai-tester.request.1",
   "wordle": {
-    "max-attempts": 2,
+    "-maxattempts": 2,
     "thinking_time": 1
   }
 }
