@@ -19,6 +19,7 @@ from opentelemetry.context.context import Context
 
 from ivcap_service import get_input_type, push_result, verify_result, EventReporter
 from ivcap_service import ExecutionError, create_event_reporter, JobContext
+from ivcap_client import IVCAP
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
@@ -163,6 +164,7 @@ class Executor(Generic[T]):
                 job_id=job_id,
                 job_authorization = authorization,
                 report = create_event_reporter(job_id=job_id, job_authorization=authorization),
+                ivcap = IVCAP()
             )
             job_context.set(jctxt)
             kwargs = {}
