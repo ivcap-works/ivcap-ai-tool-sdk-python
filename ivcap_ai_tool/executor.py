@@ -26,6 +26,7 @@ MAX_DELIVER_RESULT_ATTEMPTS = 4
 
 logger = getLogger("executor")
 tracer = trace.get_tracer("executor")
+ivcap = IVCAP()
 
 class ExecutionContext:
     pass
@@ -164,7 +165,7 @@ class Executor(Generic[T]):
                 job_id=job_id,
                 job_authorization = authorization,
                 report = create_event_reporter(job_id=job_id, job_authorization=authorization),
-                ivcap = IVCAP()
+                ivcap = ivcap
             )
             job_context.set(jctxt)
             kwargs = {}
