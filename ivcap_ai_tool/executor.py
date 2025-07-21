@@ -165,7 +165,6 @@ class Executor(Generic[T]):
                 job_id=job_id,
                 job_authorization = authorization,
                 report = create_event_reporter(job_id=job_id, job_authorization=authorization),
-                ivcap = ivcap
             )
             job_context.set(jctxt)
             kwargs = {}
