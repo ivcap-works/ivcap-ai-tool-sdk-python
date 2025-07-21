@@ -26,7 +26,6 @@ MAX_DELIVER_RESULT_ATTEMPTS = 4
 
 logger = getLogger("executor")
 tracer = trace.get_tracer("executor")
-ivcap = IVCAP()
 
 class ExecutionContext:
     pass
