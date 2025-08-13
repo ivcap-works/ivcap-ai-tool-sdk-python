@@ -13,7 +13,10 @@ import uvicorn
 import os
 import sys
 
-from ivcap_service import Service, service_log_config, getLogger, print_tool_definition, otel_instrument, set_context
+from ivcap_service import (
+    Service, service_log_config, getLogger, print_tool_definition, otel_instrument, set_context,
+    set_event_reporter_factory, SidecarReporter
+)
 
 from .executor import Executor, get_job_context
 from .version import get_version
@@ -110,6 +113,7 @@ def start_tool_server(
 
     logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}")
     # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
+    set_event_reporter_factory(SidecarReporter)
 
     def get_context():
         jctxt = get_job_context()
