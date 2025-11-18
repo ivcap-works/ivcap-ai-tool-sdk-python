@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap_ai_tool"
-version = "0.7.18"
+version = "0.7.19"
 description = "Helper functions for building AI Tools as IVCAP services"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
@@ -15,8 +15,8 @@ uuid6 = "2024.7.10"
 cachetools = "^5.5.2"
 opentelemetry-instrumentation-fastapi = "^0.51b0"
 ivcap-service = "^0.6.12"
-fastapi = "^0.115.12"
-uvicorn = "^0.34.2"
+fastapi = "^0.121.2"
+uvicorn = "^0.38.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"
