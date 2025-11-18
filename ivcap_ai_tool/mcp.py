@@ -137,26 +137,29 @@ async def handle_tools_call(req_id, params, req: JsonRpcRequest, httpReq: Reques
     mtype = message.type
     if mtype == "error":
         data = message.data or "???"
-        error = {
-            "message": str(data),
-            "structuredMessage": data
-        }
+        error = JsonRpcErrorObject(
+            code=1000,
+            message=str(data),
+            data=data
+        )
         return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
 
     elif mtype == "notification":
         # Not expected in non-streaming mode; treat as no-op
-        error = {
-            "message": "Unexpected notification message type in non-streaming mode",
-        }
+        error = JsonRpcErrorObject(
+            code=1001,
+            message="Unexpected notification message type in non-streaming mode",
+        )
         return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
 
     elif mtype == "result":
         return _result_response(req_id, message)
 
     else:
-        error = {
-            "message": f"Unknown message type `{mtype}' received from tool",
-        }
+        error = JsonRpcErrorObject(
+            code=1002,
+            message=f"Unknown message type `{mtype}' received from tool",
+        )
         return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
 
 def _result_response(req_id, message):
@@ -220,7 +223,7 @@ async def handle_unknown_method(req_id):
     return JsonRpcErrorResponse({
         "jsonrpc": "2.0",
         "id": req_id,
-        "error": { "code": -32601, "message": "Unknown method" }
+        "error": JsonRpcErrorObject(code=-32601, message="Unknown method"),
     })
 
 async def handle_tools_list(req_id) -> JsonRpcSuccessResponse:
