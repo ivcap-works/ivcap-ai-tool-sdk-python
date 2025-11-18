@@ -4,51 +4,40 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 
-
 """
-This is a file for the IVCAP Secret Manager Client
+DEPRECATED: ivcap_ai_tool.secret.SecretMgrClient
 
-It suppose to read secret through http via:
-- Service side car
+The SecretMgrClient has moved to ivcap_service.secret.SecretMgrClient.
+This module keeps a backwards-compatible shim so existing imports like
+
+    from ivcap_ai_tool.secret import SecretMgrClient
+
+continue to work. Please migrate to:
+
+    from ivcap_service.secret import SecretMgrClient
+
+This shim will be removed in a future release.
 """
 
-import requests
+from __future__ import annotations
 
-class SecretMgrClient:
-    def __init__(self,
-        secret_url: str = "http://secretmgr.local"
-    ) -> None:
-        self.secret_url = secret_url
+import warnings
 
-    def get_secret(self, secret_name: str, is_shared_secret: bool = False, secret_type: str = "", timeout: int = 10) -> str:
-        try:
-            url = f"{self.secret_url}/1/secret"
+__all__ = ["SecretMgrClient"]
 
-            secret_name = secret_name.strip()
-            if not secret_name:
-                raise ValueError("empty secret name")
+from ivcap_service.secret import SecretMgrClient as _SecretMgrClient  # type: ignore
 
-            secret_type = secret_type.strip()
-            if not secret_type:
-                secret_type = "raw"
+class SecretMgrClient(_SecretMgrClient):
+    """Backward-compatibility shim for SecretMgrClient.
 
-            token_type = "USER"
-            if is_shared_secret:
-                token_type = "M2M"
+    Deprecated: Use ivcap_service.secret.SecretMgrClient instead.
+    """
 
-            params = {
-                "secret-name": secret_name,
-                "secret-type": secret_type,
-                "token-type":  token_type,
-            }
-
-            response = requests.get(url, params=params, timeout=timeout)
-            response.raise_for_status()
-
-            if not response.content:
-                raise Exception("Failed to read secret: empty response received.")
-
-            data = response.json()
-            return data["secret-value"]
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to read secret: {e}")
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "ivcap_ai_tool.secret.SecretMgrClient is deprecated; use "
+            "ivcap_service.secret.SecretMgrClient",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, **kwargs)

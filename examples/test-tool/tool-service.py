@@ -101,37 +101,39 @@ class Result(BaseModel):
 def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
     """
     Run various tests
+
+    This is a simple test harness to execute various functionalities
     """
     result = Result(run_time=0, request=RequestContext.from_freq(freq))
     start_time = time()  # Start timer
 
-    jobCtxt.report.step_started("main", f"Start tool execution for {freq.url}")
-    if req.echo != None:
-        result.echo = req.echo
+    with jobCtxt.report.step("main", f"Start tool execution for {freq.url}") as step:
+        if req.echo != None:
+            result.echo = req.echo
 
-    if req.call != None:
-        result.call_result = make_request(req.call)
+        if req.call != None:
+            result.call_result = make_request(req.call)
 
-    if req.llm != None:
-        result.llm_result = completion(req.llm)
+        if req.llm != None:
+            result.llm_result = completion(req.llm)
 
-    if req.wordle != None:
-        result.wordle_result = play_random_wordle(req.wordle)
+        if req.wordle != None:
+            result.wordle_result = play_random_wordle(req.wordle)
 
-    if req.create_oom_error:
-        # This will eventually raise a MemoryError or be killed by the OS
-        data = []
-        while True:
-            data.append(' ' * 100_000_000)
+        if req.create_oom_error:
+            # This will eventually raise a MemoryError or be killed by the OS
+            data = []
+            while True:
+                data.append(' ' * 100_000_000)
 
-    if req.sleep > 0:
-        sleep(req.sleep)
+        if req.sleep > 0:
+            sleep(req.sleep)
 
-    if req.raise_error:
-        raise BaseException(req.raise_error)
+        if req.raise_error:
+            raise BaseException(req.raise_error)
 
-    result.run_time = round(time() - start_time, 2)
-    jobCtxt.report.step_finished("main", f"Finished tool execution in {result.run_time} seconds")
+        result.run_time = round(time() - start_time, 2)
+        step.finished(f"Finished tool execution in {result.run_time} seconds")
     return result
 
 @ivcap_ai_tool("/async", opts=ToolOptions(tags=["Test Tool"], service_id="/"))

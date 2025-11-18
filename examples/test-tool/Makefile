@@ -141,32 +141,5 @@ test-local-debug:
 		--data @${PROJECT_DIR}/tests/${REQUEST} \
 		http://localhost:8088/1/services2/${SERVICE_ID}/jobs
 
-# print-tool-description:
-# 	$(eval service_id:=urn:ivcap:service:$(shell python3 -c 'import uuid; print(uuid.uuid5(uuid.NAMESPACE_DNS, \
-#         "${SERVICE_NAME}" + "${account_id}"));'))
-# 	env VERSION=$(VERSION) PYTHONPATH="" IVCAP_SERVICE_ID=${service_id} \
-# 		python ${PROJECT_DIR}/tool-service.py --print-tool-description
-
-
-# install:
-# 	pip install -r requirements.txt
-
-# docker-run: DOCKER_TAG=${DOCKER_NAME}_${TARGET_ARCH}:${DOCKER_VERSION}
-# docker-run: #docker-build
-# 	docker run -it \
-# 		-p ${PORT}:${PORT} \
-# 		--user ${DOCKER_USER} \
-# 		-e LITELLM_PROXY=http://192.168.68.103:4000 \
-# 		-e IVCAP_BASE_URL="http://ivcap.local" \
-# 		-e http_proxy=http://192.168.68.103:9999 \
-# 		--platform=${TARGET_PLATFORM} \
-# 		--rm \
-# 		${DOCKER_TAG} --port ${PORT}
-
-# docker-debug: #docker-build
-# 	docker run -it \
-# 		-p 8090:8090 \
-# 		--user ${DOCKER_USER} \
-# 		--platform=${TARGET_PLATFORM} \
-# 		--entrypoint bash \
-# 		${DOCKER_TAG_LOCAL}
+mcp-inspector:
+	npx @modelcontextprotocol/inspector --config mcp-inspector.config.json --server default

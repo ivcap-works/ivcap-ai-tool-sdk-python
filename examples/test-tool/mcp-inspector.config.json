@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "default": {
+      "type": "streamable-http",
+      "url": "http://localhost:8095/mcp"
+    }
+  }
+}

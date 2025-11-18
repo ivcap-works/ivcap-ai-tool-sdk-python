@@ -9,6 +9,7 @@ import concurrent.futures
 import threading
 from time import sleep
 import traceback
+import contextlib
 from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
 from cachetools import TTLCache
 from fastapi import Request
@@ -120,7 +121,7 @@ class Executor(Generic[T]):
             else:
                 raise Exception(f"unexpected function parameter '{k}'")
 
-    async def execute(self, param: Any, job_id: str, req: Request) -> asyncio.Queue[Union[T, ExecutionError]]:
+    async def execute(self, param: Any, job_id: str, req: Request, report_result=True) -> asyncio.Queue[Union[T, ExecutionError]]:
         """
         Execute the function with the given parameter in a thread and return a queue with the result.
 
@@ -133,7 +134,7 @@ class Executor(Generic[T]):
             An asyncio Queue that will contain either the result of type T or an ExecutionError
         """
         result_queue: asyncio.Queue[Union[T, ExecutionError]] = asyncio.Queue()
-        event_loop = asyncio.get_event_loop()
+        event_loop = asyncio.get_running_loop()
         self.job_cache[job_id] = None
 
         def _process_result(result):
@@ -154,7 +155,8 @@ class Executor(Generic[T]):
                     result_queue.put(result),
                     event_loop,
                 )
-                push_result(result, job_id)
+                if report_result:
+                    push_result(result, job_id)
                 self.__class__._active_jobs.discard(job_id)
 
         def _run(param: Any, ctxt: Context):
@@ -184,11 +186,32 @@ class Executor(Generic[T]):
                     if asyncio.iscoroutinefunction(self.func):
                         loop = asyncio.new_event_loop()
                         asyncio.set_event_loop(loop)
-                        res = loop.run_until_complete(self.func(param, **kwargs))
-                        loop.close()  # Clean up event loop
+                        try:
+                            res = loop.run_until_complete(self.func(param, **kwargs))
+                        except (asyncio.CancelledError, GeneratorExit):
+                            # Propagate cancellation and generator shutdown properly
+                            raise
+                        finally:
+                            # Gracefully shutdown remaining tasks and async generators to avoid
+                            # 'Task exception was never retrieved' and similar warnings
+                            try:
+                                pending = [t for t in asyncio.all_tasks(loop) if not t.done()]
+                                for t in pending:
+                                    t.cancel()
+                                if pending:
+                                    with contextlib.suppress(Exception):
+                                        loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+                                with contextlib.suppress(Exception):
+                                    loop.run_until_complete(loop.shutdown_asyncgens())
+                            finally:
+                                loop.close()
                     else:
                         res = self.func(param, **kwargs)
-                except BaseException as ex:
+                except (asyncio.CancelledError, GeneratorExit):
+                    # Allow cooperative shutdown/cancellation to propagate cleanly
+                    span.record_exception(Exception("cancelled"))
+                    raise
+                except Exception as ex:
                     span.record_exception(ex)
                     logger.error(f"while executing {job_id} - {type(ex).__name__}: {ex}")
                     res = ExecutionError(
@@ -201,12 +224,10 @@ class Executor(Generic[T]):
 
                 try:
                     _process_result(res)
-                except BaseException as ex:
+                except Exception as ex:
                     logger.error(f"while delivering result fo {job_id} - {ex}")
 
                 job_context.set(JobContext())
-                if loop != None:
-                    loop.close
 
 
 

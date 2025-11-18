@@ -74,6 +74,7 @@ def start_tool_server(
     parser.add_argument('--host', type=str, default=os.environ.get("HOST", "0.0.0.0"), help='Host address')
     parser.add_argument('--port', type=int, default=os.environ.get("PORT", "8090"), help='Port number')
     parser.add_argument('--with-telemetry', action="store_true", help='Initialise OpenTelemetry')
+    parser.add_argument('--with-mcp', action="store_true", help='Add an MCP endpoint')
     parser.add_argument('--print-service-description', type=str, metavar='NAME',
                         nargs='?', const=tool_names[0], default=None,
                         help=f"Print service description to stdout [{','.join(tool_names)}]")
@@ -103,6 +104,7 @@ def start_tool_server(
         print_rest_service_definition(service, tool.worker_fn)
         sys.exit(0)
 
+    logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}")
 
     # Check for '_healtz' service
     healtz = find_first(app.routes, lambda r: r.path == "/_healtz")
@@ -111,7 +113,10 @@ def start_tool_server(
         def healtz():
             return {"version": os.environ.get("VERSION", "???")}
 
-    logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}")
+    if args.with_mcp:
+        from .mcp import register_mcp
+        register_mcp(app, "/mcp")
+
     # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
     set_event_reporter_factory(SidecarReporter)
 

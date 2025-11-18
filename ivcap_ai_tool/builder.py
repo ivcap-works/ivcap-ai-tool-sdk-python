@@ -4,10 +4,11 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import asyncio
+from dataclasses import dataclass
 import json
 from fastapi import FastAPI, Response, status, Request
 from pydantic import BaseModel, Field
-from typing import Any, Dict, List, Optional, Callable, TypeVar
+from typing import Any, Dict, List, Optional, Callable, Tuple, Type, TypeVar
 from uuid6 import uuid6
 
 from ivcap_service import getLogger, get_function_return_type, get_input_type, create_tool_definition
@@ -44,10 +45,13 @@ T = TypeVar("T", bound=BaseModel)
 
 WorkerFn = Callable[[BaseModel, Optional[ExecutionContext], Optional[Response]], BaseModel]
 
-class ToolDescription(BaseModel):
+@dataclass
+class ToolDescription:
     name: str
     path_prefix: str
     worker_fn: WorkerFn
+    input: Tuple[Optional[Type[BaseModel]], Dict[str, Any]]
+    executor: Executor
 
 tools: List[ToolDescription] = []
 
@@ -102,7 +106,11 @@ def add_tool_api_route(
     output_model = get_function_return_type(worker_fn)
     executor = Executor[output_model](worker_fn, opts=opts.executor_opts, context=context)
 
-    tools.append(ToolDescription(name=worker_fn.__name__, path_prefix=path_prefix, worker_fn=worker_fn))
+    tools.append(ToolDescription(name=worker_fn.__name__,
+                                path_prefix=path_prefix,
+                                worker_fn=worker_fn,
+                                input=get_input_type(worker_fn),
+                                executor=executor))
 
     _add_do_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_job_route(app, path_prefix, worker_fn, executor, opts)
