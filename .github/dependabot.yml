@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "peotry"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    ignore:
+      - dependency-name: "ivcap_service"
+        versions: ["*"]
