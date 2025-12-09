@@ -1,0 +1,7 @@
+{
+  "$schema": "urn:sd:schema:ai-tester.request.1",
+  "call": {
+    "method": "GET",
+    "url": "http://ivcap.local/1/artifacts/urn:ivcap:artifact:80f34ebe-9a67-48d1-b57b-786f8b815270"
+  }
+}

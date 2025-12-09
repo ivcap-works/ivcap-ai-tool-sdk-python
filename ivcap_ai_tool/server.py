@@ -15,7 +15,7 @@ import sys
 
 from ivcap_service import (
     Service, service_log_config, getLogger, print_tool_definition, otel_instrument, set_context,
-    set_event_reporter_factory, SidecarReporter
+    set_event_reporter_factory, SidecarReporter, get_version as get_service_version
 )
 
 from .executor import Executor, get_job_context
@@ -104,7 +104,7 @@ def start_tool_server(
         print_rest_service_definition(service, tool.worker_fn)
         sys.exit(0)
 
-    logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}")
+    logger.info(f"{title} - {os.getenv('VERSION')} - v{get_version()}|v{get_service_version()}")
 
     # Check for '_healtz' service
     healtz = find_first(app.routes, lambda r: r.path == "/_healtz")
