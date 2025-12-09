@@ -2,9 +2,6 @@
   "$schema": "urn:sd:schema:ai-tester.request.1",
   "call": {
     "method": "GET",
-    "url": "http://www.google.com",
-    "data": {
-      "name": "Alice"
-    }
+    "url": "https://www.google.com"
   }
 }

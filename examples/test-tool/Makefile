@@ -71,6 +71,13 @@ test-call-post:
 test-call-post-async:
 	curl -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/call-post.json http://localhost:${PORT}/async
 
+test-call-get:
+	curl -X POST \
+		-H "content-type: application/json" \
+		-H "Timeout: ${TIMEOUT}" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		--data @${PROJECT_DIR}/tests/call-get.json http://localhost:${PORT} | jq
+
 test-list-services:
 	curl -X POST \
 		-H "content-type: application/json" \

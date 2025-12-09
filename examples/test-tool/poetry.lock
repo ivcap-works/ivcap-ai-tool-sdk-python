@@ -809,20 +809,20 @@ type = ["pytest-mypy"]
 
 [[package]]
 name = "ivcap-ai-tool"
-version = "0.7.20"
+version = "0.7.21"
 description = "Helper functions for building AI Tools as IVCAP services"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "ivcap_ai_tool-0.7.20-py3-none-any.whl", hash = "sha256:f1f30f6351394f0fef60d7a8a3a1ecaf1ef32ff955e75c048fbb31307488cf60"},
-    {file = "ivcap_ai_tool-0.7.20.tar.gz", hash = "sha256:ceadc089cef504415f1cb481f61b004724cd8b124f1c7f602092a8f0e21da983"},
+    {file = "ivcap_ai_tool-0.7.21-py3-none-any.whl", hash = "sha256:0724f674d1136759cb31cbbc7afe1408cf948406e1c71c9935e22ac1e16e0326"},
+    {file = "ivcap_ai_tool-0.7.21.tar.gz", hash = "sha256:04565ce6d8b68e96a7b38106770618250385ce1695cca88b4a5a76d8d4ed4857"},
 ]
 
 [package.dependencies]
 cachetools = ">=5.5.2,<6.0.0"
 fastapi = ">=0.121.2,<0.122.0"
-ivcap-service = ">=0.6.12,<0.7.0"
+ivcap-service = ">=0.6.14,<0.7.0"
 opentelemetry-instrumentation-fastapi = ">=0.51b0,<0.52"
 uuid6 = "2024.7.10"
 uvicorn = ">=0.38.0,<0.39.0"
@@ -847,14 +847,14 @@ tuspy = ">=1.0.0"
 
 [[package]]
 name = "ivcap-service"
-version = "0.6.13"
+version = "0.6.15"
 description = "SDK library for building services for the IVCAP platform"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "ivcap_service-0.6.13-py3-none-any.whl", hash = "sha256:ac675ef56cd0a1c9634e1e4ba0232ba222e6b8c19e2d0ef7f0fef26b4d3ab449"},
-    {file = "ivcap_service-0.6.13.tar.gz", hash = "sha256:3f7cb6e5319825b1ae0209dc65d4db4b39e05bf4effad8382b11c47493a1fe8a"},
+    {file = "ivcap_service-0.6.15-py3-none-any.whl", hash = "sha256:822e15c5efa551eb424f6254e6e85db466e93062ffc27833ad7b89410acf5424"},
+    {file = "ivcap_service-0.6.15.tar.gz", hash = "sha256:4cf39e6532a5b913c448d8dbcdd266d9fa82ec5af1071763e7901117d0ad312c"},
 ]
 
 [package.dependencies]
@@ -2182,4 +2182,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "d2e2f7e34b1a7ca7f71a581ee508b188f22ad19b94fee34b33d5e9f897875e72"
+content-hash = "cf2cfc638f41896e00777a0095d103289fc4ce6b6b573fab8908d1e8210affd9"
