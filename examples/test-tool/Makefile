@@ -101,6 +101,14 @@ test-wordle:
 test-oom-error:
 	curl -i -H "Timeout: 20" -X POST -H "content-type: application/json" --data @${PROJECT_DIR}/tests/cause_oom_error.json http://localhost:${PORT}
 
+test-events:
+	curl -i -X POST \
+		-H "content-type: application/json" \
+		-H "Authorization: Bearer $(shell ivcap --context gke-dev context get access-token --refresh-token)" \
+		-H "Timeout: ${TIMEOUT}" \
+		--data @${PROJECT_DIR}/tests/events.json \
+		http://localhost:${PORT}
+
 test-llm:
 	curl -X POST -H "content-type: application/json" \
 	-H "Timeout: ${TIMEOUT}" \
@@ -115,21 +123,23 @@ test-llm-with-auth:
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		http://localhost:${PORT}
 
+MINIKUBE_URL=http://ivcap.minikube
 test-llm-minikube:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
-		http://ivcap.minikube/1/services2/${SERVICE_ID}/jobs
+		http://ivcap.minikube/1/services2/$(shell poetry ivcap get-service-id)/jobs
 
 test-echo-minikube:
 	curl -i -X POST \
 		-H "content-type: application/json" \
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 		-H "Timeout: ${TIMEOUT}" \
+		-H 'origin: ${MINIKUBE_URL}' \
 		--data @${PROJECT_DIR}/tests/echo.json \
-		http://ivcap.minikube/1/services2/${SERVICE_ID}/jobs
+		${MINIKUBE_URL}/1/services2/$(shell poetry ivcap get-service-id)/jobs
 
 test-llm-ivcap:
 	curl -i -X POST \
@@ -138,6 +148,7 @@ test-llm-ivcap:
 		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/llm-hello.json \
 		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs
+
 
 REQUEST=echo.json
 test-local-debug:

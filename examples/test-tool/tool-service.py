@@ -1,3 +1,4 @@
+from ivcap_service.events import GenericEvent
 import os
 import sys
 from time import sleep, time
@@ -62,6 +63,10 @@ class LlmTester(BaseModel):
     messages: List[ChatMessage] = Field(..., description="A list of messages to be passed to the LLM.")
     model: Optional[str] = Field("gpt-3.5-turbo", description="The LLM model to use [gpt-3.5-turbo].")
 
+class EventTester(BaseModel):
+    count: int = Field(default=5, description="Number of events to send")
+    sleep: int = Field(default=1, description="the number of seconds to sleep until next event")
+
 class Request(BaseModel):
     jschema: str = Field("urn:sd:schema:ai-tester.request.1", alias="$schema")
     echo: Optional[str] = Field(None, description="a string to echo in result")
@@ -71,6 +76,7 @@ class Request(BaseModel):
     create_oom_error: Optional[bool] = Field(False, description="Optionally cause an OOM error")
     sleep: Optional[int] = Field(0, description="the number of seconds to sleep before replying")
     raise_error: Optional[str] = Field(None, description="raise an error with this message")
+    events: Optional[EventTester] = Field(None, description="Optionally create lots of events")
 
 class RequestContext(BaseModel):
     headers: List[Tuple[str, str]]
@@ -119,6 +125,9 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
 
         if req.wordle != None:
             result.wordle_result = play_random_wordle(req.wordle)
+
+        if req.events != None:
+            send_events(req.events, jobCtxt)
 
         if req.create_oom_error:
             # This will eventually raise a MemoryError or be killed by the OS
@@ -222,6 +231,13 @@ def make_request(req: CallTester) -> Any:
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
+def send_events(req: EventTester, jobCtxt: JobContext):
+    for i in range(req.count):
+        with jobCtxt.report.step("work", message=f"step#{i}"):
+            sleep(req.sleep)
+    jobCtxt.report.emit(GenericEvent(name=f"finished"))
+
+
 # add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"), context=ExecCtxt(msg="Boo!"))
 # add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
@@ -231,7 +247,7 @@ if __name__ == "__main__":
         parser.add_argument('--litellm-proxy', type=str, help='Address of the the LiteLlmProxy')
         args = parser.parse_args()
         if args.litellm_proxy != None:
-            os.setenv("LITELLM_PROXY", args.litellm_proxy)
+            os.environ["LITELLM_PROXY"] = args.litellm_proxy
         return args
 
     start_tool_server(service, custom_args=custom_args)

@@ -11,7 +11,7 @@ requires-python = ">=3.10,<4.0"
 dependencies = [
     "ivcap-ai-tool (>=0.7.21,<0.8.0)",
     "openai (>=1.95.1,<2.0.0)",
-    "ivcap-service (>=0.6.15,<0.7.0)"
+    "ivcap-service (>=0.6.16,<0.7.0)"
 ]
 
 [tool.poetry-plugin-ivcap]
