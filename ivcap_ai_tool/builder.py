@@ -22,28 +22,42 @@ class ErrorModel(BaseModel):
     message: str
     code: int
 
+
 class ExecutionErrorModel(BaseModel):
     jschema: str = Field("urn:ivcap:schema.ai-tool.error.1", alias="$schema")
     message: str
     traceback: str
 
+
 JOB_URN_PREFIX = "urn:ivcap:job:"
 
 logger = getLogger("wrapper")
 
+
 class ToolOptions(BaseModel):
-    name: Optional[str] = Field(None, description="Name to be used for this tool")
-    tags: Optional[list[str]] = Field(None, description="OpenAPI tag for this set of functions")
-    max_wait_time: Optional[float] = Field(5.0, description="max. time in seconds to wait for result and before returning RetryLater")
-    refresh_interval: Optional[int] = Field(3, description="Time in seconds to wait before chacking again for a job result (used in RetryLater)")
-    executor_opts: Optional[ExecutorOpts] = Field(None, description="Options for the executor")
-    post_route_opts: Optional[Dict[str, Any]] = Field({}, description="Addtitional options given the POST route constructor")
-    service_id: Optional[str] = Field(None, description="overriding the default service id")
+    name: Optional[str] = Field(
+        None, description="Name to be used for this tool")
+    tags: Optional[list[str]] = Field(
+        None, description="OpenAPI tag for this set of functions")
+    max_wait_time: Optional[float] = Field(
+        5.0, description="max. time in seconds to wait for result and before returning RetryLater")
+    refresh_interval: Optional[int] = Field(
+        3, description="Time in seconds to wait before chacking again for a job result (used in RetryLater)")
+    executor_opts: Optional[ExecutorOpts] = Field(
+        None, description="Options for the executor")
+    post_route_opts: Optional[Dict[str, Any]] = Field(
+        {}, description="Addtitional options given the POST route constructor")
+    service_id: Optional[str] = Field(
+        None, description="overriding the default service id")
+    is_ready: Optional[Callable[[], bool]]
+
 
 # Define a generic type for Pydantic models
 T = TypeVar("T", bound=BaseModel)
 
-WorkerFn = Callable[[BaseModel, Optional[ExecutionContext], Optional[Response]], BaseModel]
+WorkerFn = Callable[[BaseModel, Optional[ExecutionContext],
+                     Optional[Response]], BaseModel]
+
 
 @dataclass
 class ToolDescription:
@@ -53,7 +67,9 @@ class ToolDescription:
     input: Tuple[Optional[Type[BaseModel]], Dict[str, Any]]
     executor: Executor
 
+
 tools: List[ToolDescription] = []
+
 
 def add_tool_api_route(
     app: FastAPI,
@@ -104,17 +120,19 @@ def add_tool_api_route(
         opts.name = def_name
 
     output_model = get_function_return_type(worker_fn)
-    executor = Executor[output_model](worker_fn, opts=opts.executor_opts, context=context)
+    executor = Executor[output_model](
+        worker_fn, opts=opts.executor_opts, context=context)
 
     tools.append(ToolDescription(name=worker_fn.__name__,
-                                path_prefix=path_prefix,
-                                worker_fn=worker_fn,
-                                input=get_input_type(worker_fn),
-                                executor=executor))
+                                 path_prefix=path_prefix,
+                                 worker_fn=worker_fn,
+                                 input=get_input_type(worker_fn),
+                                 executor=executor))
 
     _add_do_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_tool_def_route(app, path_prefix, worker_fn, opts)
+
 
 def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
     input_model, _ = get_input_type(worker_fn)
@@ -136,7 +154,8 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
                 timeout = int(toh)
             else:
                 timeout = opts.max_wait_time
-        logger.info(f"starting job {path_prefix}/jobs/{job_id} - timeout: {timeout} seconds")
+        logger.info(
+            f"starting job {path_prefix}/jobs/{job_id} - timeout: {timeout} seconds")
 
         queue = await executor.execute(data, job_id, req)
         try:
@@ -161,7 +180,7 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
                 },
             },
         },
-        400: { "model": ErrorModel, },
+        400: {"model": ErrorModel, },
         # 400: {"model": Error}, 401: {"model": Error}, 429: {"model": Error}},
     }
     app.add_api_route(
@@ -178,9 +197,11 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
         **opts.post_route_opts,
     )
 
+
 def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
     output_model = get_function_return_type(worker_fn)
-    def route(job_id: str) -> output_model: # type: ignore
+
+    def route(job_id: str) -> output_model:  # type: ignore
         if job_id.startswith(JOB_URN_PREFIX):
             job_id = job_id[len(JOB_URN_PREFIX):]
         try:
@@ -193,7 +214,7 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
                             content=f"job {job_id} can't be found. It either never existed or its result is no longer cached.")
 
     responses = {
-        400: { "model": ErrorModel, },
+        400: {"model": ErrorModel, },
     }
     path = "/jobs/" + "{job_id}"
     if path_prefix != "/":
@@ -209,22 +230,24 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
         response_model_by_alias=True,
     )
 
+
 def _return_job_result(el, job_id):
-    h = { "job-id": JOB_URN_PREFIX + job_id }
+    h = {"job-id": JOB_URN_PREFIX + job_id}
     if isinstance(el, IvcapResult):
-        return  Response(status_code=status.HTTP_200_OK, content=el.content, media_type=el.content_type, headers=h)
+        return Response(status_code=status.HTTP_200_OK, content=el.content, media_type=el.content_type, headers=h)
     elif isinstance(el, ExecutionError):
         if el.type == ValueError:
             m = ErrorModel(message=el.error, code=400)
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code = status.HTTP_400_BAD_REQUEST
         else:
             m = ExecutionErrorModel(message=el.error, traceback=el.traceback)
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
         return Response(status_code=status_code, content=m.model_dump_json(indent=2), media_type="application/json", headers=h)
 
-    msg = json.dumps({"error": f"please report unexpected internal error - unexpected result type {type(el)}"})
-    return  Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=msg, media_type="application/json", headers=h)
+    msg = json.dumps(
+        {"error": f"please report unexpected internal error - unexpected result type {type(el)}"})
+    return Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=msg, media_type="application/json", headers=h)
 
 
 def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable, opts: ToolOptions):
