@@ -16,6 +16,7 @@ from ivcap_service import IvcapResult, ToolDefinition, ExecutionError
 
 from .executor import ExecutionContext, Executor, ExecutorOpts
 from .utils import get_title_from_path, get_public_url_prefix
+from .health_handler import add_ready_handler
 
 
 class ErrorModel(BaseModel):
@@ -49,7 +50,8 @@ class ToolOptions(BaseModel):
         {}, description="Addtitional options given the POST route constructor")
     service_id: Optional[str] = Field(
         None, description="overriding the default service id")
-    is_ready: Optional[Callable[[], bool]]
+    is_ready: Optional[Callable[[], bool]] = Field(
+        None, description="Function to check if the tool is ready")
 
 
 # Define a generic type for Pydantic models
@@ -128,6 +130,8 @@ def add_tool_api_route(
                                  worker_fn=worker_fn,
                                  input=get_input_type(worker_fn),
                                  executor=executor))
+
+    add_ready_handler(opts.is_ready if opts else None)
 
     _add_do_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_job_route(app, path_prefix, worker_fn, executor, opts)

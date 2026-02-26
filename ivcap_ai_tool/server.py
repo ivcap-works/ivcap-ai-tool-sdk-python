@@ -123,9 +123,9 @@ def start_tool_server(
     # Check for '_healtz' service
     # healtz = find_first(app.routes, lambda r: r.path == "/_healtz")
     # if healtz is None:
-    @app.get("/_healthz", tags=["System"])
-    async def healthz():
-        return await healthz_handler()
+    @app.get("/_healtz", tags=["System"])
+    async def healtz():
+        return await healtz_handler()
 
     if args.with_mcp:
         from .mcp import register_mcp

@@ -3,25 +3,24 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Awaitable, Callable, List, Optional
+from typing import Awaitable, Callable, List, Optional, Union
 
 from fastapi import HTTPException
 
-from .builder import ToolOptions
-
-# Global registry of readiness handlers
-_ready_handlers: List[Callable[[], Awaitable[bool]]] = []
+# Global registry of readiness handlers (sync or async callables returning bool)
+_ready_handlers: List[Callable[[], Union[bool, Awaitable[bool]]]] = []
 
 
-def add_ready_handler(opts: Optional[ToolOptions]) -> None:
+def add_ready_handler(ready_fn: Optional[Callable[[], Union[bool, Awaitable[bool]]]]) -> None:
     """
-    Register the given ToolOptions.is_ready handler (if any) in the global list.
+    Register a readiness handler in the global list. Called from builder when
+    a tool is registered with opts.is_ready set.
     """
-    if opts is not None and opts.is_ready is not None:
-        _ready_handlers.append(opts.is_ready)
+    if ready_fn is not None:
+        _ready_handlers.append(ready_fn)
 
 
-async def healthz_handler() -> dict:
+async def healtz_handler() -> dict:
     """
     Check all registered readiness handlers.
 
