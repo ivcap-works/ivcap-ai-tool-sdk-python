@@ -3,15 +3,15 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Awaitable, Callable, List, Optional, Union
+from collections.abc import Awaitable, Callable
 
 from fastapi import HTTPException
 
 # Global registry of readiness handlers (sync or async callables returning bool)
-_ready_handlers: List[Callable[[], Union[bool, Awaitable[bool]]]] = []
+_ready_handlers: list[Callable[[], bool | Awaitable[bool]]] = []
 
 
-def add_ready_handler(ready_fn: Optional[Callable[[], Union[bool, Awaitable[bool]]]]) -> None:
+def add_ready_handler(ready_fn: Callable[[], bool | Awaitable[bool]] | None) -> None:
     """
     Register a readiness handler in the global list. Called from builder when
     a tool is registered with opts.is_ready set.

@@ -1,7 +1,7 @@
 
 import random
 from time import sleep
-from typing import Optional
+
 from ivcap_service import getLogger
 from pydantic import BaseModel, Field
 
@@ -24,6 +24,8 @@ WORD_LIST = [
 ]
 
 # --- WordleGame Class (Simulating the Wordle Game's Behavior) ---
+
+
 class WordleGame:
     def __init__(self, secret_word):
         self.secret_word = secret_word.upper()
@@ -45,7 +47,7 @@ class WordleGame:
 
         self.guesses_made.append(guess)
 
-        feedback = [''] * 5 # Initialize feedback list
+        feedback = [''] * 5  # Initialize feedback list
         secret_word_counts = {}
 
         # Populate counts of letters in the secret word
@@ -55,17 +57,17 @@ class WordleGame:
         # First pass: Identify Green letters and decrement counts
         for i in range(5):
             if guess[i] == self.secret_word[i]:
-                feedback[i] = 'G' # Green
+                feedback[i] = 'G'  # Green
                 secret_word_counts[guess[i]] -= 1
 
         # Second pass: Identify Yellow and Gray letters
         for i in range(5):
-            if feedback[i] == '': # Only process if not already marked Green
+            if feedback[i] == '':  # Only process if not already marked Green
                 if guess[i] in self.secret_word and secret_word_counts.get(guess[i], 0) > 0:
-                    feedback[i] = 'Y' # Yellow
+                    feedback[i] = 'Y'  # Yellow
                     secret_word_counts[guess[i]] -= 1
                 else:
-                    feedback[i] = 'X' # Gray
+                    feedback[i] = 'X'  # Gray
 
         if guess == self.secret_word:
             self.is_solved = True
@@ -81,20 +83,26 @@ class WordleGame:
         return self.guesses_made
 
 # --- WordleSolver Class (The AI Player) ---
+
+
 class WordleSolver:
     def __init__(self, word_list):
         """
         Initializes the solver with a list of all possible words.
         """
-        self.all_words = [word.upper() for word in word_list if len(word) == 5 and word.isalpha()]
-        self.possible_words = list(self.all_words) # Solver's current set of candidates
+        self.all_words = [word.upper() for word in word_list if len(
+            word) == 5 and word.isalpha()]
+        # Solver's current set of candidates
+        self.possible_words = list(self.all_words)
 
         # Solver's knowledge state:
-        self.known_greens = [''] * 5 # e.g., ['', '', 'A', '', ''] means 'A' is 3rd letter
-        self.known_yellows = [set() for _ in range(5)] # Set of letters known to be yellow at that position
-        self.known_grays = set() # Set of letters known NOT to be in the word at all
+        # e.g., ['', '', 'A', '', ''] means 'A' is 3rd letter
+        self.known_greens = [''] * 5
+        # Set of letters known to be yellow at that position
+        self.known_yellows = [set() for _ in range(5)]
+        self.known_grays = set()  # Set of letters known NOT to be in the word at all
 
-        self.feedback_history = [] # Stores (guess, feedback) tuples
+        self.feedback_history = []  # Stores (guess, feedback) tuples
 
     def filter_words(self, guess, feedback):
         """
@@ -132,19 +140,22 @@ class WordleSolver:
                 if self.known_greens[i] != '' and word[i] != self.known_greens[i]:
                     is_valid = False
                     break
-            if not is_valid: continue
+            if not is_valid:
+                continue
 
             # Rule B: Check yellows (must contain the yellow letter, but NOT at the yellow's position)
             for i in range(5):
                 for yellow_char in self.known_yellows[i]:
-                    if yellow_char not in word: # Word must contain the yellow letter
+                    if yellow_char not in word:  # Word must contain the yellow letter
                         is_valid = False
                         break
-                    if word[i] == yellow_char: # Word must NOT have yellow letter at this position
+                    if word[i] == yellow_char:  # Word must NOT have yellow letter at this position
                         is_valid = False
                         break
-                if not is_valid: break
-            if not is_valid: continue
+                if not is_valid:
+                    break
+            if not is_valid:
+                continue
 
             # Rule C: Check grays (must not contain any known gray letters)
             # This accounts for letters that were completely ruled out.
@@ -152,7 +163,8 @@ class WordleSolver:
                 if char_gray in word:
                     is_valid = False
                     break
-            if not is_valid: continue
+            if not is_valid:
+                continue
 
             # If all rules pass, the word is still a possibility
             new_possible_words.append(word)
@@ -165,7 +177,7 @@ class WordleSolver:
         Determines the next best guess based on the current list of possible words.
         """
         if not self.possible_words:
-            return None # Solver has no more words to guess
+            return None  # Solver has no more words to guess
 
         if len(self.possible_words) == len(self.all_words):
             # First guess strategy: Use a good starting word if available in the list.
@@ -186,27 +198,34 @@ class WordleSolver:
         # information gain.
         return random.choice(self.possible_words)
 
+
 class WordleProps(BaseModel):
-    thinking_time: Optional[int] = Field(0, description="Time to wait before placing next guess")
-    max_attempts: Optional[int] = Field(6, description="Number of allowed attempts")
+    thinking_time: int | None = Field(
+        0, description="Time to wait before placing next guess")
+    max_attempts: int | None = Field(
+        6, description="Number of allowed attempts")
+
 
 class WordleResult(BaseModel):
     secret: str = Field(..., description="Word to guess")
-    success: bool = Field(..., description="True if guessed within allowed attempts")
+    success: bool = Field(...,
+                          description="True if guessed within allowed attempts")
     attempts: int = Field(6, description="Number of of attempts needed")
 
 # --- Main Simulation Function ---
+
+
 def play_wordle_with_solver(secret_word, props: WordleProps) -> WordleResult:
     """
     Simulates a Wordle game played by the AI solver.
     """
     logger.info(f"Starting Game for Secret Word: {secret_word.upper()}")
     game = WordleGame(secret_word)
-    solver = WordleSolver(WORD_LIST) # Initialize solver with the global word list
+    # Initialize solver with the global word list
+    solver = WordleSolver(WORD_LIST)
 
     attempts = 0
     max_attempts = props.max_attempts
-
 
     while not game.is_game_solved() and attempts < max_attempts:
         attempts += 1
@@ -220,8 +239,9 @@ def play_wordle_with_solver(secret_word, props: WordleProps) -> WordleResult:
 
         # Ensure the guess is from the allowed list (important if `get_next_guess` was more complex)
         if guess not in solver.all_words:
-             logger.warning(f"Solver attempted to guess '{guess}' which is not in its known word list. Skipping.")
-             continue # Or handle as an error / penalize attempt
+            logger.warning(
+                f"Solver attempted to guess '{guess}' which is not in its known word list. Skipping.")
+            continue  # Or handle as an error / penalize attempt
 
         # print(f"Attempt {attempts}: Solver guesses '{guess}'")
         feedback = game.check_guess(guess)
@@ -229,7 +249,7 @@ def play_wordle_with_solver(secret_word, props: WordleProps) -> WordleResult:
 
         solver.filter_words(guess, feedback)
 
-        remaining_words_count = len(solver.possible_words)
+        # remaining_words_count = len(solver.possible_words)
         # print(f"Remaining possible words for solver: {remaining_words_count}")
         # Uncomment below to see the solver's detailed knowledge at each step
         # print(f"Solver's current knowledge: Greens={solver.known_greens}, Yellows={solver.known_yellows}, Grays={solver.known_grays}")
@@ -240,10 +260,10 @@ def play_wordle_with_solver(secret_word, props: WordleProps) -> WordleResult:
         attempts=attempts,
     )
 
+
 def play_random_wordle(props: WordleProps) -> WordleResult:
     secret_word = random.choice(WORD_LIST)
     return play_wordle_with_solver(secret_word, props)
-
 
 
 # --- Run Simulations ---
@@ -257,6 +277,5 @@ if __name__ == "__main__":
 
     # 3. A word with some common letters
     print(play_wordle_with_solver("XENON", WordleProps(thinking_time=2)))
-
 
     print("--- All simulations finished ---")

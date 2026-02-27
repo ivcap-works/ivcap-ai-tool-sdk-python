@@ -4,23 +4,30 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import asyncio
-import contextvars
 import concurrent.futures
-import threading
-from time import sleep
-import traceback
 import contextlib
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
+import contextvars
+import threading
+import traceback
+from collections.abc import Callable
+from time import sleep
+from typing import Any, Generic, TypeVar
+
 from cachetools import TTLCache
 from fastapi import Request
-from pydantic import BaseModel, Field
-from ivcap_service import getLogger
-from opentelemetry import trace, context
+from ivcap_service import (
+    EventReporter,
+    ExecutionError,
+    JobContext,
+    create_event_reporter,
+    get_input_type,
+    getLogger,
+    push_result,
+    verify_result,
+)
+from opentelemetry import context, trace
 from opentelemetry.context.context import Context
-
-from ivcap_service import get_input_type, push_result, verify_result, EventReporter
-from ivcap_service import ExecutionError, create_event_reporter, JobContext
-from ivcap_client import IVCAP
+from pydantic import BaseModel, Field
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
@@ -37,20 +44,20 @@ class ThreadLocal(threading.local):
 T = TypeVar('T')
 
 class ExecutorOpts(BaseModel):
-    job_cache_size: Optional[int] = Field(10000, description="size of job cache")
-    job_cache_ttl: Optional[int] = Field(3600, description="TTL of job entries in the job cache")
-    max_workers: Optional[int] = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
+    job_cache_size: int | None = Field(10000, description="size of job cache")
+    job_cache_ttl: int | None = Field(3600, description="TTL of job entries in the job cache")
+    max_workers: int | None = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
 
 job_context = contextvars.ContextVar('ivcap', default=JobContext())
 
 def get_job_context() -> JobContext:
     return job_context.get()
 
-def get_event_reporter() -> Optional[EventReporter]:
+def get_event_reporter() -> EventReporter | None:
     """Get the current event reporter from the job context."""
     return job_context.get().report
 
-def get_job_id() -> Optional[EventReporter]:
+def get_job_id() -> EventReporter | None:
     """Get the current job ID from the job context."""
     return job_context.get().job_id
 
@@ -64,7 +71,7 @@ class Executor(Generic[T]):
     _active_jobs = set() # keep track of active jobs to block shutdown until they are done
 
     @classmethod
-    def active_jobs(cls) -> List[str]:
+    def active_jobs(cls) -> list[str]:
         """Returns a list of IDs of the currently active jobs"""
         return list(cls._active_jobs)
 
@@ -85,8 +92,8 @@ class Executor(Generic[T]):
         self,
         func: Callable[..., T],
         *,
-        opts: Optional[ExecutorOpts],
-        context: Optional[JobContext] = None
+        opts: ExecutorOpts | None,
+        context: JobContext | None = None
     ):
         """
         Initialize the Executor with a function and an optional thread pool.
@@ -121,7 +128,7 @@ class Executor(Generic[T]):
             else:
                 raise Exception(f"unexpected function parameter '{k}'")
 
-    async def execute(self, param: Any, job_id: str, req: Request, report_result=True) -> asyncio.Queue[Union[T, ExecutionError]]:
+    async def execute(self, param: Any, job_id: str, req: Request, report_result=True) -> asyncio.Queue[T | ExecutionError]:
         """
         Execute the function with the given parameter in a thread and return a queue with the result.
 
@@ -133,7 +140,7 @@ class Executor(Generic[T]):
         Returns:
             An asyncio Queue that will contain either the result of type T or an ExecutionError
         """
-        result_queue: asyncio.Queue[Union[T, ExecutionError]] = asyncio.Queue()
+        result_queue: asyncio.Queue[T | ExecutionError] = asyncio.Queue()
         event_loop = asyncio.get_running_loop()
         self.job_cache[job_id] = None
 
@@ -241,7 +248,7 @@ class Executor(Generic[T]):
             future.add_done_callback(lambda _: use_pool.shutdown(wait=False))
         return result_queue
 
-    def lookup_job(self, job_id: str) -> Union[T, ExecutionError, None]:
+    def lookup_job(self, job_id: str) -> T | ExecutionError | None:
         """Return the result of a job
 
         Args:

@@ -1,16 +1,15 @@
-from typing import AsyncGenerator, Dict, Optional, Tuple
-from fastapi import FastAPI, Path, Request, Header, Response
-from fastapi.responses import JSONResponse, StreamingResponse
 import json
 import os
-import uvicorn
+
 import httpx
+import uvicorn
+from fastapi import FastAPI, Header, Request, Response
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
 TEST_LOAD_PATH = os.path.join(os.path.dirname(__file__), "test_request.json")
 
-from fastapi import Header
 
 @app.middleware("http")
 async def decode_path(request: Request, call_next):
@@ -24,7 +23,7 @@ async def decode_path(request: Request, call_next):
 @app.get("/next_job")
 async def next_job():
     try:
-        with open(TEST_LOAD_PATH, "r") as f:
+        with open(TEST_LOAD_PATH) as f:
             content = json.load(f)
         headers = {"job-id": "0000-0000", "Authorization": "Bearer xxxxx"}
         return JSONResponse(content, headers=headers)

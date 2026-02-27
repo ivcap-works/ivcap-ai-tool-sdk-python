@@ -1,10 +1,10 @@
+import math
 import os
 import sys
-import math
 from time import time
-from typing import Optional
-from pydantic import BaseModel, Field
+
 from ivcap_fastapi import getLogger, logging_init
+from pydantic import BaseModel, Field
 
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
@@ -13,20 +13,23 @@ sys.path.insert(0, src_dir)
 logging_init()
 logger = getLogger("app")
 
-TITLE="Batch service to test various platform aspects"
+TITLE = "Batch service to test various platform aspects"
+
 
 class Request(BaseModel):
-    jschema: str = Field("urn:sd:schema:batch-tester.request.1", alias="$schema")
-    duration_seconds: Optional[int] = Field(10, description="seconds this job should run")
-    target_cpu_percent: Optional[int] = Field(80, description="percentage load on CPU")
+    jschema: str = Field(
+        "urn:sd:schema:batch-tester.request.1", alias="$schema")
+    duration_seconds: int | None = Field(
+        10, description="seconds this job should run")
+    target_cpu_percent: int | None = Field(
+        80, description="percentage load on CPU")
+
 
 class Result(BaseModel):
     jschema: str = Field("urn:sd:schema:batch-tester.1", alias="$schema")
     msg: str = Field(None, description="some message")
     run_time: float = Field(description="time in seconds this job took")
 
-import time
-import math
 
 def consume_compute(req: Request) -> Result:
     """
@@ -53,11 +56,13 @@ def consume_compute(req: Request) -> Result:
 
     start_time = time.time()
     end_time = start_time + duration_seconds
-    logger.debug(f"Consuming CPU for {duration_seconds} seconds, targeting {target_cpu_percent}% per core...")
+    logger.debug(
+        f"Consuming CPU for {duration_seconds} seconds, targeting {target_cpu_percent}% per core...")
 
     # Constants to control the workload.  These may need adjustment.
     base_iterations = 10000  # A starting point for the loop iterations.
-    load_factor = target_cpu_percent / 100.0  # Convert percentage to a fraction.
+    # Convert percentage to a fraction.
+    load_factor = target_cpu_percent / 100.0
 
     loop_count = 0
     while time.time() < end_time:
@@ -69,7 +74,7 @@ def consume_compute(req: Request) -> Result:
             x = math.sqrt(i * 1.234)
             y = math.log(x + 1)
             z = math.pow(y, 2.345)
-            w = math.sin(z)
+            math.sin(z)
 
         # A small sleep to prevent the loop from running *too* fast and
         # potentially starving other processes or causing issues.  The
@@ -80,11 +85,13 @@ def consume_compute(req: Request) -> Result:
         loop_count += 1
 
     run_time = time.time() - start_time
-    logger.info(f"CPU consumption finished after {run_time} sec (loops: {loop_count})")
+    logger.info(
+        f"CPU consumption finished after {run_time} sec (loops: {loop_count})")
     return Result(msg="CPU consumption finished.", run_time=run_time)
 
 # add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"), context=ExecCtxt(msg="Boo!"))
 # add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
+
 
 if __name__ == "__main__":
     from server import start_service

@@ -27,6 +27,7 @@ __all__ = ["SecretMgrClient"]
 
 from ivcap_service.secret import SecretMgrClient as _SecretMgrClient  # type: ignore
 
+
 class SecretMgrClient(_SecretMgrClient):
     """Backward-compatibility shim for SecretMgrClient.
 

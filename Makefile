@@ -17,7 +17,7 @@ test:
 	poetry run pytest ${ROOT_DIR}/tests/ --cov=ivcap_fastapi --cov-report=xml
 
 add-license:
-	licenseheaders -t .license.tmpl -y 2023 -f ivcap_ai_tool/*.py
+	poetry run licenseheaders -t .license.tmpl -y $(shell date +%Y) -f ivcap_ai_tool/*.py -f tests/*.py
 
 clean:
 	rm -rf *.egg-info

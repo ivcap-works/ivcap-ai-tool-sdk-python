@@ -4,26 +4,33 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import argparse
-from logging import Logger
-from signal import SIGTERM, signal
-from typing import Any, Callable, Dict, Optional
-from fastapi import FastAPI, Request, Response
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-import uvicorn
 import os
 import sys
+from collections.abc import Callable
+from logging import Logger
+from signal import SIGTERM, signal
+from typing import Any
 
+import uvicorn
+from fastapi import FastAPI, Request, Response
 from ivcap_service import (
-    Service, service_log_config, getLogger, print_tool_definition, otel_instrument, set_context,
-    set_event_reporter_factory, SidecarReporter, get_version as get_service_version
+    Service,
+    SidecarReporter,
+    getLogger,
+    otel_instrument,
+    print_tool_definition,
+    service_log_config,
+    set_context,
+    set_event_reporter_factory,
 )
+from ivcap_service import get_version as get_service_version
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-from .executor import Executor, get_job_context
-from .version import get_version
-from .utils import find_first
 # from .context import set_context, otel_instrument
 from .builder import tools
+from .executor import Executor, get_job_context
 from .health_handler import healtz_handler
+from .version import get_version
 
 # shutdown pod cracefully
 signal(SIGTERM, lambda _1, _2: sys.exit(0))
@@ -45,11 +52,10 @@ def get_fast_app() -> FastAPI:
 def start_tool_server(
     service: Service,
     *,
-    logger: Optional[Logger] = None,
-    custom_args: Optional[Callable[[
-        argparse.ArgumentParser], argparse.Namespace]] = None,
-    run_opts: Optional[Dict[str, Any]] = None,
-    with_telemetry: Optional[bool] = None,
+    logger: Logger | None = None,
+    custom_args: Callable[[argparse.ArgumentParser], argparse.Namespace] | None = None,
+    run_opts: dict[str, Any] | None = None,
+    with_telemetry: bool | None = None,
 ):
     """A helper function to start a FastApi server
 
@@ -159,7 +165,7 @@ def start_tool_server(
     class Server(uvicorn.Server):
         def handle_exit(self, sig: int, frame: any) -> None:
             logger.info(
-                f"Received request for shutdown. Waiting for all running requests to finish first.")
+                "Received request for shutdown. Waiting for all running requests to finish first.")
             Executor.wait_for_exit_ready()
             super().handle_exit(sig, frame)
 

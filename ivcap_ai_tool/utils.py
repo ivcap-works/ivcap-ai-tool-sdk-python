@@ -3,9 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
-from typing import Optional, Dict, Tuple
 
-def get_title_from_path(path: str) -> Tuple[str, str]:
+from fastapi import Request
+
+
+def get_title_from_path(path: str) -> tuple[str, str]:
     """Extracts a title from a path string.
 
     Args:
@@ -35,13 +37,16 @@ def get_title_from_path(path: str) -> Tuple[str, str]:
 
     # Create lowercase and uppercase versions
     if singular:
-        lowercase = singular[0].lower() + singular[1:] if len(singular) > 1 else singular.lower()
-        uppercase = singular[0].upper() + singular[1:] if len(singular) > 1 else singular.upper()
+        lowercase = singular[0].lower(
+        ) + singular[1:] if len(singular) > 1 else singular.lower()
+        uppercase = singular[0].upper(
+        ) + singular[1:] if len(singular) > 1 else singular.upper()
     else:
         lowercase = ""
         uppercase = ""
 
     return (lowercase, uppercase)
+
 
 def find_first(iterable, condition):
     """
@@ -52,9 +57,6 @@ def find_first(iterable, condition):
         if condition(item):
             return item
     return None
-
-from fastapi import Request
-from typing import Optional, Dict, Tuple
 
 
 def get_public_url_prefix(req: Request) -> str:
@@ -70,14 +72,14 @@ def get_public_url_prefix(req: Request) -> str:
         str: A url as string
     """
     fw = get_forwarded_header(req)
-    if fw != None:
+    if fw is not None:
         prefix = f"{fw.get('proto', 'http')}:://{fw.get('for')}"
     else:
         prefix = str(req.base_url).rstrip("/")
     return prefix
 
 
-def get_forwarded_header(request: Request) -> Optional[Dict[str, str]]:
+def get_forwarded_header(request: Request) -> dict[str, str] | None:
     """
     Parses the "Forwarded" HTTP header according to RFC 7239.
     Returns a dictionary containing the parsed header values, or None if the header is missing.
@@ -86,7 +88,7 @@ def get_forwarded_header(request: Request) -> Optional[Dict[str, str]]:
     if not header_value:
         return None
 
-    parsed_values: Dict[str, str] = {}
+    parsed_values: dict[str, str] = {}
     for element in header_value.split(";"):
         parts = element.split("=", 1)
         if len(parts) == 2:
