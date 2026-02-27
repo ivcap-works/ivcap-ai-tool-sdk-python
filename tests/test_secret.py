@@ -1,9 +1,10 @@
 #
-# Copyright (c) 2025 Commonwealth Scientific and Industrial Research Organisation (CSIRO). All rights reserved.
+# Copyright (c) 2026 Commonwealth Scientific and Industrial Research Organisation (CSIRO). All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import warnings
+
 
 def test_local_secret_client_deprecation():
     """Importing and instantiating the local SecretMgrClient should succeed

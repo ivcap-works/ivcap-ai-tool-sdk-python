@@ -3,17 +3,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
-from typing import Optional
 
-from .builder import ToolOptions, add_tool_api_route, WorkerFn
+from .builder import ToolOptions, WorkerFn, add_tool_api_route
 from .executor import ExecutionContext
 from .server import get_fast_app
+
 
 def ivcap_ai_tool(
     path_prefix: str,
     *,
-    opts: Optional[ToolOptions] = ToolOptions(),
-    context: Optional[ExecutionContext] = None
+    opts: ToolOptions | None = ToolOptions(),
+    context: ExecutionContext | None = None
 ):
     """Add a few routes to the service for use with an AI tool.
 

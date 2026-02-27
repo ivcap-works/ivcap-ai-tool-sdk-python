@@ -4,18 +4,12 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import asyncio
-from pydantic import BaseModel
-from typing import Dict, Any, Union
 import json
-from pydantic import BaseModel
-from typing import Any
-from typing import Dict, List, Optional, Union
-from typing_extensions import Literal
-import json
-from typing import Optional, Union
-from fastapi import FastAPI, Request, Response, status
+from typing import Any, Literal
 
-from ivcap_service import getLogger, IvcapResult, ExecutionError
+from fastapi import FastAPI, Request, Response, status
+from ivcap_service import ExecutionError, IvcapResult, getLogger
+from pydantic import BaseModel
 
 from .builder import ToolDescription, tools
 
@@ -52,8 +46,8 @@ class JsonRpcRequest(BaseModel):
     """
     jsonrpc: Literal["2.0"]
     method: str
-    params: Optional[Union[Dict[str, Any], List[Any]]] = None
-    id: Union[int, str, None] = None
+    params: dict[str, Any] | list[Any] | None = None
+    id: int | str | None = None
 
 
 class JsonRpcSuccessResponse(BaseModel):
@@ -62,7 +56,7 @@ class JsonRpcSuccessResponse(BaseModel):
     """
     jsonrpc: Literal["2.0"]
     result: Any
-    id: Union[int, str, None]
+    id: int | str | None
 
 
 class JsonRpcErrorObject(BaseModel):
@@ -71,7 +65,7 @@ class JsonRpcErrorObject(BaseModel):
     """
     code: int
     message: str
-    data: Optional[Any] = None
+    data: Any | None = None
 
 
 class JsonRpcErrorResponse(BaseModel):
@@ -80,7 +74,7 @@ class JsonRpcErrorResponse(BaseModel):
     """
     jsonrpc: Literal["2.0"]
     error: JsonRpcErrorObject
-    id: Union[int, str, None]
+    id: int | str | None
 
 #JsonRpcResponse = JsonRpcSuccessResponse | JsonRpcErrorResponse
 
@@ -189,7 +183,7 @@ def register_mcp(app: FastAPI, path_prefix: str = "/mcp"):
     directly used by the MCP route.
     """
 
-    async def handle_rpc(rpcReq: JsonRpcRequest, httpReq: Request) -> Union[JsonRpcSuccessResponse, JsonRpcErrorResponse, Response]:
+    async def handle_rpc(rpcReq: JsonRpcRequest, httpReq: Request) -> JsonRpcSuccessResponse | JsonRpcErrorResponse | Response:
         method = rpcReq.method
         req_id = rpcReq.id
         params = rpcReq.params

@@ -1,33 +1,33 @@
 
-from dataclasses import dataclass
+import argparse
+import inspect
 import io
 import json
-import time
-import traceback
-from typing import BinaryIO, Callable, Union
-import argparse
-from logging import Logger
-from typing import Any, Callable, Dict, Optional
-from urllib.parse import urlparse, urlunparse
-from fastapi import FastAPI, Request, Response
-import httpx
-import uvicorn
 import os
 import sys
-import signal
-from pydantic import BaseModel, Field
-import requests  # Import the requests library
+import time
+import traceback
+from collections.abc import Callable
+from dataclasses import dataclass
+from logging import Logger
+from typing import Any, BinaryIO, get_type_hints
+from urllib.parse import urlparse, urlunparse
 
-from ivcap_fastapi import service_log_config, getLogger
+import httpx
+import requests  # Import the requests library
+from ivcap_fastapi import getLogger
+from pydantic import BaseModel, Field, HttpUrl
+
 # Number of attempt to request a new job before giving up
 MAX_REQUEST_JOB_ATTEMPTS = 4
+
 
 def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_model: type[BaseModel], logger: Logger):
     ivcap_url = get_ivcap_url()
     if ivcap_url is None:
-        logger.warning(f"no ivcap url found - cannot request work")
+        logger.warning("no ivcap url found - cannot request work")
         return
-    url = urlunparse(ivcap_url._replace(path=f"/next_job"))
+    url = urlunparse(ivcap_url._replace(path="/next_job"))
     logger.info(f"... checking for work at '{url}'")
     try:
 
@@ -41,8 +41,10 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
                     logger.info("no more jobs - we are done")
                     sys.exit(0)
 
-                job_id = job.get("id", "unknown_job_id")  # Provide a default value if "id" is missing
-                result = do_job(job, worker_fn, input_model, output_model, logger)
+                # Provide a default value if "id" is missing
+                job_id = job.get("id", "unknown_job_id")
+                result = do_job(job, worker_fn, input_model,
+                                output_model, logger)
                 result = verify_result(result, job_id, logger)
             except Exception as e:
                 result = ExecutionError(
@@ -53,13 +55,15 @@ def wait_for_work(worker_fn: Callable, input_model: type[BaseModel], output_mode
                 logger.warning(f"job {job_id} failed - {result.error}")
             finally:
                 if result is not None:
-                    logger.info(f"job {job_id} finished, sending result message")
+                    logger.info(
+                        f"job {job_id} finished, sending result message")
                     push_result(result, job_id, None, logger)
 
     except requests.exceptions.RequestException as e:
         logger.warning(f"Error during request: {e}")
     except Exception as e:
         logger.warning(f"Error processing job: {e}")
+
 
 def fetch_job(url: str, logger: Logger) -> Any:
     wait_time = 1
@@ -71,11 +75,13 @@ def fetch_job(url: str, logger: Logger) -> Any:
             return response
         except Exception as e:
             attempt += 1
-            logger.info(f"attempt #{attempt} failed to fetch new job - will try again in {wait_time} sec - {type(e)}: {e}")
+            logger.info(
+                f"attempt #{attempt} failed to fetch new job - will try again in {wait_time} sec - {type(e)}: {e}")
             time.sleep(wait_time)
             wait_time *= 2
     logger.info("cannot contact sidecar - bailing out")
     sys.exit(255)
+
 
 def do_job(
     job: Any,
@@ -84,7 +90,8 @@ def do_job(
     output_model: type[BaseModel],
     logger: Logger
 ):
-    job_id = job.get("id", "unknown_job_id")  # Provide a default value if "id" is missing
+    # Provide a default value if "id" is missing
+    job_id = job.get("id", "unknown_job_id")
     ct = job["in-content-type"]
     if ct != "application/json":
         raise Exception(f"cannot handle content-type '{ct}'")
@@ -94,25 +101,28 @@ def do_job(
     try:
         resp = worker_fn(mreq)
         logger.info(f"{job_id}: worker finished with - {resp}")
-        if type(resp) != output_model:
-            logger.warning(f"{job_id}: result is of type '{type(resp)}' but expected '{output_model}'")
+        if type(resp) is not output_model:
+            logger.warning(
+                f"{job_id}: result is of type '{type(resp)}' but expected '{output_model}'")
 
     except BaseException as ex:
         logger.warning(f"{job_id}: failed - '{ex}'")
         resp = ExecutionError(
-                        error=str(ex),
-                        type=type(ex).__name__,
-                        traceback=traceback.format_exc()
-                    )
+            error=str(ex),
+            type=type(ex).__name__,
+            traceback=traceback.format_exc()
+        )
     return resp
+
 
 def start_service(
     title: str,
     worker_fn: Callable,
     *,
-    custom_args: Optional[Callable[[argparse.ArgumentParser], argparse.Namespace]] = None,
-    run_opts: Optional[Dict[str, Any]] = None,
-    with_telemetry: Optional[bool] = None,
+    custom_args: Callable[[argparse.ArgumentParser],
+                          argparse.Namespace] | None = None,
+    run_opts: dict[str, Any] | None = None,
+    with_telemetry: bool | None = None,
 ):
     """A helper function to start a batch service
 
@@ -127,8 +137,10 @@ def start_service(
     logger = getLogger("server")
 
     parser = argparse.ArgumentParser(description=title)
-    parser.add_argument('--with-telemetry', action="store_true", help='Initialise OpenTelemetry')
-    parser.add_argument('--test-file', type=str, help='path to job file for testing service')
+    parser.add_argument('--with-telemetry', action="store_true",
+                        help='Initialise OpenTelemetry')
+    parser.add_argument('--test-file', type=str,
+                        help='path to job file for testing service')
 
     if custom_args is not None:
         args = custom_args(parser)
@@ -143,29 +155,34 @@ def start_service(
 
     if args.test_file is not None:
         from testing import file_to_http_response
-        import httpx
-        resp = file_to_http_response(args.test_file, headers={"Content-Type": "application/json"})
+        resp = file_to_http_response(args.test_file, headers={
+                                     "Content-Type": "application/json"})
         do_job(resp, worker_fn, input_model, output_model, logger)
     else:
         wait_for_work(worker_fn, input_model, output_model, logger)
 
-##### COMMON TO executor
+# COMMON TO executor
+
 
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
 
+
 @dataclass
-class BinaryResult():
+class BinaryResult:
     """If the result of the tool is a non json serialisable object, return an
     instance of this class indicating the content-type and the actual
     result either as a byte array or a file handle to a binary content (`open(..., "rb")`)"""
     content_type: str = Field(description="Content type of result serialised")
-    content: Union[bytes, str, io.BufferedReader] = Field(description="Content to send, either as byte array or file handle")
+    content: bytes | str | io.BufferedReader = Field(
+        description="Content to send, either as byte array or file handle")
+
 
 @dataclass
 class IvcapResult(BinaryResult):
     isError: bool = False
     raw: Any = None
+
 
 class ExecutionError(BaseModel):
     """
@@ -174,7 +191,7 @@ class ExecutionError(BaseModel):
     jschema: str = Field("urn:ivcap:schema.ai-tool.error.1", alias="$schema")
     error: str = Field(description="Error message")
     type: str = Field(description="Error type")
-    traceback: Optional[str] = Field(None, description="traceback")
+    traceback: str | None = Field(None, description="traceback")
 
 
 def verify_result(result: any, job_id: str, logger) -> any:
@@ -227,6 +244,7 @@ def verify_result(result: any, job_id: str, logger) -> any:
             type=type(ex).__name__,
         )
 
+
 def push_result(result: any, job_id: str, authorization: str, logger):
     """Actively push result to sidecar, fail quietly."""
     ivcap_url = get_ivcap_url()
@@ -235,8 +253,8 @@ def push_result(result: any, job_id: str, authorization: str, logger):
         return
     url = urlunparse(ivcap_url._replace(path=f"/results/{job_id}"))
 
-    content_type="text/plain"
-    content="SOMETHING WENT WRONG _ PLEASE REPORT THIS ERROR"
+    content_type = "text/plain"
+    content = "SOMETHING WENT WRONG _ PLEASE REPORT THIS ERROR"
     is_error = False
     if not (isinstance(result, ExecutionError) or isinstance(result, IvcapResult)):
         msg = f"{job_id}: expected 'BinaryResult' or 'ExecutionError' but got {type(result)}"
@@ -253,7 +271,8 @@ def push_result(result: any, job_id: str, authorization: str, logger):
         is_error = True
         if not isinstance(result, ExecutionError):
             # this should never happen
-            logger.error(f"{job_id}: expected 'ExecutionError' but got {type(result)}")
+            logger.error(
+                f"{job_id}: expected 'ExecutionError' but got {type(result)}")
             result = ExecutionError(
                 error="please report unexpected internal error - expected 'ExecutionError' but got {type(result)}",
                 type="internal_error",
@@ -261,14 +280,13 @@ def push_result(result: any, job_id: str, authorization: str, logger):
         content = result.model_dump_json(by_alias=True)
         content_type = "application/json"
 
-
     wait_time = 1
     attempt = 0
     headers = {
         "Content-Type": content_type,
         "Is-Error": str(is_error),
     }
-    if not (authorization == None or authorization == ""):
+    if not (authorization is None or authorization == ""):
         headers["Authorization"] = authorization
 
     while attempt < MAX_DELIVER_RESULT_ATTEMPTS:
@@ -282,26 +300,23 @@ def push_result(result: any, job_id: str, authorization: str, logger):
             return
         except Exception as e:
             attempt += 1
-            logger.info(f"{job_id}: attempt #{attempt} failed to push result - will try again in {wait_time} sec - {type(e)}: {e}")
+            logger.info(
+                f"{job_id}: attempt #{attempt} failed to push result - will try again in {wait_time} sec - {type(e)}: {e}")
             time.sleep(wait_time)
             wait_time *= 2
 
-    logger.warning(f"{job_id}: giving up pushing result after {attempt} attempts")
+    logger.warning(
+        f"{job_id}: giving up pushing result after {attempt} attempts")
 
 
-##### COMMON TO ai-tool
+# COMMON TO ai-tool
 
-import inspect
-import os
-import re
-from typing import Optional, Type, Callable, TypeVar, Any, get_type_hints, Union, Dict, Tuple
-
-from pydantic import BaseModel, HttpUrl
 
 def get_version():
     return "???"
 
-def _get_input_type(func: Callable) -> Tuple[Optional[Type[BaseModel]], Dict[str, Any]]:
+
+def _get_input_type(func: Callable) -> tuple[type[BaseModel] | None, dict[str, Any]]:
     """Gets the input type of a function.
 
     Args:
@@ -333,6 +348,7 @@ def _get_input_type(func: Callable) -> Tuple[Optional[Type[BaseModel]], Dict[str
 
     return pydantic_model_class, additional_params
 
+
 def _get_function_return_type(func):
     """Extracts the return type from a function."""
     type_hints = get_type_hints(func)
@@ -340,6 +356,7 @@ def _get_function_return_type(func):
     return_type = type_hints.get('return')
     # return param_types, return_type
     return return_type
+
 
 def get_ivcap_url() -> HttpUrl:
     """

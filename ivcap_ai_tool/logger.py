@@ -4,9 +4,11 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import json
-import os
 import logging
+import os
+
 from ivcap_service import set_service_log_config
+
 
 class SuppressPathsFilter(logging.Filter):
     def __init__(self, targets=None):
@@ -32,6 +34,6 @@ def logging_init(cfg_path: str=None):
         script_dir = os.path.dirname(__file__)
         cfg_path = os.path.join(script_dir, "logging.json")
 
-    with open(cfg_path, 'r') as file:
+    with open(cfg_path) as file:
         config = json.load(file)
         set_service_log_config(config)
