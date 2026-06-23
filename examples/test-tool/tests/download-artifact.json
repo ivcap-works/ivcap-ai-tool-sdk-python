@@ -1,0 +1,7 @@
+{
+  "$schema": "urn:sd:schema:ai-tester.request.1",
+  "download_artifact": {
+    "artifact_id": "urn:ivcap:artifact:80f34ebe-9a67-48d1-b57b-786f8b815270",
+    "max_bytes": 256
+  }
+}

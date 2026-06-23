@@ -61,6 +61,14 @@ test-error:
 		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
 		--data @${PROJECT_DIR}/tests/raise_error.json http://localhost:${PORT}/
 
+DOWNLOAD_ARTIFACT=tests/download-artifact.json
+test-download-artifact:
+	curl -X POST \
+		-H "content-type: application/json" \
+		-H "Timeout: ${TIMEOUT}" \
+		-H "Authorization: Bearer $(shell ivcap context get access-token --refresh-token)" \
+		--data @${PROJECT_DIR}/${DOWNLOAD_ARTIFACT} http://localhost:${PORT} | jq
+
 test-call-post:
 	curl -X POST \
 		-H "content-type: application/json" \
@@ -141,13 +149,15 @@ test-echo-minikube:
 		--data @${PROJECT_DIR}/tests/echo.json \
 		${MINIKUBE_URL}/1/services2/$(shell poetry ivcap get-service-id)/jobs
 
-test-llm-ivcap:
-	curl -i -X POST \
-		-H "content-type: application/json" \
-		-H "Authorization: Bearer $(shell ivcap --context gke-dev context get access-token --refresh-token)" \
-		-H "Timeout: ${TIMEOUT}" \
-		--data @${PROJECT_DIR}/tests/llm-hello.json \
-		https://develop.ivcap.net/1/services2/${SERVICE_ID}/jobs
+IVCAP_REQUEST=tests/echo.json
+ivcap-run:
+	ivcap job create \
+		$(shell poetry ivcap get-service-id) \
+		-f ${PROJECT_DIR}/${IVCAP_REQUEST} \
+		--stream
+
+ivcap-llm: IVCAP_REQUEST=tests/llm-hello.json
+ivcap-llm: ivcap-run
 
 
 REQUEST=echo.json

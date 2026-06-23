@@ -7,12 +7,17 @@ authors = [
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11,<4.0"
 dependencies = [
-    "ivcap-ai-tool (>=0.7.21,<0.8.0)",
+    "ivcap-lambda",
     "openai (>=1.95.1,<2.0.0)",
     "ivcap-service (>=0.6.16,<0.7.0)"
 ]
+
+[tool.poetry.dependencies]
+# Use local path during development; switch to PyPI version constraint after publishing:
+# ivcap-lambda = ">=0.7.22,<0.8.0"
+ivcap-lambda = {path = "../..", develop = true}
 
 [tool.poetry-plugin-ivcap]
 service-file = "tool-service.py"
@@ -21,6 +26,9 @@ service-type = "lambda"
 port = 8095
 # policy = "urn:ivcap:policy:ivcap.open.metadata"
 
+
+[tool.poetry]
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

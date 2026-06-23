@@ -6,6 +6,7 @@
         "role": "user",
         "content": "Hello!"
       }
-    ]
+    ],
+    "model": "sciansa-default"
   }
 }
