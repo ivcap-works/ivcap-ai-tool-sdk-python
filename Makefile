@@ -2,7 +2,7 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 SRC_DIR:=${ROOT_DIR}/src
 
-.PHONY: copyx
+.PHONY: copyx test check
 
 build: add-license
 	cd ${ROOT_DIR}
@@ -16,8 +16,12 @@ publish: build
 test:
 	poetry run pytest ${ROOT_DIR}/tests/ --cov=ivcap_fastapi --cov-report=xml
 
+check: test
+	poetry run ruff check .
+	poetry run mypy ivcap_lambda
+
 add-license:
-	poetry run licenseheaders -t .license.tmpl -y 2023 -f ivcap_lambda/*.py
+	poetry run licenseheaders -t .license.tmpl -y $(shell date +%Y) -f ivcap_lambda/*.py -f tests/*.py
 
 clean:
 	rm -rf *.egg-info

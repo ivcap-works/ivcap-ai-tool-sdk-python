@@ -4,24 +4,32 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import os
-from typing import Callable, List, Any, Optional, Union
-from pydantic import BaseModel, Field
+from collections.abc import Callable
+from typing import Any
 
-from ivcap_service import Service, IMAGE_PLACEHOLDER, Resources, ServiceDefinition
-from ivcap_service import create_service_definition, find_resources_file, find_command
+from ivcap_service import (
+    IMAGE_PLACEHOLDER,
+    Resources,
+    Service,
+    ServiceDefinition,
+    create_service_definition,
+    find_command,
+    find_resources_file,
+)
+from pydantic import BaseModel, Field
 
 REST_CONTROLLER_SCHEMA = "urn:ivcap:schema.service.rest.1"
 
 class RestController(BaseModel):
     jschema: str = Field(default=REST_CONTROLLER_SCHEMA, alias="$schema")
     image: str
-    command: Union[List[str], str]
+    command: list[str] | str
     resources: Resources = Field(default_factory=Resources)
 
 def print_rest_service_definition(
     service_description: Service,
     fn: Callable[..., Any],
-    service_id: Optional[str] = None,
+    service_id: str | None = None,
 ):
     sd = create_rest_service_definition(
         service_description,
@@ -33,7 +41,7 @@ def print_rest_service_definition(
 def create_rest_service_definition(
     service_description: Service,
     fn: Callable[..., Any],
-    service_id: Optional[str] = None,
+    service_id: str | None = None,
 ) -> ServiceDefinition:
     # controller
     image = os.getenv("DOCKER_IMG", IMAGE_PLACEHOLDER)

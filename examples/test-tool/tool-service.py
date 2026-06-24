@@ -1,23 +1,19 @@
-from ivcap_service.events import GenericEvent
 import os
 import sys
-from time import sleep, time
-from typing import List, Optional, Tuple
-import httpx
-from pydantic import BaseModel, Field
-from fastapi import Request as FRequest
-import requests
 from asyncio import sleep as async_sleep
 from typing import Dict, Any
-from pydantic import HttpUrl
-
+from pydantic import HttpUrl, BaseModel, Field
+from fastapi import Request as FRequest
+import httpx
+import requests
+from time import sleep, time
 
 from ivcap_service import getLogger, Service, with_schema
 from ivcap_lambda import start_lambda_server, ivcap_lambda, ToolOptions, logging_init
+from ivcap_lambda.executor import JobContext
+from ivcap_service.events import GenericEvent
 
 from wordle import WordleProps, WordleResult, play_random_wordle
-
-from ivcap_lambda.executor import JobContext
 
 this_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
@@ -99,7 +95,7 @@ class LlmTester(BaseModel):
         ..., description="A list of messages to be passed to the LLM."
     )
     model: Optional[str] = Field(
-        "gpt-3.5-turbo", description="The LLM model to use [gpt-3.5-turbo]."
+        "sciansa-default", description="The LLM model to use [gpt-3.5-turbo]."
     )
 
 
@@ -138,7 +134,7 @@ class Request(BaseModel):
 
 
 class RequestContext(BaseModel):
-    headers: List[Tuple[str, str]]
+    headers: list[tuple[str, str]]
     method: str
     url: str
 
@@ -283,7 +279,7 @@ def format_llm_response(response):
 
 def create_openai_client(f):
     base_url = os.getenv("LITELLM_PROXY")
-    if base_url == None:
+    if base_url is None:
         return f()
     else:
         return f(base_url=f"{base_url}/v1", api_key="not-needed")
@@ -318,7 +314,7 @@ def send_events(req: EventTester, jobCtxt: JobContext):
     for i in range(req.count):
         with jobCtxt.report.step("work", message=f"step#{i}"):
             sleep(req.sleep)
-    jobCtxt.report.emit(GenericEvent(name=f"finished"))
+    jobCtxt.report.emit(GenericEvent(name="finished"))
 
 
 def download_artifact_content(req: ArtifactDownloader, jobCtxt: JobContext) -> Dict:

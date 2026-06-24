@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap-lambda"
-version = "0.7.22"
+version = "0.7.24"
 description = "Helper functions for building lambda-style services on the IVCAP platform"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
@@ -27,6 +27,9 @@ autoapi = "^2.0.1"
 sphinx-autoapi = "^2.0.0"
 sphinx-rtd-theme = "^1.0.0"
 licenseheaders = "^0.8.8"
+ruff = "^0.15.4"
+mypy = "^1.0"
+poethepoet = "^0.42.1"
 
 [tool.semantic_release]
 version_variable = "pyproject.toml:version" # version location
@@ -41,3 +44,18 @@ patch_without_tag = true                    # patch release by default
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]    # using poethepoet
+lint = "ruff check ."
+format = "ruff format ."
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]   # pycodestyle, pyflakes, isort, pyupgrade
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

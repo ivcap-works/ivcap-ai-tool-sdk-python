@@ -4,15 +4,15 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import argparse
-from logging import Logger
-from signal import SIGTERM, signal
-from typing import Any, Callable, Dict, Optional
-from fastapi import FastAPI, Request, Response
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-import uvicorn
 import os
 import sys
+from collections.abc import Callable
+from logging import Logger
+from signal import SIGTERM, signal
+from typing import Any, Dict, Optional
 
+import uvicorn
+from fastapi import FastAPI, Request, Response
 from ivcap_service import (
     Service,
     service_log_config,
@@ -24,6 +24,7 @@ from ivcap_service import (
     SidecarReporter,
     get_version as get_service_version,
 )
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from .executor import Executor, get_job_context
 from .version import get_version
