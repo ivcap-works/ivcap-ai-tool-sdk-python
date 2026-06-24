@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap-ai-tool"
-version = "0.7.24"
+version = "0.7.25"
 description = "⚠️ DEPRECATED – use ivcap-lambda instead. Compatibility shim only."
 
 authors = ["Max Ott <max.ott@csiro.au>"]

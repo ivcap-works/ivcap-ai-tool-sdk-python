@@ -22,14 +22,19 @@ class SuppressPathsFilter(logging.Filter):
         # Suppress logs for any request matching a target substring or path
         # For uvicorn.access, HTTP info is in record.args: (client_addr, method, path, http_version, status)
         path = ""
-        if hasattr(record, "args") and isinstance(record.args, tuple) and len(record.args) >= 3:
+        if (
+            hasattr(record, "args")
+            and isinstance(record.args, tuple)
+            and len(record.args) >= 3
+        ):
             path = record.args[2]
         for target in self.targets:
             if target == path:
                 return False
         return True
 
-def logging_init(cfg_path: str=None):
+
+def logging_init(cfg_path: str | None = None):
     if not cfg_path:
         script_dir = os.path.dirname(__file__)
         cfg_path = os.path.join(script_dir, "logging.json")

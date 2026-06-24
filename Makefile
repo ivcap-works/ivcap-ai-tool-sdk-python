@@ -14,7 +14,7 @@ publish: build
 	poetry publish
 
 test:
-	poetry run pytest ${ROOT_DIR}/tests/ --cov=ivcap_fastapi --cov-report=xml
+	poetry run pytest ${ROOT_DIR}/tests/ --cov=ivcap_lambda --cov-report=xml
 
 check: test
 	poetry run ruff check .

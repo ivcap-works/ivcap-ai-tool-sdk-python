@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap-lambda"
-version = "0.7.24"
+version = "0.7.25"
 description = "Helper functions for building lambda-style services on the IVCAP platform"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
@@ -30,6 +30,7 @@ licenseheaders = "^0.8.8"
 ruff = "^0.15.4"
 mypy = "^1.0"
 poethepoet = "^0.42.1"
+types-cachetools = "^7.0.0.20260518"
 
 [tool.semantic_release]
 version_variable = "pyproject.toml:version" # version location
@@ -52,6 +53,7 @@ format = "ruff format ."
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["examples"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]   # pycodestyle, pyflakes, isort, pyupgrade
@@ -59,3 +61,7 @@ ignore = ["E501"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.mypy]
+ignore_missing_imports = true
+plugins = ["pydantic.mypy"]

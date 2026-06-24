@@ -11,7 +11,7 @@ import threading
 import traceback
 from collections.abc import Callable
 from time import sleep
-from typing import Any, Generic, Optional, TypeVar, Union
+from typing import Any, Generic, TypeVar
 
 from cachetools import TTLCache
 from fastapi import Request
@@ -48,32 +48,32 @@ T = TypeVar("T")
 
 
 class ExecutorOpts(BaseModel):
-    job_cache_size: Optional[int] = Field(10000, description="size of job cache")
-    job_cache_ttl: Optional[int] = Field(
+    job_cache_size: int | None = Field(10000, description="size of job cache")
+    job_cache_ttl: int | None = Field(
         3600, description="TTL of job entries in the job cache"
     )
-    max_workers: Optional[int] = Field(
+    max_workers: int | None = Field(
         None,
         description="size of thread pool to use. If None, a new thread pool will be created for each execution",
     )
 
 
-job_context: contextvars.ContextVar[Optional[JobContext]] = contextvars.ContextVar(
+job_context: contextvars.ContextVar[JobContext | None] = contextvars.ContextVar(
     "ivcap", default=None
 )
 
 
-def get_job_context() -> Optional[JobContext]:
+def get_job_context() -> JobContext | None:
     return job_context.get()
 
 
-def get_event_reporter() -> Optional[EventReporter]:
+def get_event_reporter() -> EventReporter | None:
     """Get the current event reporter from the job context."""
     jctxt = job_context.get()
     return jctxt.report if jctxt is not None else None
 
 
-def get_job_id() -> Optional[str]:
+def get_job_id() -> str | None:
     """Get the current job ID from the job context."""
     jctxt = job_context.get()
     return jctxt.job_id if jctxt is not None else None
@@ -86,7 +86,7 @@ class Executor(Generic[T]):
     """
 
     # _job_ctxt = JobContext()
-    _active_jobs = (
+    _active_jobs: set[str] = (
         set()
     )  # keep track of active jobs to block shutdown until they are done
 
@@ -114,8 +114,8 @@ class Executor(Generic[T]):
         self,
         func: Callable[..., T],
         *,
-        opts: Optional[ExecutorOpts],
-        context: Optional[JobContext] = None,
+        opts: ExecutorOpts | None,
+        context: ExecutionContext | None = None,
     ):
         """
         Initialize the Executor with a function and an optional thread pool.
@@ -130,7 +130,9 @@ class Executor(Generic[T]):
         self.func = func
         if opts is None:
             opts = ExecutorOpts()
-        self.job_cache = TTLCache(maxsize=opts.job_cache_size, ttl=opts.job_cache_ttl)
+        self.job_cache: TTLCache = TTLCache(
+            maxsize=opts.job_cache_size or 10000, ttl=opts.job_cache_ttl or 3600
+        )
         self.thread_pool = None
         if opts.max_workers:
             self.thread_pool = concurrent.futures.ThreadPoolExecutor(
@@ -154,7 +156,7 @@ class Executor(Generic[T]):
 
     async def execute(
         self, param: Any, job_id: str, req: Request, report_result=True
-    ) -> asyncio.Queue[Union[T, ExecutionError]]:
+    ) -> asyncio.Queue[T | ExecutionError]:
         """
         Execute the function with the given parameter in a thread and return a queue with the result.
 
@@ -203,7 +205,7 @@ class Executor(Generic[T]):
                 ),
             )
             job_context.set(jctxt)
-            kwargs = {}
+            kwargs: dict[str, Any] = {}
             if self.context_param is not None:
                 kwargs[self.context_param] = self.context
             if self.request_param is not None:

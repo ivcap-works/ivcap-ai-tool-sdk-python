@@ -15,9 +15,11 @@ from .builder import ToolDescription, tools
 
 logger = getLogger("mcp")
 
+
 class Notification(BaseModel):
     type: str = "notification"
     message: str
+
 
 # {
 #   "jsonrpc": "2.0",
@@ -40,10 +42,12 @@ class Result(BaseModel):
     type: str = "result"
     data: Any
 
+
 class JsonRpcRequest(BaseModel):
     """
     Pydantic model for a JSON-RPC 2.0 request object.
     """
+
     jsonrpc: Literal["2.0"]
     method: str
     params: dict[str, Any] | list[Any] | None = None
@@ -54,6 +58,7 @@ class JsonRpcSuccessResponse(BaseModel):
     """
     Pydantic model for a JSON-RPC 2.0 success response.
     """
+
     jsonrpc: Literal["2.0"]
     result: Any
     id: int | str | None
@@ -63,6 +68,7 @@ class JsonRpcErrorObject(BaseModel):
     """
     Pydantic model for the error object in a JSON-RPC 2.0 error response.
     """
+
     code: int
     message: str
     data: Any | None = None
@@ -72,14 +78,19 @@ class JsonRpcErrorResponse(BaseModel):
     """
     Pydantic model for a JSON-RPC 2.0 error response.
     """
+
     jsonrpc: Literal["2.0"]
     error: JsonRpcErrorObject
     id: int | str | None
 
-#JsonRpcResponse = JsonRpcSuccessResponse | JsonRpcErrorResponse
+
+# JsonRpcResponse = JsonRpcSuccessResponse | JsonRpcErrorResponse
+
 
 # === Tool Runner (non-streaming path) ===
-async def run_tool_once(req_id: str, tool_name: str, input: dict, httpReq: Request) -> Result:
+async def run_tool_once(
+    req_id: str, tool_name: str, input: dict, httpReq: Request
+) -> Result:
     tool = next((t for t in tools if t.name == tool_name), None)
     if not tool:
         return Result(type="error", data=f"Tool '{tool_name}' not found")
@@ -90,8 +101,10 @@ async def run_tool_once(req_id: str, tool_name: str, input: dict, httpReq: Reque
             # verify parameters
             m = input_model(**input)
         else:
-            m = input
-        queue = await tool.executor.execute(m, f"urn:mcp:{req_id}", httpReq, report_result=False)
+            m = input  # type: ignore[assignment]
+        queue = await tool.executor.execute(
+            m, f"urn:mcp:{req_id}", httpReq, report_result=False
+        )
         result = await asyncio.wait_for(queue.get(), timeout=600)
         queue.task_done()
     except (asyncio.CancelledError, GeneratorExit):
@@ -109,10 +122,12 @@ async def run_tool_once(req_id: str, tool_name: str, input: dict, httpReq: Reque
                 pass
 
         try:
-            data = str(result.content)
+            data = str(result.content)  # type: ignore[assignment]
             return Result(type="result", data=data)
         except Exception as ex:
-            result = ExecutionError(error=f"while converting result to string - {ex}", type="")
+            result = ExecutionError(
+                error=f"while converting result to string - {ex}", type=""
+            )
 
     if not isinstance(result, ExecutionError):
         # this should never happen
@@ -123,6 +138,7 @@ async def run_tool_once(req_id: str, tool_name: str, input: dict, httpReq: Reque
         )
     return Result(type="error", data=str(result.error))
 
+
 async def handle_tools_call(req_id, params, req: JsonRpcRequest, httpReq: Request):
     tool_name = params["name"]
     tool_args = params.get("arguments", {})
@@ -131,11 +147,7 @@ async def handle_tools_call(req_id, params, req: JsonRpcRequest, httpReq: Reques
     mtype = message.type
     if mtype == "error":
         data = message.data or "???"
-        error = JsonRpcErrorObject(
-            code=1000,
-            message=str(data),
-            data=data
-        )
+        error = JsonRpcErrorObject(code=1000, message=str(data), data=data)
         return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
 
     elif mtype == "notification":
@@ -156,23 +168,19 @@ async def handle_tools_call(req_id, params, req: JsonRpcRequest, httpReq: Reques
         )
         return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
 
-def _result_response(req_id, message):
-        # If result is not a string, convert to string
-        data = message.data or ""
-        result = {}
-        if not isinstance(data, str):
-            text = json.dumps(data)
-            result["structuredContent"] = data
-        else:
-            text = data
 
-        result["content"] = [
-            {
-                "type": "text",
-                "text": text
-            }
-        ]
-        return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")
+def _result_response(req_id, message):
+    # If result is not a string, convert to string
+    data = message.data or ""
+    result = {}
+    if not isinstance(data, str):
+        text = json.dumps(data)
+        result["structuredContent"] = data
+    else:
+        text = data
+
+    result["content"] = [{"type": "text", "text": text}]
+    return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")
 
 
 def register_mcp(app: FastAPI, path_prefix: str = "/mcp"):
@@ -183,7 +191,9 @@ def register_mcp(app: FastAPI, path_prefix: str = "/mcp"):
     directly used by the MCP route.
     """
 
-    async def handle_rpc(rpcReq: JsonRpcRequest, httpReq: Request) -> JsonRpcSuccessResponse | JsonRpcErrorResponse | Response:
+    async def handle_rpc(
+        rpcReq: JsonRpcRequest, httpReq: Request
+    ) -> JsonRpcSuccessResponse | JsonRpcErrorResponse | Response:
         method = rpcReq.method
         req_id = rpcReq.id
         params = rpcReq.params
@@ -214,42 +224,40 @@ def register_mcp(app: FastAPI, path_prefix: str = "/mcp"):
 
 
 async def handle_unknown_method(req_id):
-    return JsonRpcErrorResponse({
-        "jsonrpc": "2.0",
-        "id": req_id,
-        "error": JsonRpcErrorObject(code=-32601, message="Unknown method"),
-    })
+    return JsonRpcErrorResponse(
+        jsonrpc="2.0",
+        id=req_id,
+        error=JsonRpcErrorObject(code=-32601, message="Unknown method"),
+    )
+
 
 async def handle_tools_list(req_id) -> JsonRpcSuccessResponse:
     def f(td: ToolDescription):
-        _, description = (td.worker_fn.__doc__.lstrip() + "\n").split("\n", 1)
+        _, description = ((td.worker_fn.__doc__ or "").lstrip() + "\n").split("\n", 1)
         input_type = td.input[0]
         return {
             "name": td.name,
             "description": description.strip(),
-            "inputSchema": input_type.model_json_schema(),
+            "inputSchema": input_type.model_json_schema() if input_type else {},
         }
+
     tl = [f(t) for t in tools]
-    result = { "tools": tl, "isLast": True} # "nextCursor": None }
+    result = {"tools": tl, "isLast": True}  # "nextCursor": None }
     return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")
+
 
 async def handle_initialize(req_id, app) -> JsonRpcSuccessResponse:
     result = {
         "protocolVersion": "2024-11-05",
-        "serverInfo": {
-            "name": f"MCP Server for {app.title}",
-            "version": app.version
-        },
+        "serverInfo": {"name": f"MCP Server for {app.title}", "version": app.version},
         "capabilities": {
-            "tools": {
-                "listChanged": False
-            },
+            "tools": {"listChanged": False},
             # "resources": {},
             # "prompts": {},
             "toolProvider": {
                 "version": "1.0.0",
-                "toolInvocationModes": ["standard", "streaming"]
-            }
-        }
+                "toolInvocationModes": ["standard", "streaming"],
+            },
+        },
     }
     return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")

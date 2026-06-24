@@ -2755,6 +2755,18 @@ dev = ["Sphinx (==1.7.1)", "sphinx-autobuild (==2021.3.14)", "tox (>=2.3.1)"]
 test = ["aioresponses (>=0.6.2)", "coverage (>=4.2)", "parametrize (>=0.1.1)", "pytest (>=3.0.3)", "pytest-cov (>=2.3.1,<2.6)", "responses (>=0.5.1)"]
 
 [[package]]
+name = "types-cachetools"
+version = "7.0.0.20260518"
+description = "Typing stubs for cachetools"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_cachetools-7.0.0.20260518-py3-none-any.whl", hash = "sha256:997b356870915f8bbc9b2cdb4e7271c01d487996fdac2a9c8e91cc5b1261b3d1"},
+    {file = "types_cachetools-7.0.0.20260518.tar.gz", hash = "sha256:7730014e4fef0c6f01e2cd0f980f8ce6d1b1d2472c8459c1f382348ec1a6b435"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -3055,4 +3067,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "88157b315581acc540dc629927f8c0df9f9518a3567f73b67a205b147638cfce"
+content-hash = "f9442360a7b278073206c01de2febcac03d7ea4be60b73d28fd8b8e32014ef45"

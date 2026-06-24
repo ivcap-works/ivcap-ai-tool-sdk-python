@@ -44,29 +44,36 @@ logger = getLogger("wrapper")
 
 
 class ToolOptions(BaseModel):
-    name: str | None = Field(
-        None, description="Name to be used for this tool")
+    name: str | None = Field(None, description="Name to be used for this tool")
     tags: list[str] | None = Field(
-        None, description="OpenAPI tag for this set of functions")
+        None, description="OpenAPI tag for this set of functions"
+    )
     max_wait_time: float | None = Field(
-        5.0, description="max. time in seconds to wait for result and before returning RetryLater")
+        5.0,
+        description="max. time in seconds to wait for result and before returning RetryLater",
+    )
     refresh_interval: int | None = Field(
-        3, description="Time in seconds to wait before chacking again for a job result (used in RetryLater)")
+        3,
+        description="Time in seconds to wait before chacking again for a job result (used in RetryLater)",
+    )
     executor_opts: ExecutorOpts | None = Field(
-        None, description="Options for the executor")
+        None, description="Options for the executor"
+    )
     post_route_opts: dict[str, Any] | None = Field(
-        {}, description="Addtitional options given the POST route constructor")
+        {}, description="Addtitional options given the POST route constructor"
+    )
     service_id: str | None = Field(
-        None, description="overriding the default service id")
+        None, description="overriding the default service id"
+    )
     is_ready: Callable[[], bool] | None = Field(
-        None, description="Function to check if the tool is ready")
+        None, description="Function to check if the tool is ready"
+    )
 
 
 # Define a generic type for Pydantic models
 T = TypeVar("T", bound=BaseModel)
 
-WorkerFn = Callable[[BaseModel, ExecutionContext | None,
-                     Response | None], BaseModel]
+WorkerFn = Callable[[BaseModel, ExecutionContext | None, Response | None], BaseModel]
 
 
 @dataclass
@@ -87,7 +94,7 @@ def add_tool_api_route(
     worker_fn: WorkerFn,
     *,
     opts: ToolOptions | None = ToolOptions(),
-    context: ExecutionContext | None = None
+    context: ExecutionContext | None = None,
 ):
     """Add a few routes to `app` for use with an AI tool.
 
@@ -120,24 +127,31 @@ def add_tool_api_route(
         context (Optional[ExecutionContext], optional): An optional context to be provided to every invocation of `worker_fn`. Defaults to None.
     """
     def_name, def_tag = get_title_from_path(path_prefix)
+    if opts is None:
+        opts = ToolOptions()
     if opts.tags is None:
-        if def_tag == '':
+        if def_tag == "":
             def_tag = "Tool"
         opts.tags = [def_tag]
     if opts.name is None:
-        if def_name == '':
+        if def_name == "":
             def_name = "Execute the tool"
         opts.name = def_name
 
     output_model = get_function_return_type(worker_fn)
-    executor = Executor[output_model](
-        worker_fn, opts=opts.executor_opts, context=context)
+    executor = Executor[output_model](  # type: ignore[valid-type]
+        worker_fn, opts=opts.executor_opts, context=context
+    )
 
-    tools.append(ToolDescription(name=worker_fn.__name__,
-                                 path_prefix=path_prefix,
-                                 worker_fn=worker_fn,
-                                 input=get_input_type(worker_fn),
-                                 executor=executor))
+    tools.append(
+        ToolDescription(
+            name=worker_fn.__name__,
+            path_prefix=path_prefix,
+            worker_fn=worker_fn,
+            input=get_input_type(worker_fn),
+            executor=executor,
+        )
+    )
 
     add_ready_handler(opts.is_ready if opts else None)
 
@@ -146,17 +160,23 @@ def add_tool_api_route(
     _add_get_tool_def_route(app, path_prefix, worker_fn, opts)
 
 
-def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
+def _add_do_job_route(
+    app: FastAPI,
+    path_prefix: str,
+    worker_fn: Callable,
+    executor: Executor,
+    opts: ToolOptions,
+):
     input_model, _ = get_input_type(worker_fn)
     output_model = get_function_return_type(worker_fn)
-    summary, description = (worker_fn.__doc__.lstrip() + "\n").split("\n", 1)
+    summary, description = ((worker_fn.__doc__ or "").lstrip() + "\n").split("\n", 1)
 
     async def route(data: input_model, req: Request) -> output_model:  # type: ignore
         job_id = req.headers.get("job-id")
         if job_id is None:
             job_id = str(uuid6())
         elif job_id.startswith(JOB_URN_PREFIX):
-            job_id = job_id[len(JOB_URN_PREFIX):]
+            job_id = job_id[len(JOB_URN_PREFIX) :]
 
         if req.headers.get("prefer") == "respond-async":
             timeout = 0
@@ -165,9 +185,10 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
             if toh is not None:
                 timeout = int(toh)
             else:
-                timeout = opts.max_wait_time
+                timeout = opts.max_wait_time  # type: ignore[assignment]
         logger.info(
-            f"starting job {path_prefix}/jobs/{job_id} - timeout: {timeout} seconds")
+            f"starting job {path_prefix}/jobs/{job_id} - timeout: {timeout} seconds"
+        )
 
         queue = await executor.execute(data, job_id, req)
         try:
@@ -192,7 +213,9 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
                 },
             },
         },
-        400: {"model": ErrorModel, },
+        400: {
+            "model": ErrorModel,
+        },
         # 400: {"model": Error}, 401: {"model": Error}, 429: {"model": Error}},
     }
     app.add_api_route(
@@ -202,31 +225,41 @@ def _add_do_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, execu
         summary=summary,
         description=description.strip(),
         methods=["POST"],
-        responses=responses,
-        tags=opts.tags,
+        responses=responses,  # type: ignore[arg-type]
+        tags=opts.tags,  # type: ignore[arg-type]
         response_model_exclude_none=True,
         response_model_by_alias=True,
-        **opts.post_route_opts,
+        **(opts.post_route_opts or {}),
     )
 
 
-def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, executor: Executor, opts: ToolOptions):
+def _add_get_job_route(
+    app: FastAPI,
+    path_prefix: str,
+    worker_fn: Callable,
+    executor: Executor,
+    opts: ToolOptions,
+):
     output_model = get_function_return_type(worker_fn)
 
     def route(job_id: str) -> output_model:  # type: ignore
         if job_id.startswith(JOB_URN_PREFIX):
-            job_id = job_id[len(JOB_URN_PREFIX):]
+            job_id = job_id[len(JOB_URN_PREFIX) :]
         try:
             result = executor.lookup_job(job_id)
             if result is None:
                 return _return_try_later(job_id, path_prefix, opts)
             return _return_job_result(result, job_id)
         except KeyError:
-            return Response(status_code=status.HTTP_404_NOT_FOUND,
-                            content=f"job {job_id} can't be found. It either never existed or its result is no longer cached.")
+            return Response(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content=f"job {job_id} can't be found. It either never existed or its result is no longer cached.",
+            )
 
     responses = {
-        400: {"model": ErrorModel, },
+        400: {
+            "model": ErrorModel,
+        },
     }
     path = "/jobs/" + "{job_id}"
     if path_prefix != "/":
@@ -236,8 +269,8 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
         route,
         summary="Returns the result of a particular job.",
         methods=["GET"],
-        responses=responses,
-        tags=opts.tags,
+        responses=responses,  # type: ignore[arg-type]
+        tags=opts.tags,  # type: ignore[arg-type]
         response_model_exclude_none=True,
         response_model_by_alias=True,
     )
@@ -246,7 +279,12 @@ def _add_get_job_route(app: FastAPI, path_prefix: str, worker_fn: Callable, exec
 def _return_job_result(el, job_id):
     h = {"job-id": JOB_URN_PREFIX + job_id}
     if isinstance(el, IvcapResult):
-        return Response(status_code=status.HTTP_200_OK, content=el.content, media_type=el.content_type, headers=h)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            content=el.content,
+            media_type=el.content_type,
+            headers=h,
+        )
     elif isinstance(el, ExecutionError):
         if el.type is ValueError:
             m = ErrorModel(message=el.error, code=400)
@@ -255,14 +293,29 @@ def _return_job_result(el, job_id):
             m = ExecutionErrorModel(message=el.error, traceback=el.traceback)
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        return Response(status_code=status_code, content=m.model_dump_json(indent=2), media_type="application/json", headers=h)
+        return Response(
+            status_code=status_code,
+            content=m.model_dump_json(indent=2),
+            media_type="application/json",
+            headers=h,
+        )
 
     msg = json.dumps(
-        {"error": f"please report unexpected internal error - unexpected result type {type(el)}"})
-    return Response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=msg, media_type="application/json", headers=h)
+        {
+            "error": f"please report unexpected internal error - unexpected result type {type(el)}"
+        }
+    )
+    return Response(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=msg,
+        media_type="application/json",
+        headers=h,
+    )
 
 
-def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable, opts: ToolOptions):
+def _add_get_tool_def_route(
+    app: FastAPI, path_prefix: str, worker_fn: Callable, opts: ToolOptions
+):
     async def route(req: Request) -> ToolDefinition:  # type: ignore
         service_id = opts.service_id
         if service_id is not None and service_id.startswith("/"):
@@ -277,7 +330,7 @@ def _add_get_tool_def_route(app: FastAPI, path_prefix: str, worker_fn: Callable,
         route,
         summary="Returns the description of this tool. Primarily used by agents.",
         methods=["GET"],
-        tags=opts.tags,
+        tags=opts.tags,  # type: ignore[arg-type]
         response_model_exclude_none=True,
         response_model_by_alias=True,
     )
@@ -290,6 +343,6 @@ def _return_try_later(job_id: str, path_prefix: str, opts: ToolOptions):
     headers = {
         "Location": location,
         "Retry-Later": f"{opts.refresh_interval}",
-        "Ivcap-Self-Report-Result": "true"
+        "Ivcap-Self-Report-Result": "true",
     }
     return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)
