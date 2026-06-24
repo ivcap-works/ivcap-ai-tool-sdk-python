@@ -1,0 +1,142 @@
+site_name: IVCAP Lambda SDK (Python)
+site_description: Python SDK for building lambda-style services on the IVCAP platform — register tool functions as HTTP endpoints, handle async job execution, report progress, and expose MCP endpoints for AI agents
+site_author: CSIRO
+site_url: https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/
+repo_url: https://github.com/ivcap-works/ivcap-ai-tool-sdk-python
+repo_name: ivcap-ai-tool-sdk-python
+edit_uri: edit/main/docs/docs/
+docs_dir: docs
+site_dir: site
+copyright: Copyright &copy; 2023-2026 CSIRO
+
+theme:
+  name: material
+  custom_dir: overrides
+  logo: img/logo.svg
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [".."]
+          options:
+            docstring_style: google
+            docstring_options:
+              returns_multiple_items: false
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+            filters:
+              - "!^_"
+            show_if_no_docstring: false
+  - llmstxt-md:
+      enable_markdown_urls: true
+      enable_llms_txt: true
+      enable_llms_full: true
+      markdown_description: |
+        ivcap_lambda is a Python SDK for building lambda-style services on the IVCAP
+        (Intelligent Visual Computing and Analytics Platform). It extends ivcap_service
+        and provides HTTP scaffolding via FastAPI for registering tool functions as
+        endpoints, handling async job execution with try-later semantics, reporting
+        progress events, and optionally exposing an MCP endpoint for AI agent tooling.
+      sections:
+        Getting Started:
+          - getting-started/installation.md
+          - getting-started/quick-start.md
+          - getting-started/first-service.md
+        Guides:
+          - guides/tool-functions.md
+          - guides/artifacts.md
+          - guides/mcp.md
+          - guides/observability.md
+          - guides/error-handling.md
+          - guides/deployment.md
+          - guides/best-practices.md
+        API Reference:
+          - api/decorators.md
+          - api/server.md
+          - api/executor.md
+          - api/types.md
+          - api/utilities.md
+        Examples:
+          - examples/tool-service.md
+          - examples/advanced-patterns.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: [".."]
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+hooks:
+  - hooks.py
+
+extra_css:
+  - css/extra.css
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - js/mermaid-init.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Your First Lambda Service: getting-started/first-service.md
+  - Guides:
+    - Overview: guides/overview.md
+    - Tool Functions: guides/tool-functions.md
+    - Working with Artifacts: guides/artifacts.md
+    - MCP & Agent Integration: guides/mcp.md
+    - Observability & Logging: guides/observability.md
+    - Error Handling: guides/error-handling.md
+    - Deployment: guides/deployment.md
+    - Best Practices: guides/best-practices.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Decorator (@ivcap_lambda): api/decorators.md
+    - Server (start_lambda_server): api/server.md
+    - Executor & Options: api/executor.md
+    - Types: api/types.md
+    - Utilities: api/utilities.md
+  - Examples:
+    - Lambda Tool Service: examples/tool-service.md
+    - Advanced Patterns: examples/advanced-patterns.md
+  - Reference:
+    - Environment Variables: reference/environment-variables.md
+    - Service Definition Schema: reference/service-definition.md
+    - Glossary: reference/glossary.md
+  - Agent Guide: agent.md
+  - Community:
+    - Contributing: community/contributing.md
+    - Code of Conduct: community/conduct.md

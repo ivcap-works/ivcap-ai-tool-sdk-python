@@ -1,66 +1,100 @@
-name: ci-cd
+name: CI/CD
 
-on:
-  push:
-    branches:
-      - "main"
-  pull_request:
-    branches:
-      - "main"
+on: [push, pull_request]
 
 jobs:
   ci:
-    # Set up operating system
+    name: Test & Lint
     runs-on: ubuntu-latest
 
-    # Define job steps
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.11"
 
-      - name: Check-out repository
-        uses: actions/checkout@v2
-
-      - name: Install poetry
+      - name: Install Poetry
         uses: snok/install-poetry@v1
 
       - name: Install package
         run: poetry install
 
-      # - name: Test with pytest
-      #   run: poetry run pytest tests/ --cov=ivcap_lambda --cov-report=xml
+      - name: Lint with ruff
+        run: poetry run ruff check .
 
-      - name: Use Codecov to track coverage
-        uses: codecov/codecov-action@v2
+      - name: Type check with mypy
+        run: poetry run mypy ivcap_lambda
+
+      - name: Check for tests directory
+        id: check_tests
+        run: |
+          if [ -d tests ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test with pytest
+        if: steps.check_tests.outputs.exists == 'true'
+        run: poetry run pytest tests/ --cov=ivcap_lambda --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        if: steps.check_tests.outputs.exists == 'true'
+        uses: codecov/codecov-action@v4
         with:
-          files: ./coverage.xml # coverage report
+          files: ./coverage.xml
 
   cd:
-    # Only run this job if the "ci" job passes
+    name: Publish to PyPI
     needs: ci
-
-    # Only run this job if new work is pushed to "main"
+    # Only run on push to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    # Set up operating system
     runs-on: ubuntu-latest
 
-    # Define job steps
     steps:
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
-
-      - name: Check-out repository
-        uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
         uses: snok/install-poetry@v1
 
       - name: Install package
         run: poetry install
+
+      - name: Check version tag matches pyproject.toml
+        run: |
+          PKG_VERSION=$(poetry version -s)
+          GIT_TAG=$(git describe --exact-match --tags HEAD 2>/dev/null || echo "")
+          if [ -z "$GIT_TAG" ]; then
+            echo "No exact tag on HEAD — skipping publish"
+            exit 0
+          fi
+          EXPECTED="v${PKG_VERSION}"
+          if [ "$GIT_TAG" != "$EXPECTED" ]; then
+            echo "Tag $GIT_TAG does not match package version $EXPECTED"
+            exit 1
+          fi
+          echo "Tag $GIT_TAG matches package version — proceeding with publish"
+
+      - name: Build and publish
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          PKG_VERSION=$(poetry version -s)
+          GIT_TAG=$(git describe --exact-match --tags HEAD 2>/dev/null || echo "")
+          if [ -n "$GIT_TAG" ] && [ "$GIT_TAG" = "v${PKG_VERSION}" ]; then
+            poetry build
+            poetry publish
+          else
+            echo "Skipping publish — HEAD is not tagged with v${PKG_VERSION}"
+          fi

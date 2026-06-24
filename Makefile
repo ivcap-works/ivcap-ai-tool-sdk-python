@@ -28,4 +28,18 @@ clean:
 	rm -rf dist
 	find ${ROOT_DIR} -name __pycache__ | xargs rm -r
 
-.PHONY: docs
+.PHONY: docs docs-serve docs-build docs-install
+
+docs-install:
+	poetry run pip install -q -r ${ROOT_DIR}/docs/requirements-docs.txt
+
+docs-serve: docs-install
+	cd ${ROOT_DIR}/docs && \
+	DOCS_PORT=$$(python3 -c "import socket; s=socket.socket(); s.bind(('',0)); p=s.getsockname()[1]; s.close(); print(p)") && \
+	echo "Serving docs at http://localhost:$$DOCS_PORT" && \
+	poetry run mkdocs serve --dev-addr=localhost:$$DOCS_PORT
+
+docs-build: docs-install
+	cd ${ROOT_DIR}/docs && poetry run mkdocs build
+
+docs: docs-build
