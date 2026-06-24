@@ -5,6 +5,7 @@
 #
 import warnings
 
+
 def test_local_secret_client_deprecation():
     """Importing and instantiating the local SecretMgrClient should succeed
     but emit a DeprecationWarning. We don't call get_secret to avoid any
@@ -12,7 +13,7 @@ def test_local_secret_client_deprecation():
     """
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always", DeprecationWarning)
-        from ivcap_ai_tool.secret import SecretMgrClient
+        from ivcap_lambda.secret import SecretMgrClient
 
         # Instantiate with a harmless URL to avoid accidental calls later
         client = SecretMgrClient(secret_url="http://example.com")

@@ -2,7 +2,7 @@
   "version": 1,
   "filters": {
     "suppress_paths": {
-      "()": "ivcap_ai_tool.logger.SuppressPathsFilter",
+      "()": "ivcap_lambda.logger.SuppressPathsFilter",
       "targets": [
         "/_healtz"
       ]

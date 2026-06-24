@@ -9,11 +9,12 @@ from .builder import ToolOptions, add_tool_api_route, WorkerFn
 from .executor import ExecutionContext
 from .server import get_fast_app
 
-def ivcap_ai_tool(
+
+def ivcap_lambda(
     path_prefix: str,
     *,
     opts: Optional[ToolOptions] = ToolOptions(),
-    context: Optional[ExecutionContext] = None
+    context: Optional[ExecutionContext] = None,
 ):
     """Add a few routes to the service for use with an AI tool.
 
@@ -43,6 +44,7 @@ def ivcap_ai_tool(
         opts (Optional[ToolOptions], optional): Additional behaviour settings. Defaults to ToolOptions().
         context (Optional[ExecutionContext], optional): An optional context to be provided to every invocation of `worker_fn`. Defaults to None.
     """
+
     def decorator(worker_fn: WorkerFn):
         """
         Args:
@@ -50,7 +52,9 @@ def ivcap_ai_tool(
         opts (Optional[ToolOptions], optional): Additional behaviour settings. Defaults to ToolOptions().
         context (Optional[ExecutionContext], optional): An optional context to be provided to every invocation of `worker_fn`. Defaults to None.
         """
-        add_tool_api_route(get_fast_app(), path_prefix, worker_fn, opts=opts, context=context)
+        add_tool_api_route(
+            get_fast_app(), path_prefix, worker_fn, opts=opts, context=context
+        )
         return worker_fn
 
     return decorator

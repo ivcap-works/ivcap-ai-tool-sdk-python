@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "ivcap-ai-tool"
+version = "0.7.24"
+description = "⚠️ DEPRECATED – use ivcap-lambda instead. Compatibility shim only."
+
+authors = ["Max Ott <max.ott@csiro.au>"]
+
+readme = "README.md"
+
+license = "BSD-3-Clause"
+
+keywords = ["deprecated", "ivcap", "ai", "tool", "ivcap-lambda"]
+
+classifiers = [
+    "Development Status :: 7 - Inactive",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+]
+
+packages = [{ include = "ivcap_ai_tool" }]
+
+[tool.poetry.urls]
+"Homepage" = "https://pypi.org/project/ivcap-lambda/"
+"Migration Guide" = "https://github.com/ivcap-works/ivcap-ai-tool-sdk-python#migration"
+"Source" = "https://github.com/ivcap-works/ivcap-ai-tool-sdk-python"
+"Bug Tracker" = "https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/issues"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+ivcap-lambda = ">=0.7.22"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

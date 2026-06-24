@@ -28,31 +28,49 @@ MAX_DELIVER_RESULT_ATTEMPTS = 4
 logger = getLogger("executor")
 tracer = trace.get_tracer("executor")
 
+
 class ExecutionContext:
     pass
+
 
 class ThreadLocal(threading.local):
     pass
 
-T = TypeVar('T')
+
+T = TypeVar("T")
+
 
 class ExecutorOpts(BaseModel):
     job_cache_size: Optional[int] = Field(10000, description="size of job cache")
-    job_cache_ttl: Optional[int] = Field(3600, description="TTL of job entries in the job cache")
-    max_workers: Optional[int] = Field(None, description="size of thread pool to use. If None, a new thread pool will be created for each execution")
+    job_cache_ttl: Optional[int] = Field(
+        3600, description="TTL of job entries in the job cache"
+    )
+    max_workers: Optional[int] = Field(
+        None,
+        description="size of thread pool to use. If None, a new thread pool will be created for each execution",
+    )
 
-job_context = contextvars.ContextVar('ivcap', default=JobContext())
 
-def get_job_context() -> JobContext:
+job_context: contextvars.ContextVar[Optional[JobContext]] = contextvars.ContextVar(
+    "ivcap", default=None
+)
+
+
+def get_job_context() -> Optional[JobContext]:
     return job_context.get()
+
 
 def get_event_reporter() -> Optional[EventReporter]:
     """Get the current event reporter from the job context."""
-    return job_context.get().report
+    jctxt = job_context.get()
+    return jctxt.report if jctxt is not None else None
 
-def get_job_id() -> Optional[EventReporter]:
+
+def get_job_id() -> Optional[str]:
     """Get the current job ID from the job context."""
-    return job_context.get().job_id
+    jctxt = job_context.get()
+    return jctxt.job_id if jctxt is not None else None
+
 
 class Executor(Generic[T]):
     """
@@ -61,7 +79,9 @@ class Executor(Generic[T]):
     """
 
     # _job_ctxt = JobContext()
-    _active_jobs = set() # keep track of active jobs to block shutdown until they are done
+    _active_jobs = (
+        set()
+    )  # keep track of active jobs to block shutdown until they are done
 
     @classmethod
     def active_jobs(cls) -> List[str]:
@@ -77,7 +97,9 @@ class Executor(Generic[T]):
         accepting any new incoming requests.
         """
         while len(cls._active_jobs) > 0:
-            logger.info(f"blocking shutdown as {len(cls._active_jobs)} job(s) are still running")
+            logger.info(
+                f"blocking shutdown as {len(cls._active_jobs)} job(s) are still running"
+            )
             sleep(5)
         return
 
@@ -86,7 +108,7 @@ class Executor(Generic[T]):
         func: Callable[..., T],
         *,
         opts: Optional[ExecutorOpts],
-        context: Optional[JobContext] = None
+        context: Optional[JobContext] = None,
     ):
         """
         Initialize the Executor with a function and an optional thread pool.
@@ -104,7 +126,9 @@ class Executor(Generic[T]):
         self.job_cache = TTLCache(maxsize=opts.job_cache_size, ttl=opts.job_cache_ttl)
         self.thread_pool = None
         if opts.max_workers:
-            self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=opts.max_workers)
+            self.thread_pool = concurrent.futures.ThreadPoolExecutor(
+                max_workers=opts.max_workers
+            )
 
         self.context = context
         self.context_param = None
@@ -115,13 +139,15 @@ class Executor(Generic[T]):
             if isinstance(context, v):
                 self.context_param = k
             elif v == Request:
-                self.request_param  = k
+                self.request_param = k
             elif v == JobContext:
-                self.job_ctxt_param  = k
+                self.job_ctxt_param = k
             else:
                 raise Exception(f"unexpected function parameter '{k}'")
 
-    async def execute(self, param: Any, job_id: str, req: Request, report_result=True) -> asyncio.Queue[Union[T, ExecutionError]]:
+    async def execute(
+        self, param: Any, job_id: str, req: Request, report_result=True
+    ) -> asyncio.Queue[Union[T, ExecutionError]]:
         """
         Execute the function with the given parameter in a thread and return a queue with the result.
 
@@ -145,7 +171,7 @@ class Executor(Generic[T]):
                 result = ExecutionError(
                     error=str(e),
                     type=type(e).__name__,
-                    traceback=traceback.format_exc()
+                    traceback=traceback.format_exc(),
                 )
                 logger.warning(f"job {job_id} failed - {result.error}")
             finally:
@@ -160,12 +186,14 @@ class Executor(Generic[T]):
                 self.__class__._active_jobs.discard(job_id)
 
         def _run(param: Any, ctxt: Context):
-            context.attach(ctxt) # OTEL
+            context.attach(ctxt)  # OTEL
             authorization = req.headers.get("authorization")
             jctxt = JobContext(
                 job_id=job_id,
-                job_authorization = authorization,
-                report = create_event_reporter(job_id=job_id, job_authorization=authorization),
+                job_authorization=authorization,
+                report=create_event_reporter(
+                    job_id=job_id, job_authorization=authorization
+                ),
             )
             job_context.set(jctxt)
             kwargs = {}
@@ -174,7 +202,7 @@ class Executor(Generic[T]):
             if self.request_param is not None:
                 kwargs[self.request_param] = req
             if self.job_ctxt_param is not None:
-                kwargs[self.job_ctxt_param] = jctxt # self._job_ctxt
+                kwargs[self.job_ctxt_param] = jctxt  # self._job_ctxt
 
             fname = self.func.__name__
             with tracer.start_as_current_span(f"RUN {fname}") as span:
@@ -195,12 +223,18 @@ class Executor(Generic[T]):
                             # Gracefully shutdown remaining tasks and async generators to avoid
                             # 'Task exception was never retrieved' and similar warnings
                             try:
-                                pending = [t for t in asyncio.all_tasks(loop) if not t.done()]
+                                pending = [
+                                    t for t in asyncio.all_tasks(loop) if not t.done()
+                                ]
                                 for t in pending:
                                     t.cancel()
                                 if pending:
                                     with contextlib.suppress(Exception):
-                                        loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+                                        loop.run_until_complete(
+                                            asyncio.gather(
+                                                *pending, return_exceptions=True
+                                            )
+                                        )
                                 with contextlib.suppress(Exception):
                                     loop.run_until_complete(loop.shutdown_asyncgens())
                             finally:
@@ -213,11 +247,13 @@ class Executor(Generic[T]):
                     raise
                 except Exception as ex:
                     span.record_exception(ex)
-                    logger.error(f"while executing {job_id} - {type(ex).__name__}: {ex}")
+                    logger.error(
+                        f"while executing {job_id} - {type(ex).__name__}: {ex}"
+                    )
                     res = ExecutionError(
                         error=str(ex),
                         type=type(ex).__name__,
-                        traceback=traceback.format_exc()
+                        traceback=traceback.format_exc(),
                     )
                 finally:
                     self.__class__._active_jobs.discard(job_id)
@@ -227,12 +263,12 @@ class Executor(Generic[T]):
                 except Exception as ex:
                     logger.error(f"while delivering result fo {job_id} - {ex}")
 
-                job_context.set(JobContext())
-
-
+                job_context.set(None)
 
         # Use the provided thread pool or create a new one
-        use_pool = self.thread_pool or concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        use_pool = self.thread_pool or concurrent.futures.ThreadPoolExecutor(
+            max_workers=1
+        )
         # Submit the function to the thread pool
         future = use_pool.submit(_run, param, context.get_current())
 

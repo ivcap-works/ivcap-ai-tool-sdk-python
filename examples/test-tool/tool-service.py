@@ -13,7 +13,7 @@ from pydantic import HttpUrl
 
 
 from ivcap_service import getLogger, Service, with_schema
-from ivcap_lambda import start_tool_server, ivcap_lambda, ToolOptions, logging_init
+from ivcap_lambda import start_lambda_server, ivcap_lambda, ToolOptions, logging_init
 
 from wordle import WordleProps, WordleResult, play_random_wordle
 
@@ -414,4 +414,4 @@ if __name__ == "__main__":
             os.environ["LITELLM_PROXY"] = args.litellm_proxy
         return args
 
-    start_tool_server(service, custom_args=custom_args)
+    start_lambda_server(service, custom_args=custom_args)

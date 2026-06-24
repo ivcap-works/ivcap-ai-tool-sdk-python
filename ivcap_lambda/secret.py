@@ -5,12 +5,12 @@
 #
 
 """
-DEPRECATED: ivcap_ai_tool.secret.SecretMgrClient
+DEPRECATED: ivcap_lambda.secret.SecretMgrClient
 
 The SecretMgrClient has moved to ivcap_service.secret.SecretMgrClient.
 This module keeps a backwards-compatible shim so existing imports like
 
-    from ivcap_ai_tool.secret import SecretMgrClient
+    from ivcap_lambda.secret import SecretMgrClient
 
 continue to work. Please migrate to:
 
@@ -27,6 +27,7 @@ __all__ = ["SecretMgrClient"]
 
 from ivcap_service.secret import SecretMgrClient as _SecretMgrClient  # type: ignore
 
+
 class SecretMgrClient(_SecretMgrClient):
     """Backward-compatibility shim for SecretMgrClient.
 
@@ -35,7 +36,7 @@ class SecretMgrClient(_SecretMgrClient):
 
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "ivcap_ai_tool.secret.SecretMgrClient is deprecated; use "
+            "ivcap_lambda.secret.SecretMgrClient is deprecated; use "
             "ivcap_service.secret.SecretMgrClient",
             DeprecationWarning,
             stacklevel=2,
