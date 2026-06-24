@@ -1,0 +1,2575 @@
+# IVCAP Lambda SDK (Python)
+
+> Python SDK for building lambda-style services on the IVCAP platform — register tool functions as HTTP endpoints, handle async job execution, report progress, and expose MCP endpoints for AI agents
+
+ivcap_lambda is a Python SDK for building lambda-style services on the IVCAP
+(Intelligent Visual Computing and Analytics Platform). It extends ivcap_service
+and provides HTTP scaffolding via FastAPI for registering tool functions as
+endpoints, handling async job execution with try-later semantics, reporting
+progress events, and optionally exposing an MCP endpoint for AI agent tooling.
+
+
+# Getting Started
+
+## Installation
+
+# Installation
+
+## Prerequisites
+
+- Python 3.11 or higher
+- pip or poetry package manager
+
+## From PyPI
+
+The easiest way to install the IVCAP Lambda SDK:
+
+```bash
+pip install ivcap-lambda
+```
+
+Or with poetry:
+
+```bash
+poetry add ivcap-lambda
+```
+
+!!! note "Package rename"
+    The original package name `ivcap-ai-tool` has been renamed to `ivcap-lambda`. A
+    compatibility shim is still published under the old name and will emit a
+    `DeprecationWarning`. Please migrate imports to `ivcap_lambda`.
+
+## From Source
+
+For development or to use the latest unreleased features:
+
+```bash
+git clone https://github.com/ivcap-works/ivcap-ai-tool-sdk-python.git
+cd ivcap-ai-tool-sdk-python
+poetry install
+```
+
+## Verify Installation
+
+Test your installation:
+
+```bash
+python -c "import ivcap_lambda; print(ivcap_lambda.__version__)"
+```
+
+You should see the version number printed.
+
+## Dependencies
+
+`ivcap-lambda` depends on:
+
+| Package | Purpose |
+|---------|---------|
+| `ivcap-service` | Base service primitives, `Service`, `JobContext`, events, logging |
+| `fastapi` | HTTP framework for tool endpoints |
+| `uvicorn` | ASGI server |
+| `pydantic` | Request/result model validation |
+| `opentelemetry-instrumentation-fastapi` | Distributed tracing |
+
+All dependencies are installed automatically.
+
+## Optional: Development Dependencies
+
+If you plan to contribute or build documentation locally:
+
+```bash
+# Development tools
+poetry install --with dev
+
+# Documentation tools
+pip install -r docs/requirements-docs.txt
+```
+
+## Next Steps
+
+- Read the [Quick Start](quick-start.md) guide
+- Build your [First Lambda Service](first-service.md)
+- Check out [Examples](../examples/tool-service.md)
+
+## Troubleshooting
+
+### ImportError: No module named 'ivcap_lambda'
+
+Make sure you've installed the package:
+```bash
+pip install ivcap-lambda
+```
+
+If using a virtual environment, ensure it's activated.
+
+### Python Version Error
+
+Check your Python version:
+```bash
+python --version
+```
+
+The SDK requires Python 3.11+. If you have multiple Python versions installed, use:
+```bash
+python3.11 -m pip install ivcap-lambda
+```
+
+### Permission Denied
+
+If you get permission errors during installation, use:
+```bash
+pip install --user ivcap-lambda
+```
+
+## Getting Help
+
+- Check [Best Practices](../guides/best-practices.md#troubleshooting)
+- [Open an issue](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/issues)
+- See [Contributing](../community/contributing.md)
+
+
+## Quick Start
+
+# Quick Start
+
+Get a working IVCAP lambda service running in 5 minutes.
+
+## 1. Install the SDK
+
+```bash
+pip install ivcap-lambda
+```
+
+## 2. Create Your Service
+
+Save this as `my_service.py`:
+
+```python
+from pydantic import BaseModel, Field
+from ivcap_service import Service, ServiceContact, ServiceLicense, JobContext, getLogger, with_schema
+from ivcap_lambda import start_lambda_server, ivcap_lambda, ToolOptions, logging_init
+
+# Initialize logging
+logging_init()
+logger = getLogger("my_service")
+
+# Define your service
+service = Service(
+    name="My First Lambda Service",
+    contact=ServiceContact(name="Your Name", email="you@example.com"),
+    license=ServiceLicense(name="MIT", url="https://opensource.org/license/MIT"),
+)
+
+
+# Define request schema
+@with_schema("urn:sd:schema:my_service.request.1")
+class GreetRequest(BaseModel):
+    name: str = Field(description="Name to greet")
+    count: int = Field(1, description="Number of times to repeat the greeting", ge=1)
+
+
+# Define result schema
+@with_schema("urn:sd:schema:my_service.1")
+class GreetResult(BaseModel):
+    greeting: str = Field(description="The generated greeting")
+
+
+# Register the tool
+@ivcap_lambda("/greet", opts=ToolOptions(tags=["Greeter"]))
+def greet(req: GreetRequest) -> GreetResult:
+    """Greet a person
+
+    Generates a personalised greeting the requested number of times.
+    """
+    logger.info(f"Greeting {req.name} x{req.count}")
+    return GreetResult(greeting=(f"Hello, {req.name}! " * req.count).strip())
+
+
+# Start the server
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+## 3. Run It
+
+```bash
+python my_service.py --port 8090
+```
+
+The server starts listening on port 8090. You can now:
+
+- Call `POST /greet` to submit a job
+- Call `GET /greet` to get the tool description
+- Open `http://localhost:8090/api` for the interactive Swagger UI
+
+## 4. Test It
+
+Submit a request with `curl`:
+
+```bash
+curl -X POST http://localhost:8090/greet \
+  -H "content-type: application/json" \
+  -d '{"name": "IVCAP", "count": 2}'
+```
+
+Expected response:
+```json
+{"greeting": "Hello, IVCAP! Hello, IVCAP!"}
+```
+
+Get the tool description (for AI agents):
+
+```bash
+curl http://localhost:8090/greet
+```
+
+## 5. View the Swagger UI
+
+Open [http://localhost:8090/api](http://localhost:8090/api) in your browser to explore the API interactively.
+
+## 6. Print Service/Tool Descriptions
+
+```bash
+# Print the tool description (for agent registration)
+python my_service.py --print-tool-description
+
+# Print the full service description (for IVCAP platform registration)
+python my_service.py --print-service-description
+```
+
+## Next Steps
+
+- **[Your First Lambda Service](first-service.md)** — Build a more complete example with `JobContext`
+- **[Tool Functions Guide](../guides/tool-functions.md)** — Learn advanced patterns
+- **[Examples](../examples/tool-service.md)** — See production-ready code
+- **[API Reference](../api/overview.md)** — Complete class/function documentation
+
+## Common Patterns
+
+### Accepting a JobContext
+
+Access the job ID and event reporter:
+
+```python
+from ivcap_service import JobContext
+
+@ivcap_lambda("/process")
+def process(req: GreetRequest, jobCtxt: JobContext) -> GreetResult:
+    logger.info(f"job_id={jobCtxt.job_id}")
+    with jobCtxt.report.step("work", "Processing...") as step:
+        result = do_work(req)
+        step.finished("Done!")
+    return GreetResult(greeting=result)
+```
+
+### Async Tools
+
+Async functions are fully supported:
+
+```python
+import asyncio
+
+@ivcap_lambda("/async-greet")
+async def async_greet(req: GreetRequest) -> GreetResult:
+    """Async greeting tool"""
+    await asyncio.sleep(0)  # yield
+    return GreetResult(greeting=f"Hello, {req.name}!")
+```
+
+### Controlling Async Behaviour
+
+Force a response immediately or wait for a specific timeout:
+
+```bash
+# Respond immediately (204 + Location if not done)
+curl -i -X POST http://localhost:8090/greet \
+  -H "Prefer: respond-async" \
+  -H "content-type: application/json" \
+  -d '{"name": "IVCAP"}'
+
+# Custom timeout (seconds)
+curl -i -X POST http://localhost:8090/greet \
+  -H "Timeout: 10" \
+  -H "content-type: application/json" \
+  -d '{"name": "IVCAP"}'
+
+# Poll for a deferred result
+curl http://localhost:8090/jobs/JOB_ID
+```
+
+## Troubleshooting
+
+### "No tools have been registered"
+
+Make sure you have at least one `@ivcap_lambda` decorated function **before** calling `start_lambda_server()`.
+
+### Port already in use
+
+Change the port:
+```bash
+python my_service.py --port 8091
+```
+
+Or set the `PORT` environment variable:
+```bash
+PORT=8091 python my_service.py
+```
+
+
+## Your First Lambda Service
+
+# Your First Lambda Service
+
+In this guide, we'll build a complete, production-ready lambda service that processes text and demonstrates artifact handling, progress reporting, and async tool semantics.
+
+## Project Setup
+
+Create a new directory for your service:
+
+```bash
+mkdir my-lambda-service
+cd my-lambda-service
+```
+
+Create a `pyproject.toml`:
+
+```toml
+[tool.poetry]
+name = "my-lambda-service"
+version = "0.1.0"
+description = "An IVCAP lambda service"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+ivcap-lambda = ">=0.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry-plugin-ivcap]
+service-file = "my_service.py"
+service-id   = "urn:ivcap:service:<your-uuid>"
+service-type = "lambda"
+port         = 8095
+```
+
+Install dependencies:
+
+```bash
+poetry install
+```
+
+## Step 1: Define the Service
+
+Create `my_service.py`:
+
+```python
+import os
+from pydantic import BaseModel, Field
+from ivcap_service import (
+    Service, ServiceContact, ServiceLicense,
+    JobContext, getLogger, with_schema,
+)
+from ivcap_lambda import start_lambda_server, ivcap_lambda, ToolOptions, logging_init
+
+# Initialize logging
+logging_init()
+logger = getLogger("my_service")
+
+# Service metadata
+service = Service(
+    name="My Lambda Service",
+    contact=ServiceContact(name="Your Name", email="you@example.com"),
+    license=ServiceLicense(name="MIT", url="https://opensource.org/license/MIT"),
+)
+```
+
+## Step 2: Define Request and Result Models
+
+```python
+@with_schema("urn:sd:schema:my-lambda-service.summarise.request.1")
+class SummariseRequest(BaseModel):
+    """Request to summarise a piece of text."""
+    text: str = Field(..., description="Text to summarise")
+    max_words: int = Field(50, description="Maximum words in the summary", ge=1, le=500)
+
+
+@with_schema("urn:sd:schema:my-lambda-service.summarise.1")
+class SummariseResult(BaseModel):
+    """Result of a summarisation."""
+    summary: str = Field(..., description="The generated summary")
+    word_count: int = Field(..., description="Word count of the summary")
+    original_word_count: int = Field(..., description="Word count of the input text")
+```
+
+## Step 3: Implement the Tool Function
+
+```python
+@ivcap_lambda("/summarise", opts=ToolOptions(tags=["Text"], service_id="/summarise"))
+def summarise(req: SummariseRequest, jobCtxt: JobContext) -> SummariseResult:
+    """Summarise a piece of text
+
+    Returns a shortened version of the provided text, capped at the requested
+    maximum number of words. Suitable for preprocessing text for downstream
+    analysis or display.
+    """
+    logger.info(f"job_id={jobCtxt.job_id}: summarising {len(req.text)} chars")
+
+    with jobCtxt.report.step("tokenise", "Tokenising input") as step:
+        words = req.text.split()
+        step.finished(f"Found {len(words)} words")
+
+    with jobCtxt.report.step("summarise", "Generating summary") as step:
+        summary_words = words[: req.max_words]
+        if len(words) > req.max_words:
+            summary_words.append("...")
+        summary = " ".join(summary_words)
+        step.finished(f"Summary: {len(summary_words)} words")
+
+    return SummariseResult(
+        summary=summary,
+        word_count=len(summary_words),
+        original_word_count=len(words),
+    )
+```
+
+## Step 4: Add the Entry Point
+
+```python
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+## Step 5: Test Locally
+
+Start the server:
+
+```bash
+poetry run python my_service.py --port 8095
+```
+
+Test with `curl`:
+
+```bash
+curl -X POST http://localhost:8095/summarise \
+  -H "content-type: application/json" \
+  -d '{"text": "The quick brown fox jumps over the lazy dog. This is a longer sentence to demonstrate truncation.", "max_words": 5}'
+```
+
+Expected response:
+```json
+{
+  "summary": "The quick brown fox jumps ...",
+  "word_count": 6,
+  "original_word_count": 18
+}
+```
+
+View the tool description (for agents):
+
+```bash
+curl http://localhost:8095/summarise
+```
+
+Print the service description (for platform registration):
+
+```bash
+poetry run python my_service.py --print-service-description
+```
+
+## Step 6: Adding an Artifact-Based Tool
+
+Tools can also accept and produce IVCAP artifacts:
+
+```python
+from ivcap_service.events import GenericEvent
+
+@with_schema("urn:sd:schema:my-lambda-service.process-file.request.1")
+class ProcessFileRequest(BaseModel):
+    artifact_id: str = Field(..., description="IVCAP artifact URN to process")
+
+
+@with_schema("urn:sd:schema:my-lambda-service.process-file.1")
+class ProcessFileResult(BaseModel):
+    result_artifact_id: str = Field(..., description="URN of the result artifact")
+    bytes_processed: int = Field(..., description="Number of bytes read")
+
+
+@ivcap_lambda("/process-file", opts=ToolOptions(tags=["Files"]))
+def process_file(req: ProcessFileRequest, jobCtxt: JobContext) -> ProcessFileResult:
+    """Process an IVCAP artifact
+
+    Downloads the artifact identified by artifact_id, processes it, and
+    uploads the result as a new artifact.
+    """
+    ivcap = jobCtxt.ivcap
+
+    with jobCtxt.report.step("download", f"Downloading {req.artifact_id}") as step:
+        artifact = ivcap.get_artifact(req.artifact_id)
+        data = b"".join(artifact.as_stream())
+        step.finished(f"Downloaded {len(data)} bytes")
+
+    with jobCtxt.report.step("process", "Processing data") as step:
+        # Replace with your processing logic
+        processed = data.upper()
+        step.finished("Processing complete")
+
+    with jobCtxt.report.step("upload", "Uploading result") as step:
+        import io
+        result = ivcap.upload_artifact(
+            name="processed-result.bin",
+            io_stream=io.BytesIO(processed),
+            content_type="application/octet-stream",
+            content_size=len(processed),
+        )
+        step.finished(f"Uploaded: {result.id}")
+
+    return ProcessFileResult(
+        result_artifact_id=result.id,
+        bytes_processed=len(data),
+    )
+```
+
+## Step 7: Dockerize
+
+Create a `Dockerfile`:
+
+```dockerfile
+FROM python:3.11-slim-bookworm
+WORKDIR /app
+
+COPY pyproject.toml ./
+RUN pip install poetry \
+  && poetry config virtualenvs.create false \
+  && poetry install --no-root \
+  && pip uninstall -y poetry
+
+COPY my_service.py ./
+
+ARG VERSION=dev
+ENV VERSION=$VERSION
+ENV PORT=80
+
+ENTRYPOINT ["python", "/app/my_service.py"]
+```
+
+Build and run:
+
+```bash
+docker build -t my-lambda-service .
+docker run -p 8095:80 my-lambda-service
+```
+
+## Step 8: Register with IVCAP
+
+```bash
+# Get the service description
+python my_service.py --print-service-description > service.json
+
+# Register with IVCAP
+ivcap service register service.json
+```
+
+## Next Steps
+
+- **[Tool Functions Guide](../guides/tool-functions.md)** — Deep dive into `@ivcap_lambda` options
+- **[Artifacts Guide](../guides/artifacts.md)** — Uploading and downloading artifacts
+- **[MCP Guide](../guides/mcp.md)** — Expose your tools to AI agents via MCP
+- **[Deployment Guide](../guides/deployment.md)** — Production deployment patterns
+- **[Best Practices](../guides/best-practices.md)** — Pro tips
+
+## See Also
+
+- [API Reference](../api/overview.md) — All classes and functions
+- [Examples](../examples/tool-service.md) — More complete examples
+
+
+# Guides
+
+## Tool Functions
+
+# Tool Functions Guide
+
+The `@ivcap_lambda` decorator is the heart of the lambda SDK. It turns any Python function into a set of HTTP endpoints that IVCAP and AI agents can call.
+
+## Defining a Tool
+
+### Request & Result Models
+
+Tool inputs and outputs are [Pydantic](https://docs.pydantic.dev/) `BaseModel` classes. Use the `@with_schema` decorator (from `ivcap_service`) to annotate them with an IVCAP schema URI. This injects a `$schema` field that the platform uses to identify payloads.
+
+```python
+from pydantic import BaseModel, Field
+from ivcap_service import with_schema
+
+@with_schema("urn:example:schema:my-tool.request.1")
+class MyRequest(BaseModel):
+    name: str = Field(..., description="Name to greet.")
+    count: int = Field(1, description="Number of times to repeat the greeting.", ge=1)
+
+@with_schema("urn:example:schema:my-tool.1")
+class MyResult(BaseModel):
+    greeting: str = Field(..., description="The generated greeting.")
+```
+
+!!! tip "Always use `@with_schema`"
+    Never add a `$schema` or `jschema` field manually. The `@with_schema` decorator handles this for you, and it must be present for IVCAP to correctly identify the payload type.
+
+### The `@ivcap_lambda` Decorator
+
+```python
+from ivcap_lambda import ivcap_lambda, ToolOptions
+
+@ivcap_lambda("/greet", opts=ToolOptions(tags=["Greeter"], service_id="/greet"))
+def greet(req: MyRequest) -> MyResult:
+    """Greet a person
+
+    Generates a personalised greeting the requested number of times.
+    Describe your tool here — this text is surfaced to AI agents to
+    help them decide whether to use it.
+    """
+    return MyResult(greeting=(f"Hello, {req.name}! " * req.count).strip())
+```
+
+The first paragraph of the docstring becomes the endpoint **summary**; the rest becomes the **description** shown in Swagger and returned in tool descriptions.
+
+### ToolOptions Reference
+
+| Field | Default | Description |
+|---|---|---|
+| `name` | (inferred from path) | Human-readable name for the tool endpoint |
+| `tags` | (inferred from path) | OpenAPI tags for grouping endpoints |
+| `max_wait_time` | `5.0` | Seconds the `POST` waits before returning `204 Try-Later` |
+| `refresh_interval` | `3` | `Retry-Later` header value (seconds) returned with `204` |
+| `service_id` | `None` | Overrides the service ID in the tool description |
+| `post_route_opts` | `{}` | Extra kwargs forwarded to the FastAPI route constructor |
+| `executor_opts` | `None` | `ExecutorOpts` (cache size/TTL, thread-pool size) |
+| `is_ready` | `None` | Callable that returns `False` while the tool is initialising |
+
+**`service_id`:** If set to a path (e.g. `"/"` or `"/greet"`), the server prepends the public URL prefix automatically, so agents receive a fully-qualified service ID.
+
+## Accessing the Job Context
+
+Your tool function can optionally accept a `JobContext` (from `ivcap_service`) as a keyword argument. The framework detects it by type annotation and injects it automatically.
+
+```python
+from ivcap_service import JobContext
+
+@ivcap_lambda("/process", opts=ToolOptions(tags=["Processor"]))
+def process(req: MyRequest, jobCtxt: JobContext) -> MyResult:
+    """Process a request"""
+    logger.info(f"job_id={jobCtxt.job_id}")
+    with jobCtxt.report.step("work", "Starting work...") as step:
+        result = do_work(req)
+        step.finished(f"Finished!")
+    return MyResult(...)
+```
+
+`JobContext` fields (from `ivcap_service`):
+
+| Field | Type | Description |
+|---|---|---|
+| `job_id` | `str` | The unique job identifier (URN) |
+| `report` | `EventReporter` | For emitting progress events to the platform |
+| `job_authorization` | `str \| None` | Bearer token for authenticated calls |
+| `ivcap` | `IVCAP` | IVCAP client for artifacts, services, etc. |
+
+## Accessing the FastAPI Request
+
+Optionally accept `fastapi.Request` to read raw headers or query parameters:
+
+```python
+from fastapi import Request as FRequest
+
+@ivcap_lambda("/process")
+def process(req: MyRequest, freq: FRequest, jobCtxt: JobContext) -> MyResult:
+    user_agent = freq.headers.get("user-agent", "unknown")
+    logger.info(f"Called by: {user_agent}")
+    ...
+```
+
+Both `FRequest` and `JobContext` are detected by type annotation and injected by the framework. They can appear in any order after the first (request model) parameter.
+
+## Async Tools
+
+Async functions are fully supported. The executor creates a new event loop per job in a thread pool:
+
+```python
+import asyncio
+
+@ivcap_lambda("/async-greet", opts=ToolOptions(tags=["Greeter"]))
+async def async_greet(req: MyRequest) -> MyResult:
+    """Greet asynchronously
+
+    Same as greet but runs in an async context.
+    """
+    await asyncio.sleep(0)  # yield once
+    return MyResult(greeting=f"Hello, {req.name}!")
+```
+
+## Endpoints Created per Tool
+
+For each `@ivcap_lambda`-decorated function at path `{prefix}`, three routes are registered:
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `{prefix}` | Submit a job (execute the tool) |
+| `GET` | `{prefix}` | Return a tool description (for agents / MCP) |
+| `GET` | `/jobs/{job_id}` | Poll for the result of a deferred job |
+
+Additionally, the framework registers:
+
+- `GET /_healtz` — health check (returns `{"version": "..."}`)
+- `GET /api` — Swagger/OpenAPI UI
+- `GET /mcp` — MCP endpoint (only if `--with-mcp` is passed at startup)
+
+## Asynchronous ("Try-Later") Semantics
+
+When a job takes longer than `ToolOptions.max_wait_time` (default 5 s), the `POST` returns **`204 No Content`** with:
+
+```
+Location: /jobs/{job_id}
+Retry-Later: 3
+```
+
+The caller can then `GET /jobs/{job_id}` after the indicated delay to collect the result.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Lambda Service
+
+    C->>S: POST /tool {payload}
+    Note over S: Job starts in thread pool
+
+    alt Completes within max_wait_time
+        S-->>C: 200 OK {result}
+    else Times out
+        S-->>C: 204 No Content\nLocation: /jobs/JOB_ID\nRetry-Later: 3
+        C->>S: GET /jobs/JOB_ID
+        S-->>C: 200 OK {result}
+    end
+```
+
+### Forcing Async Behaviour
+
+You can force the `204` response immediately (useful when you know the job will be long):
+
+```bash
+curl -i -X POST http://localhost:8090/greet \
+  -H "Prefer: respond-async" \
+  -H "content-type: application/json" \
+  -d '{"name": "IVCAP"}'
+```
+
+Or override the timeout per request:
+
+```bash
+curl -i -X POST http://localhost:8090/greet \
+  -H "Timeout: 30" \
+  -H "content-type: application/json" \
+  -d '{"name": "IVCAP"}'
+```
+
+## Registering Multiple Tools
+
+A single service can register multiple tools at different paths:
+
+```python
+@ivcap_lambda("/greet", opts=ToolOptions(tags=["Greeter"]))
+def greet(req: GreetRequest) -> GreetResult:
+    """Greet a person"""
+    ...
+
+@ivcap_lambda("/summarise", opts=ToolOptions(tags=["Text"]))
+def summarise(req: SummariseRequest) -> SummariseResult:
+    """Summarise text"""
+    ...
+
+@ivcap_lambda("/analyse", opts=ToolOptions(tags=["Analysis"]))
+def analyse(req: AnalyseRequest) -> AnalyseResult:
+    """Analyse data"""
+    ...
+
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+Each tool gets its own `POST` and `GET` endpoints. The `--print-tool-description` flag accepts the tool name to select which one to print.
+
+## Tool Readiness
+
+If your tool requires initialisation (e.g., loading a model), use `is_ready` to hold back the health check until it's done:
+
+```python
+_model = None
+
+def _is_model_ready() -> bool:
+    return _model is not None
+
+@ivcap_lambda("/predict", opts=ToolOptions(tags=["ML"], is_ready=_is_model_ready))
+def predict(req: PredictRequest) -> PredictResult:
+    """Run a prediction"""
+    ...
+
+# Load model at startup
+_model = load_model("model.pkl")
+```
+
+## See Also
+
+- [`@ivcap_lambda` API](../api/decorators.md)
+- [`ToolOptions` API](../api/executor.md)
+- [Observability Guide](observability.md) — Progress events
+- [Error Handling Guide](error-handling.md)
+
+
+## Working with Artifacts
+
+# Working with Artifacts Guide
+
+IVCAP artifacts are files or data objects stored on the platform. Lambda tools can download artifacts as input and upload results as new artifacts via the `JobContext.ivcap` client (provided by [`ivcap-service`](https://ivcap-works.github.io/ivcap-service-sdk-python/guides/artifacts/)).
+
+## Downloading Artifacts
+
+Accept an artifact URN as a request field and stream it in your tool:
+
+```python
+from pydantic import BaseModel, Field
+from ivcap_service import JobContext, with_schema
+from ivcap_lambda import ivcap_lambda, ToolOptions
+
+@with_schema("urn:example:schema:analyse-file.request.1")
+class AnalyseFileRequest(BaseModel):
+    artifact_id: str = Field(..., description="IVCAP artifact URN of the file to analyse.")
+
+@with_schema("urn:example:schema:analyse-file.1")
+class AnalyseFileResult(BaseModel):
+    size_bytes: int = Field(..., description="Size of the file in bytes.")
+    line_count: int = Field(..., description="Number of lines in the file.")
+
+@ivcap_lambda("/analyse-file")
+def analyse_file(req: AnalyseFileRequest, jobCtxt: JobContext) -> AnalyseFileResult:
+    """Analyse a text file artifact
+
+    Downloads the specified artifact and counts its lines and bytes.
+    """
+    ivcap = jobCtxt.ivcap
+
+    with jobCtxt.report.step("download", f"Downloading {req.artifact_id}") as step:
+        artifact = ivcap.get_artifact(req.artifact_id)
+        data = b"".join(artifact.as_stream(chunk_size=8192))
+        step.finished(f"Downloaded {len(data)} bytes")
+
+    line_count = data.decode("utf-8", errors="replace").count("\n")
+    return AnalyseFileResult(size_bytes=len(data), line_count=line_count)
+```
+
+### Streaming to a Temporary File
+
+For large files, stream to a local temporary file using `as_local_file()`:
+
+```python
+with jobCtxt.report.step("download", "Downloading image") as step:
+    artifact = ivcap.get_artifact(req.artifact_id)
+    with artifact.as_local_file() as path:
+        # `path` is a `pathlib.Path` to a temporary file (auto-deleted on exit)
+        image_bytes = path.read_bytes()
+    step.finished(f"Loaded {len(image_bytes)} bytes")
+```
+
+## Uploading Artifacts
+
+Upload results back to the IVCAP platform using `ivcap.upload_artifact()`:
+
+```python
+import io
+from ivcap_service import JobContext
+from ivcap_lambda import ivcap_lambda
+
+@with_schema("urn:example:schema:transform.request.1")
+class TransformRequest(BaseModel):
+    artifact_id: str = Field(..., description="URN of the input artifact.")
+
+@with_schema("urn:example:schema:transform.1")
+class TransformResult(BaseModel):
+    result_artifact_id: str = Field(..., description="URN of the output artifact.")
+    bytes_written: int = Field(..., description="Size of the output artifact.")
+
+@ivcap_lambda("/transform")
+def transform(req: TransformRequest, jobCtxt: JobContext) -> TransformResult:
+    """Transform an artifact
+
+    Applies a transformation to the input artifact and uploads the result.
+    """
+    ivcap = jobCtxt.ivcap
+
+    # Download
+    with jobCtxt.report.step("download", "Downloading input") as step:
+        artifact = ivcap.get_artifact(req.artifact_id)
+        data = b"".join(artifact.as_stream())
+        step.finished(f"Downloaded {len(data)} bytes")
+
+    # Transform
+    with jobCtxt.report.step("transform", "Applying transformation") as step:
+        output = data.upper()  # Replace with real transformation
+        step.finished("Transformation complete")
+
+    # Upload
+    with jobCtxt.report.step("upload", "Uploading result") as step:
+        result_artifact = ivcap.upload_artifact(
+            name="transformed-output.txt",
+            io_stream=io.BytesIO(output),
+            content_type="text/plain",
+            content_size=len(output),
+        )
+        step.finished(f"Uploaded: {result_artifact.id}")
+
+    return TransformResult(
+        result_artifact_id=result_artifact.id,
+        bytes_written=len(output),
+    )
+```
+
+### Upload Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `name` | Human-readable filename for the artifact |
+| `io_stream` | A file-like object (e.g. `io.BytesIO`) containing the data |
+| `content_type` | MIME type of the content (e.g. `"image/jpeg"`, `"application/json"`) |
+| `content_size` | Size of the content in bytes |
+| `collection` | (optional) Collection URN to add the artifact to |
+
+## Progress Reporting During Transfer
+
+For large artifacts, report byte-level progress to the platform:
+
+```python
+from ivcap_service.events import GenericEvent
+
+with jobCtxt.report.step("download", f"Streaming {artifact.id}") as step:
+    bytes_received = 0
+    chunks = []
+    for chunk in artifact.as_stream(chunk_size=65536):
+        chunks.append(chunk)
+        bytes_received += len(chunk)
+        if bytes_received % (1024 * 1024) == 0:  # every 1 MB
+            step.info(GenericEvent(
+                name="progress",
+                options={"bytes": bytes_received}
+            ))
+    data = b"".join(chunks)
+    step.finished(f"Downloaded {bytes_received} bytes")
+```
+
+## Working with JSON Artifacts
+
+```python
+import json
+import io
+
+# Download and parse JSON
+artifact = ivcap.get_artifact(req.artifact_id)
+raw = b"".join(artifact.as_stream())
+payload = json.loads(raw.decode("utf-8"))
+
+# Upload JSON
+output = {"result": "value", "count": 42}
+output_bytes = json.dumps(output, indent=2).encode("utf-8")
+result_artifact = ivcap.upload_artifact(
+    name="result.json",
+    io_stream=io.BytesIO(output_bytes),
+    content_type="application/json",
+    content_size=len(output_bytes),
+)
+```
+
+## Accessing Artifact Metadata
+
+```python
+artifact = ivcap.get_artifact(req.artifact_id)
+logger.info(f"Name: {artifact.name}")
+logger.info(f"Size: {artifact.size}")
+logger.info(f"Content-type: {artifact.content_type}")
+logger.info(f"ID: {artifact.id}")
+```
+
+## See Also
+
+- [ivcap-service Artifacts Guide](https://ivcap-works.github.io/ivcap-service-sdk-python/guides/artifacts/) — Full artifact client documentation
+- [Tool Functions Guide](tool-functions.md) — Accessing `JobContext`
+- [Observability Guide](observability.md) — Progress reporting
+- [Best Practices](best-practices.md) — Efficient artifact handling
+
+
+## MCP & Agent Integration
+
+# MCP & Agent Integration Guide
+
+Lambda services can expose a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) endpoint that makes your tools directly callable by AI agent frameworks such as Claude, Cursor, Copilot, and others.
+
+## What is MCP?
+
+The Model Context Protocol is an open standard that lets AI models discover and call tools via a standardised interface. By enabling the MCP endpoint, your IVCAP lambda service becomes a first-class tool provider for any MCP-compatible agent framework.
+
+## Enabling the MCP Endpoint
+
+Pass `--with-mcp` when starting the server:
+
+```bash
+python my_service.py --with-mcp --port 8090
+```
+
+This registers a `/mcp` endpoint on the running FastAPI app. The endpoint speaks the MCP protocol and exposes all registered `@ivcap_lambda` tools automatically.
+
+## Tool Description Endpoints
+
+Even without `--with-mcp`, each tool has a `GET` endpoint that returns a description:
+
+```bash
+# Get tool description at the tool's path
+curl http://localhost:8090/greet
+```
+
+This returns a JSON description suitable for agent frameworks that consume OpenAPI-style tool definitions. The description is generated from the function's docstring, Pydantic model fields, and `ToolOptions`.
+
+## Configuring the Service ID
+
+When AI agents call your tool, they need a stable service ID to identify where to send follow-up requests. Set `service_id` in `ToolOptions` to a path; the server will prepend the public URL prefix automatically:
+
+```python
+@ivcap_lambda("/greet", opts=ToolOptions(tags=["Greeter"], service_id="/greet"))
+def greet(req: GreetRequest) -> GreetResult:
+    """Greet a person
+
+    Generates a personalised greeting.
+    """
+    ...
+```
+
+If the service is running behind a reverse proxy with the `X-Forwarded-For` or `X-Forwarded-Proto` headers, the public URL is detected automatically.
+
+## Writing Good Tool Descriptions
+
+AI agents use the docstring to decide when and how to call your tool. Follow these conventions for maximum agent compatibility:
+
+```python
+@ivcap_lambda("/analyse-sentiment", opts=ToolOptions(tags=["NLP"]))
+def analyse_sentiment(req: SentimentRequest) -> SentimentResult:
+    """Analyse the sentiment of a piece of text
+
+    Given an input string, this tool returns a sentiment label
+    (positive, negative, or neutral) and a confidence score between 0 and 1.
+
+    Use this tool when you need to determine the emotional tone of user-provided
+    text, product reviews, social media posts, or any other natural-language input.
+
+    The tool processes text in English only. For multilingual text, pre-translate
+    to English first.
+    """
+    ...
+```
+
+Key points:
+- **First paragraph** — one-line summary (used as the OpenAPI endpoint summary)
+- **Body** — detailed description of what the tool does, when to use it, and any constraints
+- **Field descriptions** — every request and result field must have a clear `description` in `Field()`
+
+## Connecting an MCP Client
+
+### Claude Desktop
+
+Add to your Claude Desktop configuration (`~/.claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "my-lambda-service": {
+      "command": "python",
+      "args": ["my_service.py", "--with-mcp"]
+    }
+  }
+}
+```
+
+### MCP Inspector (for development)
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) lets you test MCP endpoints interactively:
+
+```bash
+npx @modelcontextprotocol/inspector http://localhost:8090/mcp
+```
+
+### Custom MCP Client
+
+Connect to the MCP endpoint via HTTP SSE:
+
+```python
+from mcp import ClientSession
+from mcp.client.sse import sse_client
+
+async def run():
+    async with sse_client("http://localhost:8090/mcp") as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            tools = await session.list_tools()
+            print(tools)
+```
+
+## Example: MCP-Ready Service
+
+```python
+from pydantic import BaseModel, Field
+from ivcap_service import Service, ServiceContact, with_schema
+from ivcap_lambda import start_lambda_server, ivcap_lambda, ToolOptions, logging_init
+
+logging_init()
+
+service = Service(
+    name="NLP Tools",
+    contact=ServiceContact(name="Dev Team", email="dev@example.com"),
+)
+
+
+@with_schema("urn:example:schema:word-count.request.1")
+class WordCountRequest(BaseModel):
+    text: str = Field(..., description="The text to count words in.")
+
+
+@with_schema("urn:example:schema:word-count.1")
+class WordCountResult(BaseModel):
+    word_count: int = Field(..., description="Number of words in the text.")
+    char_count: int = Field(..., description="Number of characters in the text.")
+
+
+@ivcap_lambda("/word-count", opts=ToolOptions(tags=["NLP"], service_id="/word-count"))
+def word_count(req: WordCountRequest) -> WordCountResult:
+    """Count words and characters in a piece of text
+
+    Returns the word count and character count of the provided text.
+    Use this tool when you need to check text length constraints or
+    estimate reading time for a given piece of content.
+    """
+    return WordCountResult(
+        word_count=len(req.text.split()),
+        char_count=len(req.text),
+    )
+
+
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+Start with MCP enabled:
+
+```bash
+python my_service.py --with-mcp --port 8090
+```
+
+## See Also
+
+- [Tool Functions Guide](tool-functions.md) — Writing good tool functions
+- [Best Practices](best-practices.md) — Docstring and naming conventions
+- [MCP Protocol Specification](https://modelcontextprotocol.io/specification)
+- [`start_lambda_server` API](../api/server.md)
+
+
+## Observability & Logging
+
+# Observability & Logging Guide
+
+Monitor and debug your lambda services with structured logging, progress events, and distributed tracing.
+
+## Structured Logging
+
+Initialize logging at startup with `logging_init` (from `ivcap_lambda`) and use `getLogger` (from `ivcap_service`):
+
+```python
+from ivcap_lambda import logging_init
+from ivcap_service import getLogger
+
+logging_init()
+logger = getLogger("my_service")
+
+logger.info("Service started")
+logger.warning("Warning message")
+logger.error("Error occurred", exc_info=True)
+```
+
+!!! note "Import paths"
+    `logging_init` comes from `ivcap_lambda` (it sets up uvicorn-compatible structured logging).
+    `getLogger` comes from `ivcap_service` (the base library shared with batch services).
+
+## Job-Specific Logging
+
+Log with job context for easier filtering in log aggregation:
+
+```python
+from ivcap_service import JobContext
+
+@ivcap_lambda("/process")
+def process(req: MyRequest, jobCtxt: JobContext) -> MyResult:
+    job_logger = getLogger(f"process.{jobCtxt.job_id[:8]}")
+    job_logger.info("Starting processing")
+    ...
+```
+
+## Progress Reporting with Steps
+
+Use `jobCtxt.report.step()` to report structured progress back to the IVCAP platform. Steps are the recommended way to track long-running operations:
+
+```python
+@ivcap_lambda("/analyse")
+def analyse(req: AnalyseRequest, jobCtxt: JobContext) -> AnalyseResult:
+    """Analyse data"""
+    with jobCtxt.report.step("load", "Loading data...") as step:
+        data = load_data(req.source)
+        step.finished(f"Loaded {len(data)} records")
+
+    with jobCtxt.report.step("process", "Processing records") as step:
+        results = []
+        for i, record in enumerate(data):
+            results.append(process_record(record))
+            if i % 100 == 0:
+                from ivcap_service.events import GenericEvent
+                step.info(GenericEvent(
+                    name="progress",
+                    options={"processed": i, "total": len(data)}
+                ))
+        step.finished(f"Processed {len(results)} records")
+
+    return AnalyseResult(count=len(results))
+```
+
+## Emitting Events Directly
+
+For fine-grained control, emit events without a step context manager:
+
+```python
+from ivcap_service.events import GenericEvent, GenericErrorEvent
+
+@ivcap_lambda("/pipeline")
+def pipeline(req: PipelineRequest, jobCtxt: JobContext) -> PipelineResult:
+    """Run analysis pipeline"""
+    report = jobCtxt.report
+
+    # Start a named step
+    report.step_started("init", msg="Initialising pipeline")
+    try:
+        init_pipeline()
+        report.step_finished("init", msg="Pipeline ready")
+    except Exception as e:
+        report.step_error("init", error=str(e), context="Init failed")
+        raise
+
+    # Emit a one-off generic event
+    report.emit(GenericEvent(name="pipeline-started", options={"version": "2.0"}))
+    ...
+```
+
+## Available Event Types
+
+From `ivcap_service.events`:
+
+| Class | Schema URI | Use |
+|---|---|---|
+| `GenericEvent(name, options)` | `urn:ivcap:schema:service.event.generic.1` | General-purpose named event |
+| `GenericErrorEvent(error, context, stacktrace)` | `urn:ivcap:schema:service.event.error.1` | Error/exception reporting |
+
+Custom events can be created by subclassing `BaseEvent` and defining a `SCHEMA` class variable.
+
+## OpenObserve Integration
+
+Configure environment variables to export logs and metrics automatically:
+
+```bash
+export OPENOBSERVE_URL="https://observe.example.com"
+export OPENOBSERVE_ORG="myorg"
+export OPENOBSERVE_USERNAME="service@example.com"
+export OPENOBSERVE_TOKEN="<api-token>"
+```
+
+All logs via `getLogger()` are automatically sent to OpenObserve. No code changes required.
+
+## OpenTelemetry Tracing
+
+Enable distributed tracing with the `--with-telemetry` flag:
+
+```bash
+python my_service.py --with-telemetry --port 8090
+```
+
+Configure the OTLP exporter endpoint:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+```
+
+The SDK automatically:
+
+- Creates spans for each HTTP request (FastAPI instrumentation)
+- Creates a span per job execution with `job.id` and `job.name` attributes
+- Records job outcomes (success/error) including exception details
+- Propagates trace context across thread-pool boundaries
+
+You can also control telemetry programmatically:
+
+```python
+# Force-enable telemetry
+start_lambda_server(service, with_telemetry=True)
+
+# Force-disable telemetry (e.g. in tests)
+start_lambda_server(service, with_telemetry=False)
+```
+
+## Getting the Current Event Reporter
+
+In code that doesn't have direct access to `JobContext`, use the helpers from `ivcap_lambda`:
+
+```python
+from ivcap_lambda import get_event_reporter, get_job_id
+
+def some_helper():
+    reporter = get_event_reporter()
+    if reporter:
+        reporter.emit(GenericEvent(name="helper-called", options={}))
+
+    job_id = get_job_id()
+    logger.debug(f"Running in job {job_id}")
+```
+
+These helpers read the job context from the current thread's context variable, so they work correctly in the thread-pool execution environment.
+
+## Health Check
+
+The `/_healtz` endpoint is automatically registered and returns the running service version:
+
+```bash
+curl http://localhost:8090/_healtz
+# {"version": "1.2.3"}
+```
+
+Use this for Kubernetes liveness/readiness probes.
+
+## Best Practices
+
+1. **Call `logging_init()` once at module level** — before any loggers are created
+2. **Use `getLogger("component-name")`** for module-specific loggers, not the root logger
+3. **Report progress with steps** — wrapping work in `report.step()` helps users and agents understand execution state
+4. **Include context in log messages** — `job_id`, input sizes, key parameters
+5. **Log at appropriate levels** — `DEBUG` for internal state, `INFO` for milestones, `WARNING` for unexpected-but-handled, `ERROR` for failures
+
+## See Also
+
+- [Events API](../api/types.md) — `EventReporter` and event classes
+- [Utilities API](../api/utilities.md) — `get_event_reporter`, `get_job_id`
+- [Error Handling Guide](error-handling.md) — Reporting errors
+- [Best Practices](best-practices.md) — Production patterns
+- [Environment Variables](../reference/environment-variables.md) — OpenObserve and OTEL configuration
+
+
+## Error Handling
+
+# Error Handling Guide
+
+Lambda tool functions are executed in a thread pool inside a `try/except` block. Unhandled exceptions are caught, serialised, and returned as error responses to the caller.
+
+## Automatic Exception Handling
+
+Any exception raised from your tool function is automatically converted to an error response:
+
+- **`ValueError`** → `400 Bad Request` with `{"message": "...", "code": 400}`
+- **Any other exception** → `500 Internal Server Error` with `{"$schema": "urn:ivcap:schema.ai-tool.error.1", "message": "...", "traceback": "..."}`
+
+```python
+@ivcap_lambda("/divide")
+def divide(req: DivideRequest) -> DivideResult:
+    """Divide two numbers"""
+    if req.divisor == 0:
+        raise ValueError("divisor must not be zero")  # → 400
+    return DivideResult(result=req.dividend / req.divisor)
+```
+
+## Reporting Errors via Events
+
+For errors that occur inside a named step, report them through the event system so the IVCAP platform can track what went wrong:
+
+```python
+from ivcap_service import JobContext
+from ivcap_service.events import GenericErrorEvent
+import traceback
+
+@ivcap_lambda("/process")
+def process(req: ProcessRequest, jobCtxt: JobContext) -> ProcessResult:
+    """Process data"""
+    with jobCtxt.report.step("load", "Loading data") as step:
+        try:
+            data = load_data(req.source)
+            step.finished(f"Loaded {len(data)} records")
+        except FileNotFoundError as e:
+            step.error(e)  # marks step as failed
+            raise ValueError(f"Data source not found: {req.source}") from e
+
+    with jobCtxt.report.step("process", "Processing") as step:
+        try:
+            result = process_data(data)
+            step.finished("Done")
+        except Exception as e:
+            # Report detailed error event
+            jobCtxt.report.emit(GenericErrorEvent(
+                error=str(e),
+                context="process step failed",
+                stacktrace=traceback.format_exc(),
+            ))
+            step.error(e)
+            raise
+
+    return ProcessResult(output=result)
+```
+
+## Graceful Degradation
+
+For optional features, catch specific exceptions and fall back gracefully:
+
+```python
+@ivcap_lambda("/enrich")
+def enrich(req: EnrichRequest, jobCtxt: JobContext) -> EnrichResult:
+    """Enrich data with optional external lookup"""
+    base_result = compute_base(req)
+
+    # Optional enrichment — fail gracefully
+    enrichment = None
+    try:
+        enrichment = call_external_api(req.id)
+    except Exception as e:
+        logger.warning(f"Enrichment failed (continuing without): {e}")
+
+    return EnrichResult(
+        data=base_result,
+        enrichment=enrichment,
+    )
+```
+
+## Input Validation
+
+Use Pydantic's built-in validation to reject bad inputs before your function runs:
+
+```python
+from pydantic import BaseModel, Field, field_validator
+
+@with_schema("urn:example:schema:resize.request.1")
+class ResizeRequest(BaseModel):
+    artifact_id: str = Field(..., description="Artifact to resize.")
+    width: int = Field(..., description="Target width in pixels.", ge=1, le=4096)
+    height: int = Field(..., description="Target height in pixels.", ge=1, le=4096)
+    format: str = Field("jpeg", description="Output format.")
+
+    @field_validator("format")
+    @classmethod
+    def format_must_be_valid(cls, v):
+        if v.lower() not in ("jpeg", "png", "webp"):
+            raise ValueError("format must be jpeg, png, or webp")
+        return v.lower()
+```
+
+Pydantic validation errors result in a `422 Unprocessable Entity` response from FastAPI, before your function is even called.
+
+## HTTP Error Codes Summary
+
+| Situation | HTTP Status | Body |
+|-----------|-------------|------|
+| Pydantic validation fails | `422` | FastAPI validation error |
+| `ValueError` raised | `400` | `{"message": "...", "code": 400}` |
+| Other exception raised | `500` | `{"$schema": "...", "message": "...", "traceback": "..."}` |
+| Job still running | `204` | _(empty, Location + Retry-Later headers)_ |
+| Job ID not found or expired | `404` | _(plain text message)_ |
+| Job completed successfully | `200` | _(result model JSON)_ |
+
+## Best Practices
+
+1. **Raise `ValueError` for user errors** — bad input that the user should fix
+2. **Raise other exceptions for system errors** — unexpected failures the user can't fix
+3. **Use steps to track where failures occur** — `step.error(e)` marks the step as failed on the platform
+4. **Log the exception at `ERROR` level** — before re-raising, so it appears in logs
+5. **Don't swallow exceptions silently** — at minimum log a warning so failures are visible
+
+## See Also
+
+- [Tool Functions Guide](tool-functions.md) — Try-later semantics and HTTP status codes
+- [Observability Guide](observability.md) — Progress reporting and event types
+- [Best Practices](best-practices.md) — Robust error patterns
+
+
+## Deployment
+
+# Deployment Guide
+
+Deploy your IVCAP lambda service to production.
+
+## Docker Containerization
+
+Create a minimal `Dockerfile`:
+
+```dockerfile
+FROM python:3.11-slim-bookworm
+WORKDIR /app
+
+COPY pyproject.toml ./
+RUN pip install poetry \
+  && poetry config virtualenvs.create false \
+  && poetry install --no-root \
+  && pip uninstall -y poetry
+
+COPY my_service.py ./
+
+ARG VERSION=dev
+ENV VERSION=$VERSION
+ENV PORT=80
+
+ENTRYPOINT ["python", "/app/my_service.py"]
+```
+
+Build and run:
+
+```bash
+docker build --build-arg VERSION=1.2.3 -t my-lambda-service:1.2.3 .
+docker run -p 8090:80 my-lambda-service:1.2.3
+```
+
+## Environment Configuration
+
+### Local Development
+
+```bash
+# Port (can also be set with --port)
+export PORT=8095
+
+# Optional: OpenObserve integration
+export OPENOBSERVE_URL="http://localhost:5080"
+export OPENOBSERVE_ORG="myorg"
+export OPENOBSERVE_USERNAME="admin@example.com"
+export OPENOBSERVE_TOKEN="<token>"
+
+# Run the service
+python my_service.py
+```
+
+### Production Environment
+
+```bash
+# Service version
+export VERSION="1.2.3"
+
+# Server binding
+export HOST="0.0.0.0"
+export PORT="80"
+
+# Observability
+export OPENOBSERVE_URL="https://observe.example.com"
+export OPENOBSERVE_ORG="production"
+export OPENOBSERVE_USERNAME="service@example.com"
+export OPENOBSERVE_TOKEN="<production-token>"
+
+# Distributed tracing
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+```
+
+## Service Registration
+
+Print the service description (for IVCAP registration):
+
+```bash
+docker run my-lambda-service:latest --print-service-description > service.json
+```
+
+Register with IVCAP:
+
+```bash
+ivcap service register service.json
+```
+
+## CLI Flags
+
+`start_lambda_server` provides these built-in CLI flags:
+
+```
+--host HOST                  Bind address (default: 0.0.0.0 / $HOST)
+--port PORT                  Port to listen on (default: 8090 / $PORT)
+--with-telemetry             Initialise OpenTelemetry tracing
+--with-mcp                   Expose an MCP endpoint at /mcp
+--print-tool-description     Print the tool description JSON and exit
+--print-service-description  Print the full service description JSON and exit
+```
+
+## Custom CLI Flags
+
+Add your own command-line flags via `custom_args`:
+
+```python
+import argparse
+import os
+
+def custom_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
+    parser.add_argument("--model-path", type=str, help="Path to the model file")
+    parser.add_argument("--batch-size", type=int, default=32, help="Inference batch size")
+    args = parser.parse_args()
+    if args.model_path:
+        os.environ["MODEL_PATH"] = args.model_path
+    if args.batch_size:
+        os.environ["BATCH_SIZE"] = str(args.batch_size)
+    return args
+
+if __name__ == "__main__":
+    start_lambda_server(service, custom_args=custom_args)
+```
+
+## Kubernetes Deployment
+
+Create a `deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-lambda-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-lambda-service
+  template:
+    metadata:
+      labels:
+        app: my-lambda-service
+    spec:
+      containers:
+      - name: my-lambda-service
+        image: my-lambda-service:1.2.3
+        ports:
+        - containerPort: 80
+        env:
+        - name: VERSION
+          value: "1.2.3"
+        - name: OPENOBSERVE_URL
+          value: "https://observe.example.com"
+        - name: OPENOBSERVE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: observability
+              key: token
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /_healtz
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_healtz
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+```
+
+Deploy:
+
+```bash
+kubectl apply -f deployment.yaml
+```
+
+## Scalability Patterns
+
+Lambda services are stateless by design — each tool invocation is independent. The IVCAP platform can route requests to any instance.
+
+### Thread Pool Sizing
+
+Configure the thread pool for CPU-intensive tools:
+
+```python
+from ivcap_lambda import ExecutionContext
+from ivcap_lambda.executor import ExecutorOpts
+
+@ivcap_lambda(
+    "/analyse",
+    opts=ToolOptions(
+        tags=["ML"],
+        executor_opts=ExecutorOpts(
+            max_workers=4,          # Fixed thread pool of 4
+            job_cache_size=1000,    # Cache up to 1000 job results
+            job_cache_ttl=3600,     # Cache results for 1 hour
+        )
+    )
+)
+def analyse(req: AnalyseRequest) -> AnalyseResult:
+    ...
+```
+
+### Resource Requirements
+
+Set resource requirements in your service definition (IVCAP platform uses this for scheduling):
+
+```python
+from ivcap_service import Service, ResourceRequirements
+
+service = Service(
+    name="GPU Inference Service",
+    resources=ResourceRequirements(cpu=2, memory="4Gi", gpu=1),
+    ...
+)
+```
+
+## Troubleshooting
+
+### Container Won't Start
+
+Check logs:
+```bash
+docker logs my-lambda-service
+```
+
+Print service description to verify configuration:
+```bash
+docker run my-lambda-service:latest --print-service-description
+```
+
+### Jobs Timing Out
+
+Increase `max_wait_time` in `ToolOptions`:
+```python
+@ivcap_lambda("/slow-tool", opts=ToolOptions(max_wait_time=30.0))
+def slow_tool(req: SlowRequest) -> SlowResult:
+    ...
+```
+
+Or encourage clients to use the async pattern:
+```bash
+curl -X POST http://localhost:8090/slow-tool \
+  -H "Prefer: respond-async" \
+  ...
+```
+
+### High Memory Usage
+
+Check `job_cache_size` and `job_cache_ttl` in `ExecutorOpts`. The job result cache holds completed job results in memory; reduce its size if needed.
+
+## See Also
+
+- [Best Practices](best-practices.md) — Production patterns
+- [Observability](observability.md) — Monitoring setup
+- [Error Handling](error-handling.md) — Robust error handling
+- [Environment Variables Reference](../reference/environment-variables.md)
+
+
+## Best Practices
+
+# Best Practices
+
+Production patterns and tips for building high-quality IVCAP lambda services.
+
+## Code Organization
+
+### Minimal File Layout
+
+```
+my-service/
+├── pyproject.toml       # Project & ivcap plugin config
+├── my_service.py        # Tool implementation (entry point)
+├── Dockerfile
+├── tests/
+│   ├── call-greet.json  # Test payloads for ivcap run
+│   └── call-process.json
+└── README.md
+```
+
+### Larger Projects
+
+```
+my-service/
+├── pyproject.toml
+├── my_service.py        # Entry point — imports and registers tools
+├── tools/
+│   ├── __init__.py
+│   ├── greet.py         # Individual tool modules
+│   └── process.py
+├── models/
+│   ├── __init__.py
+│   ├── greet.py         # Request/Result Pydantic models
+│   └── process.py
+├── Dockerfile
+└── tests/
+```
+
+## Request & Result Models
+
+- **Use `@with_schema("urn:...")`** on every model — never add `$schema` manually
+- **Write descriptions for every field** — agents use these to understand the API
+- **Use sensible defaults** — mark truly required fields with `Field(...)`
+- **Add validators** for complex constraints using `@field_validator`
+- **Keep schemas versioned** — e.g. `my-service.request.1`, `my-service.request.2`
+
+```python
+@with_schema("urn:my-service:schema:analyse.request.1")
+class AnalyseRequest(BaseModel):
+    """Request to run text analysis."""
+    text: str = Field(..., description="Text to analyse. Must not be empty.", min_length=1)
+    language: str = Field("en", description="ISO 639-1 language code (default: en).")
+    max_tokens: int = Field(512, description="Maximum tokens to process.", ge=1, le=8192)
+```
+
+## Tool Function Design
+
+- **Write comprehensive docstrings** — the first paragraph becomes the Swagger summary; the rest is the description shown to agents
+- **Keep tools focused** — one clear purpose per tool
+- **Accept `JobContext` when you need progress reporting or artifact access**
+- **Don't store per-job state at module level** — tools may run concurrently
+
+```python
+@ivcap_lambda("/analyse", opts=ToolOptions(tags=["NLP"], service_id="/analyse"))
+def analyse(req: AnalyseRequest, jobCtxt: JobContext) -> AnalyseResult:
+    """Analyse text for key entities and sentiment
+
+    Processes the provided text and returns a list of named entities
+    (people, places, organisations) and an overall sentiment score.
+
+    Use this tool when you need to extract structured information from
+    natural-language text. Supports English, French, and German.
+    """
+    ...
+```
+
+## Performance
+
+### Use a Fixed Thread Pool for Heavy Tools
+
+By default, a new thread is created per job. For tools with high startup cost (e.g. model loading), use a fixed thread pool:
+
+```python
+from ivcap_lambda.executor import ExecutorOpts
+
+@ivcap_lambda(
+    "/predict",
+    opts=ToolOptions(executor_opts=ExecutorOpts(max_workers=2))
+)
+def predict(req: PredictRequest) -> PredictResult:
+    ...
+```
+
+### Cache Expensive Resources at Module Level
+
+Load models once at startup, not per-job:
+
+```python
+# Module level — loaded once
+_model = None
+
+def _load_model():
+    global _model
+    _model = load_my_model("model.pkl")
+    logger.info("Model loaded")
+
+# Call at startup before start_lambda_server
+_load_model()
+
+@ivcap_lambda("/predict")
+def predict(req: PredictRequest) -> PredictResult:
+    return PredictResult(label=_model.predict(req.text))
+```
+
+### Report Progress on Long Jobs
+
+Users and the IVCAP platform benefit from knowing job status. Always use steps for operations that take more than a second:
+
+```python
+with jobCtxt.report.step("inference", "Running inference...") as step:
+    result = run_model(data)
+    step.finished(f"Score: {result.score:.3f}")
+```
+
+## Testing
+
+### Test JSON Files
+
+Create JSON test files in a `tests/` directory matching the request schema:
+
+```json
+{
+  "$schema": "urn:my-service:schema:analyse.request.1",
+  "text": "Hello, IVCAP!",
+  "language": "en"
+}
+```
+
+Use the IVCAP CLI to test:
+
+```bash
+ivcap run --test-file tests/call-analyse.json
+```
+
+Or call the running service directly:
+
+```bash
+curl -X POST http://localhost:8090/analyse \
+  -H "content-type: application/json" \
+  -d @tests/call-analyse.json
+```
+
+### Unit Testing Without HTTP
+
+Test tool logic directly without starting the server:
+
+```python
+# tests/test_analyse.py
+from my_service import analyse, AnalyseRequest
+
+def test_analyse_basic():
+    req = AnalyseRequest(text="Hello world", language="en")
+    result = analyse(req)
+    assert result.word_count == 2
+```
+
+## Documentation
+
+- **Write a clear README** with installation, usage, and example calls
+- **Include sample test JSON files** in the `tests/` directory
+- **Document environment variables** your service requires
+- **Keep AGENTS.md up to date** — agents use it to understand how to build services
+
+## Security
+
+- **Never log authorization headers or tokens** at `INFO` or `DEBUG` level
+- **Validate all user inputs** with Pydantic constraints before processing
+- **Use `SecretMgrClient`** (from `ivcap_service`) for secrets rather than environment variables where possible
+- **Don't expose internal error details** in `ValueError` messages shown to users
+
+## Common Pitfalls
+
+| Pitfall | Solution |
+|---------|---------|
+| Module-level state mutated per-job | Use `contextvars` or pass state explicitly |
+| Forgetting `@with_schema` | Always decorate request/result models |
+| No docstring on tool function | Agents see an empty description; always write one |
+| Blocking the event loop in async tools | Use `await asyncio.to_thread()` for blocking calls |
+| Unbounded job cache | Set `ExecutorOpts(job_cache_size=N)` for high-traffic tools |
+
+## Troubleshooting
+
+### Service won't start
+
+Check that `logging_init()` is called before `start_lambda_server()`, and that at least one `@ivcap_lambda` tool is registered.
+
+### Tool not visible in Swagger
+
+The path must start with `/`. Check `@ivcap_lambda("/my-tool", ...)`.
+
+### Jobs always return 204
+
+Your tool is taking longer than `max_wait_time` (default 5 s). Increase it in `ToolOptions` or switch clients to the async polling pattern.
+
+### Pydantic validation errors on startup
+
+Ensure all `@with_schema` decorators reference valid URN strings and that you're not adding a `$schema` field manually.
+
+## See Also
+
+- [Tool Functions Guide](tool-functions.md) — Decorator usage
+- [Error Handling Guide](error-handling.md) — Robust patterns
+- [Deployment Guide](deployment.md) — Production configuration
+- [API Reference](../api/overview.md) — Complete API docs
+
+
+# API Reference
+
+## Decorator (@ivcap_lambda)
+
+# Decorator: `@ivcap_lambda`
+
+The `ivcap_lambda` decorator registers a Python function as a set of HTTP endpoints on the FastAPI application.
+
+::: ivcap_lambda.decorators.ivcap_lambda
+
+---
+
+## Related: `add_tool_api_route`
+
+The lower-level function used by `@ivcap_lambda` when you need to register a route programmatically (e.g. in a factory pattern):
+
+::: ivcap_lambda.builder.add_tool_api_route
+
+
+## Server (start_lambda_server)
+
+# Server: `start_lambda_server`
+
+This page documents `start_lambda_server` — the function that configures and starts the FastAPI/uvicorn HTTP server for your lambda service.
+
+::: ivcap_lambda.server.start_lambda_server
+
+---
+
+## `get_fast_app`
+
+Returns the shared FastAPI application instance. Useful when you need to add custom routes or middleware:
+
+::: ivcap_lambda.server.get_fast_app
+
+---
+
+## Deprecated: `start_tool_server`
+
+::: ivcap_lambda.server.start_tool_server
+
+
+## Executor & Options
+
+# Executor & Options
+
+This page documents `ToolOptions`, `ExecutorOpts`, and `ExecutionContext` — the classes used to configure how tool functions are executed.
+
+## ToolOptions
+
+::: ivcap_lambda.builder.ToolOptions
+
+---
+
+## ExecutorOpts
+
+::: ivcap_lambda.executor.ExecutorOpts
+
+---
+
+## ExecutionContext
+
+::: ivcap_lambda.executor.ExecutionContext
+
+---
+
+## Executor (internal)
+
+The `Executor` class manages the thread pool and job result cache. It is created automatically by `add_tool_api_route` based on `ToolOptions.executor_opts`. You do not normally need to interact with it directly.
+
+::: ivcap_lambda.executor.Executor
+
+
+## Types
+
+# Types
+
+Helper types and models used across `ivcap_lambda`.
+
+## Error Response Models
+
+These models are used internally by the framework to serialise error responses:
+
+::: ivcap_lambda.builder.ErrorModel
+
+::: ivcap_lambda.builder.ExecutionErrorModel
+
+## Job Context (from ivcap-service)
+
+`JobContext` is provided by the base `ivcap_service` library and is injected into your tool function automatically. Refer to the [ivcap-service API docs](https://ivcap-works.github.io/ivcap-service-sdk-python/api/job-context/) for the full reference.
+
+Key fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `job_id` | `str` | Unique job identifier (URN format) |
+| `report` | `EventReporter` | For emitting progress events |
+| `job_authorization` | `str \| None` | Bearer token for downstream calls |
+| `ivcap` | `IVCAP` | IVCAP client for platform APIs |
+
+## WorkerFn
+
+The type alias for a tool worker function:
+
+```python
+WorkerFn = Callable[[BaseModel, ExecutionContext | None, Response | None], BaseModel]
+```
+
+In practice, the framework inspects type annotations to inject `JobContext`, `ExecutionContext`, and `fastapi.Request` parameters by type, so your function signature just needs the right type hints.
+
+
+## Utilities
+
+# Utilities
+
+Helper functions for logging, context access, and URL handling.
+
+## Logging Initialisation
+
+::: ivcap_lambda.logger.logging_init
+
+---
+
+## Context Helpers
+
+These helpers let you access the current job's context from anywhere in your code — useful in helper functions that don't have direct access to `JobContext`.
+
+::: ivcap_lambda.executor.get_event_reporter
+
+::: ivcap_lambda.executor.get_job_id
+
+---
+
+## URL Utilities
+
+::: ivcap_lambda.utils.get_public_url_prefix
+
+
+# Examples
+
+## Lambda Tool Service
+
+# Lambda Tool Service Example
+
+A complete, production-ready IVCAP lambda service with multiple tools, progress reporting, and artifact handling.
+
+## Overview
+
+This example demonstrates:
+
+1. Multiple tools registered on a single service
+2. Progress reporting with named steps
+3. Artifact download and upload
+4. Async tool function
+5. `JobContext` injection
+6. Custom `ToolOptions`
+
+## Code
+
+```python
+import asyncio
+import io
+from pydantic import BaseModel, Field
+from ivcap_service import (
+    Service, ServiceContact, ServiceLicense,
+    JobContext, getLogger, with_schema,
+)
+from ivcap_lambda import (
+    start_lambda_server, ivcap_lambda, ToolOptions, logging_init,
+)
+from ivcap_lambda.executor import ExecutorOpts
+
+# Initialize logging
+logging_init()
+logger = getLogger("tool_service")
+
+# Define service metadata
+service = Service(
+    name="IVCAP Tool Service Example",
+    contact=ServiceContact(name="Dev Team", email="dev@example.com"),
+    license=ServiceLicense(name="MIT", url="https://opensource.org/license/MIT"),
+)
+
+
+# ── Tool 1: Echo ─────────────────────────────────────────────────────────────
+
+@with_schema("urn:example:schema:echo.request.1")
+class EchoRequest(BaseModel):
+    message: str = Field(..., description="Message to echo back.")
+    repeat: int = Field(1, description="Number of times to repeat the message.", ge=1, le=10)
+
+
+@with_schema("urn:example:schema:echo.1")
+class EchoResult(BaseModel):
+    echo: str = Field(..., description="The echoed message.")
+    length: int = Field(..., description="Total length of the echoed string.")
+
+
+@ivcap_lambda("/echo", opts=ToolOptions(tags=["Utilities"], service_id="/echo"))
+def echo(req: EchoRequest) -> EchoResult:
+    """Echo a message back to the caller
+
+    Returns the provided message repeated the requested number of times.
+    Useful for testing connectivity and tool invocation patterns.
+    """
+    result = (req.message + " ") * req.repeat
+    result = result.strip()
+    return EchoResult(echo=result, length=len(result))
+
+
+# ── Tool 2: Word Count (with JobContext) ─────────────────────────────────────
+
+@with_schema("urn:example:schema:word-count.request.1")
+class WordCountRequest(BaseModel):
+    text: str = Field(..., description="Text to analyse.", min_length=1)
+
+
+@with_schema("urn:example:schema:word-count.1")
+class WordCountResult(BaseModel):
+    words: int = Field(..., description="Number of words.")
+    chars: int = Field(..., description="Number of characters.")
+    lines: int = Field(..., description="Number of lines.")
+
+
+@ivcap_lambda(
+    "/word-count",
+    opts=ToolOptions(
+        tags=["Text Analysis"],
+        service_id="/word-count",
+        max_wait_time=10.0,
+    ),
+)
+def word_count(req: WordCountRequest, jobCtxt: JobContext) -> WordCountResult:
+    """Count words, characters, and lines in a piece of text
+
+    Analyses the provided text and returns word, character, and line counts.
+    Use this tool to understand the size and structure of text content.
+    """
+    logger.info(f"word_count job={jobCtxt.job_id}")
+
+    with jobCtxt.report.step("analyse", "Analysing text...") as step:
+        words = len(req.text.split())
+        chars = len(req.text)
+        lines = req.text.count("\n") + 1
+        step.finished(f"Found {words} words, {chars} chars, {lines} lines")
+
+    return WordCountResult(words=words, chars=chars, lines=lines)
+
+
+# ── Tool 3: File Stats (artifact-based) ─────────────────────────────────────
+
+@with_schema("urn:example:schema:file-stats.request.1")
+class FileStatsRequest(BaseModel):
+    artifact_id: str = Field(..., description="IVCAP artifact URN to inspect.")
+
+
+@with_schema("urn:example:schema:file-stats.1")
+class FileStatsResult(BaseModel):
+    artifact_id: str = Field(..., description="URN of the inspected artifact.")
+    size_bytes: int = Field(..., description="File size in bytes.")
+    line_count: int = Field(..., description="Number of lines (for text files).")
+
+
+@ivcap_lambda(
+    "/file-stats",
+    opts=ToolOptions(
+        tags=["Files"],
+        service_id="/file-stats",
+        executor_opts=ExecutorOpts(max_workers=4, job_cache_size=500),
+    ),
+)
+def file_stats(req: FileStatsRequest, jobCtxt: JobContext) -> FileStatsResult:
+    """Get statistics for an IVCAP artifact
+
+    Downloads the specified artifact and returns its size and line count.
+    Works best with text files; binary files will have an approximate line count.
+    """
+    ivcap = jobCtxt.ivcap
+
+    with jobCtxt.report.step("download", f"Downloading {req.artifact_id}") as step:
+        artifact = ivcap.get_artifact(req.artifact_id)
+        data = b"".join(artifact.as_stream(chunk_size=65536))
+        step.finished(f"Downloaded {len(data)} bytes")
+
+    line_count = data.decode("utf-8", errors="replace").count("\n") + 1
+
+    return FileStatsResult(
+        artifact_id=req.artifact_id,
+        size_bytes=len(data),
+        line_count=line_count,
+    )
+
+
+# ── Tool 4: Async Reverse ────────────────────────────────────────────────────
+
+@with_schema("urn:example:schema:reverse.request.1")
+class ReverseRequest(BaseModel):
+    text: str = Field(..., description="Text to reverse.")
+
+
+@with_schema("urn:example:schema:reverse.1")
+class ReverseResult(BaseModel):
+    reversed_text: str = Field(..., description="The reversed text.")
+
+
+@ivcap_lambda("/reverse", opts=ToolOptions(tags=["Utilities"]))
+async def reverse(req: ReverseRequest) -> ReverseResult:
+    """Reverse a string asynchronously
+
+    Returns the input string with its characters in reversed order.
+    Demonstrates async tool function support.
+    """
+    await asyncio.sleep(0)  # yield to event loop
+    return ReverseResult(reversed_text=req.text[::-1])
+
+
+# ── Entry point ───────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+## Testing
+
+Start the server:
+
+```bash
+python tool_service.py --port 8090
+```
+
+Test each tool:
+
+```bash
+# Echo
+curl -X POST http://localhost:8090/echo \
+  -H "content-type: application/json" \
+  -d '{"message": "Hello, IVCAP!", "repeat": 3}'
+
+# Word count
+curl -X POST http://localhost:8090/word-count \
+  -H "content-type: application/json" \
+  -d '{"text": "The quick brown fox\njumps over the lazy dog"}'
+
+# Async reverse
+curl -X POST http://localhost:8090/reverse \
+  -H "content-type: application/json" \
+  -d '{"text": "Hello!"}'
+```
+
+Test async (deferred) behaviour:
+
+```bash
+curl -i -X POST http://localhost:8090/word-count \
+  -H "Prefer: respond-async" \
+  -H "content-type: application/json" \
+  -d '{"text": "some text"}'
+# → 204 No Content + Location: /jobs/JOB_ID
+
+curl http://localhost:8090/jobs/JOB_ID
+# → 200 + result JSON
+```
+
+## Key Features
+
+1. **Multiple tools** — four tools registered on a single service instance
+2. **Optional `JobContext`** — tools accept it when they need it; omit it otherwise
+3. **Async support** — `reverse` demonstrates an async tool
+4. **Custom executor options** — `file-stats` uses a fixed thread pool and smaller cache
+5. **Artifact access** — `file-stats` downloads an IVCAP artifact via `JobContext.ivcap`
+6. **Progress steps** — `word-count` and `file-stats` report progress back to the platform
+
+## See Also
+
+- [Tool Functions Guide](../guides/tool-functions.md)
+- [Artifacts Guide](../guides/artifacts.md)
+- [Observability Guide](../guides/observability.md)
+- [Advanced Patterns](advanced-patterns.md)
+
+
+## Advanced Patterns
+
+# Advanced Patterns
+
+Advanced usage patterns for production IVCAP lambda services.
+
+## Model Loading with Readiness Check
+
+Load a machine-learning model at startup and prevent the health check from succeeding until loading is complete:
+
+```python
+import time
+from ivcap_lambda import ivcap_lambda, ToolOptions, start_lambda_server, logging_init
+from ivcap_service import Service, ServiceContact, with_schema, getLogger
+
+logging_init()
+logger = getLogger("ml_service")
+
+service = Service(
+    name="ML Inference Service",
+    contact=ServiceContact(name="ML Team", email="ml@example.com"),
+)
+
+# ── Model loading ─────────────────────────────────────────────────────────────
+
+_model = None
+_model_ready = False
+
+def is_ready() -> bool:
+    return _model_ready
+
+def load_model():
+    global _model, _model_ready
+    logger.info("Loading model…")
+    time.sleep(2)  # simulate load
+    _model = {"type": "mock"}
+    _model_ready = True
+    logger.info("Model ready")
+
+
+@with_schema("urn:example:schema:predict.request.1")
+class PredictRequest(BaseModel):
+    text: str = Field(..., description="Text to classify.")
+
+
+@with_schema("urn:example:schema:predict.1")
+class PredictResult(BaseModel):
+    label: str = Field(..., description="Predicted label.")
+    confidence: float = Field(..., description="Confidence score (0–1).", ge=0, le=1)
+
+
+@ivcap_lambda(
+    "/predict",
+    opts=ToolOptions(tags=["ML"], is_ready=is_ready, max_wait_time=30.0),
+)
+def predict(req: PredictRequest) -> PredictResult:
+    """Classify text using the loaded model
+
+    Returns a label and confidence score for the provided text.
+    The service will report 503 until the model is fully loaded.
+    """
+    # Use the pre-loaded model
+    label = "positive" if len(req.text) % 2 == 0 else "negative"
+    return PredictResult(label=label, confidence=0.95)
+
+
+# Load model at module level, before start_lambda_server
+load_model()
+
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+## Custom CLI Arguments
+
+Add service-specific command-line flags:
+
+```python
+import argparse
+import os
+from ivcap_lambda import start_lambda_server
+
+def parse_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
+    parser.add_argument(
+        "--model-path",
+        type=str,
+        default=os.environ.get("MODEL_PATH", "model.pkl"),
+        help="Path to the model file",
+    )
+    parser.add_argument(
+        "--cache-ttl",
+        type=int,
+        default=int(os.environ.get("CACHE_TTL", "3600")),
+        help="Job result cache TTL in seconds",
+    )
+    args = parser.parse_args()
+    # Propagate to environment for later use
+    os.environ["MODEL_PATH"] = args.model_path
+    os.environ["CACHE_TTL"] = str(args.cache_ttl)
+    return args
+
+if __name__ == "__main__":
+    start_lambda_server(service, custom_args=parse_args)
+```
+
+## Shared Execution Context
+
+Pass a shared context object to every tool invocation:
+
+```python
+from ivcap_lambda import ivcap_lambda, ToolOptions
+from ivcap_lambda.executor import ExecutionContext
+
+class DatabaseContext(ExecutionContext):
+    def __init__(self, db_url: str):
+        self.db = connect(db_url)
+
+db_context = DatabaseContext(db_url="sqlite:///my.db")
+
+@ivcap_lambda(
+    "/lookup",
+    opts=ToolOptions(tags=["Data"]),
+    context=db_context,
+)
+def lookup(req: LookupRequest, ctx: DatabaseContext) -> LookupResult:
+    """Look up a record in the database"""
+    record = ctx.db.query(req.id)
+    return LookupResult(data=record)
+```
+
+## Registering Routes Programmatically
+
+Use `add_tool_api_route` instead of the decorator when you want to register tools in a loop or factory:
+
+```python
+from ivcap_lambda.builder import add_tool_api_route, ToolOptions
+from ivcap_lambda.server import get_fast_app
+
+app = get_fast_app()
+
+for tool_name, handler, request_cls, result_cls in tool_definitions:
+    add_tool_api_route(
+        app,
+        f"/{tool_name}",
+        handler,
+        opts=ToolOptions(tags=[tool_name.title()]),
+    )
+```
+
+## Streaming Progress with Fine-Grained Events
+
+Emit detailed progress events for long-running batch operations:
+
+```python
+from ivcap_service.events import GenericEvent
+
+@ivcap_lambda("/batch-process")
+def batch_process(req: BatchRequest, jobCtxt: JobContext) -> BatchResult:
+    """Process a batch of items"""
+    total = len(req.items)
+    results = []
+
+    with jobCtxt.report.step("process", f"Processing {total} items") as step:
+        for i, item in enumerate(req.items):
+            result = process_item(item)
+            results.append(result)
+
+            # Emit progress every 10 items
+            if (i + 1) % 10 == 0 or (i + 1) == total:
+                step.info(GenericEvent(
+                    name="batch-progress",
+                    options={
+                        "processed": i + 1,
+                        "total": total,
+                        "pct": round((i + 1) / total * 100, 1),
+                    },
+                ))
+        step.finished(f"Processed {total} items")
+
+    return BatchResult(results=results, count=total)
+```
+
+## Using Secrets
+
+Access platform secrets via `SecretMgrClient` (from `ivcap_service`):
+
+```python
+from ivcap_service.secret import SecretMgrClient
+
+_secret_client = SecretMgrClient()
+
+@ivcap_lambda("/call-api")
+def call_api(req: ApiRequest, jobCtxt: JobContext) -> ApiResult:
+    """Call an external API using a stored secret"""
+    api_key = _secret_client.get_secret("external-api-key")
+    response = requests.get(
+        req.url,
+        headers={"Authorization": f"Bearer {api_key}"},
+    )
+    return ApiResult(status=response.status_code, body=response.text)
+```
+
+## See Also
+
+- [Tool Functions Guide](../guides/tool-functions.md)
+- [Deployment Guide](../guides/deployment.md)
+- [Best Practices](../guides/best-practices.md)
+- [API Reference: Executor & Options](../api/executor.md)

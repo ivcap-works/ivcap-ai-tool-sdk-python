@@ -12,29 +12,31 @@
         <meta name="author" content="CSIRO">
       
       
-        <link rel="canonical" href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/">
+        <link rel="canonical" href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/reference/service-definition/">
       
       
+        <link rel="prev" href="../environment-variables/">
       
-        <link rel="next" href="getting-started/installation/">
+      
+        <link rel="next" href="../glossary/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>IVCAP Lambda SDK (Python)</title>
+        <title>Service Definition Schema - IVCAP Lambda SDK (Python)</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +55,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="css/extra.css">
+      <link rel="stylesheet" href="../../css/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ivcap-lambda-sdk-for-python" class="md-skip">
+        <a href="#service-definition-schema" class="md-skip">
           Skip to content
         </a>
       
@@ -96,9 +98,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="IVCAP Lambda SDK (Python)" class="md-header__button md-logo" aria-label="IVCAP Lambda SDK (Python)" data-md-component="logo">
+    <a href="../.." title="IVCAP Lambda SDK (Python)" class="md-header__button md-logo" aria-label="IVCAP Lambda SDK (Python)" data-md-component="logo">
       
-  <img src="img/logo.svg" alt="logo">
+  <img src="../../img/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -115,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Service Definition Schema
             
           </span>
         </div>
@@ -220,11 +222,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -245,7 +245,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="getting-started/installation/" class="md-tabs__link">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
           
   
   
@@ -265,7 +265,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="guides/overview/" class="md-tabs__link">
+        <a href="../../guides/overview/" class="md-tabs__link">
           
   
   
@@ -285,7 +285,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="api/overview/" class="md-tabs__link">
+        <a href="../../api/overview/" class="md-tabs__link">
           
   
   
@@ -305,7 +305,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="examples/tool-service/" class="md-tabs__link">
+        <a href="../../examples/tool-service/" class="md-tabs__link">
           
   
   
@@ -321,11 +321,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="reference/environment-variables/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../environment-variables/" class="md-tabs__link">
           
   
   
@@ -343,7 +345,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="agent/" class="md-tabs__link">
+      <a href="../../agent/" class="md-tabs__link">
         
   
   
@@ -364,7 +366,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="community/contributing/" class="md-tabs__link">
+        <a href="../../community/contributing/" class="md-tabs__link">
           
   
   
@@ -398,9 +400,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="IVCAP Lambda SDK (Python)" class="md-nav__button md-logo" aria-label="IVCAP Lambda SDK (Python)" data-md-component="logo">
+    <a href="../.." title="IVCAP Lambda SDK (Python)" class="md-nav__button md-logo" aria-label="IVCAP Lambda SDK (Python)" data-md-component="logo">
       
-  <img src="img/logo.svg" alt="logo">
+  <img src="../../img/logo.svg" alt="logo">
 
     </a>
     IVCAP Lambda SDK (Python)
@@ -434,37 +436,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -480,164 +455,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#relationship-with-ivcap-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Relationship with ivcap-service
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting Started
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#learn-by-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Learn by Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-concepts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core Concepts
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Concepts">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tool-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tool Functions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#asynchronous-job-semantics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Asynchronous Job Semantics
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ivcap-platform-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        IVCAP Platform Integration
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#mcp-agent-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        MCP &amp; Agent Integration
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-to-find-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where to Find Help
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        License
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -701,7 +518,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/installation/" class="md-nav__link">
+      <a href="../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -729,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/quick-start/" class="md-nav__link">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
         
   
   
@@ -757,7 +574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/first-service/" class="md-nav__link">
+      <a href="../../getting-started/first-service/" class="md-nav__link">
         
   
   
@@ -844,7 +661,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/overview/" class="md-nav__link">
+      <a href="../../guides/overview/" class="md-nav__link">
         
   
   
@@ -872,7 +689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/tool-functions/" class="md-nav__link">
+      <a href="../../guides/tool-functions/" class="md-nav__link">
         
   
   
@@ -900,7 +717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/artifacts/" class="md-nav__link">
+      <a href="../../guides/artifacts/" class="md-nav__link">
         
   
   
@@ -928,7 +745,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/mcp/" class="md-nav__link">
+      <a href="../../guides/mcp/" class="md-nav__link">
         
   
   
@@ -956,7 +773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/observability/" class="md-nav__link">
+      <a href="../../guides/observability/" class="md-nav__link">
         
   
   
@@ -984,7 +801,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/error-handling/" class="md-nav__link">
+      <a href="../../guides/error-handling/" class="md-nav__link">
         
   
   
@@ -1012,7 +829,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/deployment/" class="md-nav__link">
+      <a href="../../guides/deployment/" class="md-nav__link">
         
   
   
@@ -1040,7 +857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/best-practices/" class="md-nav__link">
+      <a href="../../guides/best-practices/" class="md-nav__link">
         
   
   
@@ -1127,7 +944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/overview/" class="md-nav__link">
+      <a href="../../api/overview/" class="md-nav__link">
         
   
   
@@ -1155,7 +972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/decorators/" class="md-nav__link">
+      <a href="../../api/decorators/" class="md-nav__link">
         
   
   
@@ -1183,7 +1000,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/server/" class="md-nav__link">
+      <a href="../../api/server/" class="md-nav__link">
         
   
   
@@ -1211,7 +1028,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/executor/" class="md-nav__link">
+      <a href="../../api/executor/" class="md-nav__link">
         
   
   
@@ -1239,7 +1056,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/types/" class="md-nav__link">
+      <a href="../../api/types/" class="md-nav__link">
         
   
   
@@ -1267,7 +1084,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/utilities/" class="md-nav__link">
+      <a href="../../api/utilities/" class="md-nav__link">
         
   
   
@@ -1354,7 +1171,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/tool-service/" class="md-nav__link">
+      <a href="../../examples/tool-service/" class="md-nav__link">
         
   
   
@@ -1382,7 +1199,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/advanced-patterns/" class="md-nav__link">
+      <a href="../../examples/advanced-patterns/" class="md-nav__link">
         
   
   
@@ -1414,26 +1231,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
@@ -1451,7 +1273,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1469,7 +1291,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/environment-variables/" class="md-nav__link">
+      <a href="../environment-variables/" class="md-nav__link">
         
   
   
@@ -1494,10 +1316,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="reference/service-definition/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service Definition Schema
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1513,6 +1362,176 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#service-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service Class
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servicecontact-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServiceContact Class
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ServiceContact Class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servicelicense-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServiceLicense Class
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ServiceLicense Class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service Fields
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generated-tool-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Tool Description
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-service-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Service Description
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pyprojecttoml-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pyproject.toml Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1525,7 +1544,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/glossary/" class="md-nav__link">
+      <a href="../glossary/" class="md-nav__link">
         
   
   
@@ -1560,7 +1579,7 @@
   
   
     <li class="md-nav__item">
-      <a href="agent/" class="md-nav__link">
+      <a href="../../agent/" class="md-nav__link">
         
   
   
@@ -1639,7 +1658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="community/contributing/" class="md-nav__link">
+      <a href="../../community/contributing/" class="md-nav__link">
         
   
   
@@ -1667,7 +1686,7 @@
   
   
     <li class="md-nav__item">
-      <a href="community/conduct/" class="md-nav__link">
+      <a href="../../community/conduct/" class="md-nav__link">
         
   
   
@@ -1722,10 +1741,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#relationship-with-ivcap-service" class="md-nav__link">
+  <a href="#service-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Relationship with ivcap-service
+        Service Class
       
     </span>
   </a>
@@ -1733,88 +1752,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-example" class="md-nav__link">
+  <a href="#servicecontact-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Example
+        ServiceContact Class
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting Started
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#learn-by-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Learn by Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-concepts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core Concepts
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Concepts">
+    <nav class="md-nav" aria-label="ServiceContact Class">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tool-functions" class="md-nav__link">
+  <a href="#fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool Functions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#asynchronous-job-semantics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Asynchronous Job Semantics
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ivcap-platform-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        IVCAP Platform Integration
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#mcp-agent-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        MCP &amp; Agent Integration
+        Fields
       
     </span>
   </a>
@@ -1827,10 +1780,77 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#servicelicense-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        ServiceLicense Class
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ServiceLicense Class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service Fields
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generated-tool-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Tool Description
       
     </span>
   </a>
@@ -1838,10 +1858,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-to-find-help" class="md-nav__link">
+  <a href="#full-service-description" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to Find Help
+        Full Service Description
       
     </span>
   </a>
@@ -1849,10 +1869,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
+  <a href="#pyprojecttoml-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        License
+        pyproject.toml Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
       
     </span>
   </a>
@@ -1879,112 +1910,141 @@
   
 
 
-<h1 id="ivcap-lambda-sdk-for-python">IVCAP Lambda SDK for Python<a class="headerlink" href="#ivcap-lambda-sdk-for-python" title="Permanent link">&para;</a></h1>
-<p>Welcome to the <strong>IVCAP Lambda SDK</strong> (<code>ivcap-lambda</code>) — a Python library for building <strong>lambda-style HTTP services</strong> that integrate with the IVCAP data and compute platform.</p>
-<p>This SDK extends <a href="https://ivcap-works.github.io/ivcap-service-sdk-python/"><code>ivcap-service</code></a> — the base library for IVCAP services — and adds HTTP scaffolding via FastAPI and uvicorn for services that respond to individual tool invocations (rather than processing jobs from a queue). If you need queue-based batch processing, see the <a href="https://ivcap-works.github.io/ivcap-service-sdk-python/">ivcap-service SDK</a> instead.</p>
-<p><code>ivcap-lambda</code> handles all the scaffolding so you can focus on your tool logic:</p>
-<ul>
-<li>✅ <strong>Tool registration</strong> — <code>@ivcap_lambda</code> decorator turns any function into HTTP endpoints</li>
-<li>✅ <strong>Async job semantics</strong> — try-later (<code>204 No Content</code>) pattern for long-running calls</li>
-<li>✅ <strong>Job context injection</strong> — automatic <code>JobContext</code> and platform credentials</li>
-<li>✅ <strong>Progress reporting</strong> — stream structured events back to the IVCAP platform</li>
-<li>✅ <strong>Artifact access</strong> — upload and download files via <code>JobContext.ivcap</code></li>
-<li>✅ <strong>MCP support</strong> — optional Model Context Protocol endpoint for AI agent tooling</li>
-<li>✅ <strong>OpenTelemetry</strong> — distributed tracing with FastAPI instrumentation</li>
-<li>✅ <strong>Type safety</strong> — fully typed with Pydantic models</li>
-</ul>
-<h2 id="relationship-with-ivcap-service">Relationship with <code>ivcap-service</code><a class="headerlink" href="#relationship-with-ivcap-service" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart LR
-    A["ivcap-service\n(batch &amp; base)"] --&gt;|extends| B["ivcap-lambda\n(lambda / HTTP)"]
-    B --&gt; C["Your Tool Service"]</code></pre>
-<p><code>ivcap-service</code> provides the foundational building blocks: <code>Service</code>, <code>JobContext</code>, <code>EventReporter</code>, <code>with_schema</code>, <code>getLogger</code>, artifact management, and the sidecar reporter.  <code>ivcap-lambda</code> wraps these with a FastAPI application, asynchronous executor, and per-tool endpoint registration.</p>
-<h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">,</span> <span class="n">with_schema</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">start_lambda_server</span><span class="p">,</span> <span class="n">ivcap_lambda</span><span class="p">,</span> <span class="n">ToolOptions</span><span class="p">,</span> <span class="n">logging_init</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">logging_init</span><span class="p">()</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My IVCAP Lambda Service&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A minimal echo service.&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">contact</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;alice@example.com&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">license</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;MIT&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://opensource.org/licenses/MIT&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:example:schema:echo.request.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">EchoRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The message to echo back.&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:example:schema:echo.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="k">class</span><span class="w"> </span><span class="nc">EchoResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">echo</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The echoed message.&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="n">ToolOptions</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Echo&quot;</span><span class="p">]))</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="k">def</span><span class="w"> </span><span class="nf">echo</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">EchoRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EchoResult</span><span class="p">:</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Echo a message</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="sd">    Returns the message passed in the request unchanged.</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="k">return</span> <span class="n">EchoResult</span><span class="p">(</span><span class="n">echo</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
+<h1 id="service-definition-schema">Service Definition Schema<a class="headerlink" href="#service-definition-schema" title="Permanent link">&para;</a></h1>
+<p>Reference for the service definition structure used by <code>ivcap-lambda</code>.</p>
+<h2 id="service-class">Service Class<a class="headerlink" href="#service-class" title="Permanent link">&para;</a></h2>
+<p>The <code>Service</code> class (from <code>ivcap_service</code>) defines your service metadata. It is passed to <code>start_lambda_server</code> and used to populate the FastAPI application title, version, contact, and license.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">ServiceContact</span><span class="p">,</span> <span class="n">ServiceLicense</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Lambda Service&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">contact</span><span class="o">=</span><span class="n">ServiceContact</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;alice@example.com&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">license</span><span class="o">=</span><span class="n">ServiceLicense</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MIT&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://opensource.org/license/MIT&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
 </code></pre></div>
-<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<p>New to IVCAP lambda services? Start here:</p>
-<ol>
-<li><strong><a href="getting-started/installation/">Installation</a></strong> — Set up the SDK</li>
-<li><strong><a href="getting-started/quick-start/">Quick Start</a></strong> — Run your first service in minutes</li>
-<li><strong><a href="getting-started/first-service/">Your First Lambda Service</a></strong> — Build a complete example</li>
-</ol>
-<h2 id="learn-by-example">Learn by Example<a class="headerlink" href="#learn-by-example" title="Permanent link">&para;</a></h2>
-<p>Check out the <a href="examples/tool-service/">Examples</a> section for complete, working services including:</p>
+<h2 id="servicecontact-class">ServiceContact Class<a class="headerlink" href="#servicecontact-class" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">contact</span> <span class="o">=</span> <span class="n">ServiceContact</span><span class="p">(</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Alice Smith&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">email</span><span class="o">=</span><span class="s2">&quot;alice@example.com&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com/alice&quot;</span><span class="p">,</span>   <span class="c1"># optional</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>✅</td>
+<td>Full name of the contact person</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td><code>str</code></td>
+<td>✅</td>
+<td>Email address of the contact person</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code>str \| None</code></td>
+<td>❌</td>
+<td>Optional URL (e.g. profile or team page)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="servicelicense-class">ServiceLicense Class<a class="headerlink" href="#servicelicense-class" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">license</span> <span class="o">=</span> <span class="n">ServiceLicense</span><span class="p">(</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MIT&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://opensource.org/license/MIT&quot;</span><span class="p">,</span>   <span class="c1"># optional</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="fields_1">Fields<a class="headerlink" href="#fields_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>✅</td>
+<td>License name (e.g. MIT, Apache-2.0)</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code>str \| None</code></td>
+<td>❌</td>
+<td>Optional URL pointing to the full license text</td>
+</tr>
+</tbody>
+</table>
+<h2 id="service-fields">Service Fields<a class="headerlink" href="#service-fields" title="Permanent link">&para;</a></h2>
+<h3 id="required">Required<a class="headerlink" href="#required" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Echo / greeting tools with sync and async handlers</li>
-<li>Artifact download and upload workflows</li>
-<li>MCP-enabled services for AI agent tooling</li>
+<li><strong>name</strong> (<code>str</code>) — Human-readable service name</li>
 </ul>
-<h2 id="core-concepts">Core Concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h2>
-<h3 id="tool-functions">Tool Functions<a class="headerlink" href="#tool-functions" title="Permanent link">&para;</a></h3>
-<p>Every lambda service is built around one or more <strong>tool functions</strong> decorated with <code>@ivcap_lambda</code>. The decorator registers three HTTP endpoints — a <code>POST</code> to submit jobs, a <code>GET</code> to collect results, and a <code>GET</code> for the tool description. Learn more:</p>
+<h3 id="optional">Optional<a class="headerlink" href="#optional" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="guides/tool-functions/">Tool Functions Guide</a></li>
-<li><a href="api/decorators/"><code>@ivcap_lambda</code> API</a></li>
+<li><strong>contact</strong> (<code>ServiceContact | None</code>) — Typed contact details</li>
+<li><strong>license</strong> (<code>ServiceLicense | None</code>) — Typed license information</li>
+<li><strong>version</strong> (<code>str | None</code>) — Service version; defaults to <code>VERSION</code> environment variable</li>
 </ul>
-<h3 id="asynchronous-job-semantics">Asynchronous Job Semantics<a class="headerlink" href="#asynchronous-job-semantics" title="Permanent link">&para;</a></h3>
-<p>When a tool takes longer than <code>ToolOptions.max_wait_time</code> (default 5 s), the server returns a <code>204 No Content</code> with <code>Location</code> and <code>Retry-Later</code> headers so callers can poll for the result later. See <a href="guides/tool-functions/#asynchronous-try-later-semantics">Tool Functions Guide</a>.</p>
-<h3 id="ivcap-platform-integration">IVCAP Platform Integration<a class="headerlink" href="#ivcap-platform-integration" title="Permanent link">&para;</a></h3>
-<p>Your tool integrates with the platform through <code>JobContext</code>:</p>
+<h2 id="generated-tool-description">Generated Tool Description<a class="headerlink" href="#generated-tool-description" title="Permanent link">&para;</a></h2>
+<p>When you run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--print-tool-description
+</code></pre></div>
+<p>The SDK generates a JSON tool description like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;greet&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Greet a person\n\nGenerates a personalised greeting...&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">&quot;service_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/greet&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&quot;input&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">&quot;$schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:example:schema:my-tool.request.1&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Name to greet.&quot;</span><span class="p">},</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Repetitions.&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">}</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="nt">&quot;output&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="nt">&quot;$schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:example:schema:my-tool.1&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">      </span><span class="nt">&quot;greeting&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The generated greeting.&quot;</span><span class="p">}</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">}</span>
+</code></pre></div>
+<p>This is used by AI agents and the MCP endpoint to understand what the tool does and how to call it.</p>
+<h2 id="full-service-description">Full Service Description<a class="headerlink" href="#full-service-description" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--print-service-description
+</code></pre></div>
+<p>Generates the full REST service definition (including OpenAPI spec) for registration with the IVCAP platform.</p>
+<h2 id="pyprojecttoml-integration">pyproject.toml Integration<a class="headerlink" href="#pyprojecttoml-integration" title="Permanent link">&para;</a></h2>
+<p>Use the <code>[tool.poetry-plugin-ivcap]</code> section to integrate with the <code>poetry-plugin-ivcap</code> tooling:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[tool.poetry-plugin-ivcap]</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">service-file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_service.py&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">service-id</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;urn:ivcap:service:&lt;uuid&gt;&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">service-type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;lambda&quot;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">port</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">8095</span>
+</code></pre></div>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Artifact management (download inputs, upload results)</li>
-<li>Progress events and step reporting</li>
-<li>Service discovery and composition</li>
+<li><a href="https://ivcap-works.github.io/ivcap-service-sdk-python/api/service/">Service API</a> — <code>ivcap_service.Service</code> full reference</li>
+<li><a href="../../guides/tool-functions/">Tool Functions Guide</a> — <code>ToolOptions</code> and endpoint registration</li>
+<li><a href="../../guides/deployment/">Deployment Guide</a> — Registering with IVCAP</li>
 </ul>
-<h3 id="mcp-agent-integration">MCP &amp; Agent Integration<a class="headerlink" href="#mcp-agent-integration" title="Permanent link">&para;</a></h3>
-<p>Lambda services can optionally expose a <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> endpoint (<code>/mcp</code>) to make tools directly available to AI agent frameworks. See the <a href="guides/mcp/">MCP Guide</a>.</p>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Read <a href="guides/overview/">Guides</a></strong> for deep dives into each feature</li>
-<li><strong>Browse <a href="api/overview/">API Reference</a></strong> for complete class/function documentation</li>
-<li><strong>Check <a href="guides/best-practices/">Best Practices</a></strong> for production patterns</li>
-<li><strong>Deploy</strong> with our <a href="guides/deployment/">Deployment Guide</a></li>
-</ul>
-<h2 id="where-to-find-help">Where to Find Help<a class="headerlink" href="#where-to-find-help" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>GitHub Issues</strong>: <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/issues">Report bugs or ask questions</a></li>
-<li><strong>Contributing</strong>: <a href="community/contributing/">Contributions welcome!</a></li>
-<li><strong>Code of Conduct</strong>: <a href="community/conduct/">Community standards</a></li>
-</ul>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
-<p>This project is licensed under the <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/LICENSE">BSD License</a>.</p>
-<hr />
-<p><strong>Happy building! 🚀</strong></p>
 
 
 
@@ -2044,14 +2104,14 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
-        <script src="js/mermaid-init.js"></script>
+        <script src="../../js/mermaid-init.js"></script>
       
     
   </body>

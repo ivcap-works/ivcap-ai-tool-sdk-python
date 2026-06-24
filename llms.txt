@@ -1,0 +1,39 @@
+# IVCAP Lambda SDK (Python)
+
+> Python SDK for building lambda-style services on the IVCAP platform — register tool functions as HTTP endpoints, handle async job execution, report progress, and expose MCP endpoints for AI agents
+
+ivcap_lambda is a Python SDK for building lambda-style services on the IVCAP
+(Intelligent Visual Computing and Analytics Platform). It extends ivcap_service
+and provides HTTP scaffolding via FastAPI for registering tool functions as
+endpoints, handling async job execution with try-later semantics, reporting
+progress events, and optionally exposing an MCP endpoint for AI agent tooling.
+
+
+## Getting Started
+
+- [Installation](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/getting-started/installation/index.md)
+- [Quick Start](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/getting-started/quick-start/index.md)
+- [Your First Lambda Service](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/getting-started/first-service/index.md)
+
+## Guides
+
+- [Tool Functions](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/tool-functions/index.md)
+- [Working with Artifacts](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/artifacts/index.md)
+- [MCP & Agent Integration](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/mcp/index.md)
+- [Observability & Logging](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/observability/index.md)
+- [Error Handling](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/error-handling/index.md)
+- [Deployment](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/deployment/index.md)
+- [Best Practices](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/best-practices/index.md)
+
+## API Reference
+
+- [Decorator (@ivcap_lambda)](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/api/decorators/index.md)
+- [Server (start_lambda_server)](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/api/server/index.md)
+- [Executor & Options](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/api/executor/index.md)
+- [Types](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/api/types/index.md)
+- [Utilities](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/api/utilities/index.md)
+
+## Examples
+
+- [Lambda Tool Service](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/examples/tool-service/index.md)
+- [Advanced Patterns](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/examples/advanced-patterns/index.md)
