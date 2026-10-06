@@ -159,7 +159,7 @@ class Executor(Generic[T]):
         param: Any,
         job_id: str,
         req: Request,
-        report_result=True,
+        report_result: bool = True,
         reporter: EventReporter | None = None,
     ) -> asyncio.Queue[T | ExecutionError]:
         """
