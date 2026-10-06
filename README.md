@@ -27,13 +27,17 @@ Protocol) server**, from the same tool code. It sits on top of
 **🚀 New to the library?** Depending on your goal:
 
 - Building a service for the **IVCAP platform** (MCP optional) → see
-  [AGENTS.md, Track A](./AGENTS.md#track-a-ivcap-lambda-service) or the
+  [Track A](./docs/agents/track-a-ivcap-service.md) or the
   [Quick Start guide](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/getting-started/quick-start/)
 - Building an **MCP server** first, with IVCAP deployment as a bonus → see
-  [AGENTS.md, Track B](./AGENTS.md#track-b-mcp-first-server) or the
+  [Track B](./docs/agents/track-b-mcp-first.md) or the
   [MCP guide's MCP-first section](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/mcp/#mcp-first-development)
+- Migrating an existing server built on the plain **`mcp` Python SDK** → see
+  [Track C](./docs/agents/track-c-migrate-from-mcp.md)
 - A ready-to-clone starter project →
   [ivcap-python-ai-tool-template](https://github.com/ivcap-works/ivcap-python-ai-tool-template)
+
+See [AGENTS.md](./AGENTS.md) for the full router between the three tracks above.
 
 ---
 
