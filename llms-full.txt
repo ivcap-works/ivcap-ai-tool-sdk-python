@@ -708,6 +708,8 @@ async def async_greet(req: MyRequest) -> MyResult:
     return MyResult(greeting=f"Hello, {req.name}!")
 ```
 
+This works identically whether `async_greet` is reached via the REST `POST` endpoint or (if `--with-mcp`/`--with-mcp-stdio` is enabled) via MCP's `tools/call` — `ivcap-lambda` detects `async def` functions automatically (via `asyncio.iscoroutinefunction`) and awaits them on a dedicated event loop inside the executor's thread pool, with no extra configuration needed either way. See the [MCP & Agent Integration Guide](mcp.md#sync-and-async-tool-functions-both-work-over-mcp) and `examples/test-mcp/mcp-service.py`'s `echo` tool for a runnable MCP example.
+
 ## Endpoints Created per Tool
 
 For each `@ivcap_lambda`-decorated function at path `{prefix}`, three routes are registered:
@@ -1008,21 +1010,53 @@ logger.info(f"ID: {artifact.id}")
 
 # MCP & Agent Integration Guide
 
-Lambda services can expose a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) endpoint that makes your tools directly callable by AI agent frameworks such as Claude, Cursor, Copilot, and others.
+`ivcap-lambda` tools can be exposed as a spec-compliant [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server — built on the official [`mcp`](https://pypi.org/project/mcp/) Python SDK, not a custom reimplementation — making them directly callable by AI agent frameworks and MCP hosts such as Claude Desktop, Cursor, Cline, and others.
+
+This guide covers both ways people arrive at MCP support:
+
+- **[I have (or am building) an IVCAP lambda service and want to add MCP](#adding-mcp-to-an-ivcap-lambda-service)** — MCP is an add-on, zero code changes
+- **[I'm building an MCP server first, and IVCAP deployment is a bonus](#mcp-first-development)** — start from an MCP-only mindset
+
+See also [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) (Track A / Track B) for the same split aimed at AI coding agents.
 
 ## What is MCP?
 
-The Model Context Protocol is an open standard that lets AI models discover and call tools via a standardised interface. By enabling the MCP endpoint, your IVCAP lambda service becomes a first-class tool provider for any MCP-compatible agent framework.
+The Model Context Protocol is an open standard that lets AI models discover and call tools via a standardised interface, supporting both HTTP (Streamable-HTTP) and stdio transports. By enabling MCP, your `ivcap-lambda` service becomes a first-class tool provider for any MCP-compatible host, in addition to (or instead of) being an IVCAP REST tool.
 
-## Enabling the MCP Endpoint
+## Adding MCP to an IVCAP Lambda Service
 
-Pass `--with-mcp` when starting the server:
+Install the optional `mcp` extra, then pass `--with-mcp` when starting the server:
 
 ```bash
+pip install ivcap-lambda[mcp]
 python my_service.py --with-mcp --port 8090
 ```
 
-This registers a `/mcp` endpoint on the running FastAPI app. The endpoint speaks the MCP protocol and exposes all registered `@ivcap_lambda` tools automatically.
+This mounts a `/mcp` endpoint (Streamable-HTTP transport) on the running FastAPI app, alongside your existing REST endpoints. It speaks the MCP protocol and exposes every registered `@ivcap_lambda` tool automatically — no changes are required in tool code.
+
+### Running as a stdio MCP server
+
+For local development with stdio-based MCP hosts (Claude Desktop, Cline, the MCP Inspector's stdio mode) that launch your tool as a subprocess instead of connecting over HTTP, use `--with-mcp-stdio` instead of `--with-mcp`. This skips the FastAPI/uvicorn HTTP server entirely — no REST, Swagger, or health endpoints are started:
+
+```bash
+python my_service.py --with-mcp-stdio
+```
+
+`--with-mcp` and `--with-mcp-stdio` are mutually exclusive. Tool registration, schema generation, and progress-notification bridging are identical either way — the same tool code works unchanged over both transports.
+
+### Sync and async tool functions both work over MCP
+
+A tool function registered with `@ivcap_lambda` can be either a plain `def` or an `async def` — this is detected automatically (via `asyncio.iscoroutinefunction`) and handled transparently by the same `Executor` regardless of which transport (REST or MCP) the call came in on:
+
+```python
+@ivcap_lambda("/greet-async", opts=ToolOptions(tags=["Greeter"]))
+async def greet_async(req: GreetRequest) -> GreetResult:
+    """Greet a person asynchronously"""
+    await asyncio.sleep(0)  # yield once
+    return GreetResult(greeting=f"Hello, {req.name}!")
+```
+
+Calling `greet_async` over MCP's `tools/call` works exactly like calling a synchronous tool — no special handling, `await`, or extra configuration is required on the client side. See [Async Tools](tool-functions.md#async-tools) in the Tool Functions Guide for more detail, and `examples/test-mcp/mcp-service.py`'s `echo` tool for a complete, runnable example of an `async def` tool exposed over MCP.
 
 ## Tool Description Endpoints
 
@@ -1079,16 +1113,17 @@ Key points:
 
 ## Connecting an MCP Client
 
-### Claude Desktop
+### Claude Desktop / Cline (stdio)
 
-Add to your Claude Desktop configuration (`~/.claude_desktop_config.json`):
+Stdio-based hosts launch your service as a subprocess, so point them at `--with-mcp-stdio`, not `--with-mcp` (which starts the HTTP transport instead). Add to your Claude Desktop configuration (`~/.claude_desktop_config.json`) or Cline's MCP settings:
 
 ```json
 {
   "mcpServers": {
     "my-lambda-service": {
       "command": "python",
-      "args": ["my_service.py", "--with-mcp"]
+      "args": ["my_service.py", "--with-mcp-stdio"],
+      "cwd": "/absolute/path/to/your/service"
     }
   }
 }
@@ -1096,27 +1131,36 @@ Add to your Claude Desktop configuration (`~/.claude_desktop_config.json`):
 
 ### MCP Inspector (for development)
 
-The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) lets you test MCP endpoints interactively:
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) lets you test MCP servers interactively, against either transport:
 
 ```bash
+# HTTP (server already running with --with-mcp)
 npx @modelcontextprotocol/inspector http://localhost:8090/mcp
+
+# stdio (inspector launches the server itself)
+npx @modelcontextprotocol/inspector python my_service.py --with-mcp-stdio
 ```
 
-### Custom MCP Client
+### Custom MCP Client (Python)
 
-Connect to the MCP endpoint via HTTP SSE:
+Use the official `mcp` SDK's `Client` to connect over Streamable-HTTP:
 
 ```python
-from mcp import ClientSession
-from mcp.client.sse import sse_client
+import asyncio
+import mcp
 
-async def run():
-    async with sse_client("http://localhost:8090/mcp") as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await session.list_tools()
-            print(tools)
+async def main():
+    async with mcp.Client("http://localhost:8090/mcp") as client:
+        tools = await client.list_tools()
+        print([t.name for t in tools.tools])
+
+        result = await client.call_tool("greet", {"req": {"name": "IVCAP"}})
+        print(result.structured_content)
+
+asyncio.run(main())
 ```
+
+`Client` can also launch a local server as a stdio subprocess directly — see the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) docs for `StdioServerParameters`.
 
 ## Example: MCP-Ready Service
 
@@ -1168,11 +1212,113 @@ Start with MCP enabled:
 python my_service.py --with-mcp --port 8090
 ```
 
+---
+
+## MCP-First Development
+
+If your primary goal is to build an **MCP server** — for Claude Desktop, Cursor, Cline, or any other MCP host — and the ability to *also* run on IVCAP is a bonus rather than the focus, you can start from `ivcap-lambda` without touching any IVCAP-specific concepts at all. The `@ivcap_lambda` decorator, `@with_schema`, and `JobContext` are the same building blocks either way — this section just reorders what matters first.
+
+### Why use `ivcap-lambda` for an MCP-only project?
+
+Because its MCP support is built on the **official `mcp` Python SDK** rather than a custom protocol implementation, you get spec-correct session handling, both Streamable-HTTP and stdio transports, and progress notifications for free. On top, `ivcap-lambda` adds Pydantic-model-driven schemas, a thread pool so blocking tool code doesn't need to be rewritten as `async def`, and automatic bridging of `jobCtxt.report.step(...)` calls to native `notifications/progress` messages.
+
+### A minimal MCP-only service
+
+```python
+from pydantic import BaseModel, Field
+from ivcap_service import Service, with_schema
+from ivcap_lambda import ivcap_lambda, start_lambda_server, logging_init
+
+logging_init()
+
+# Only `name` is surfaced to MCP clients (as the server's reported name) —
+# keep Service minimal if you don't care about IVCAP registration.
+service = Service(name="My MCP Server")
+
+
+@with_schema("urn:sd:schema:my-mcp-server.add.request.1")
+class AddRequest(BaseModel):
+    a: int = Field(..., description="First number.")
+    b: int = Field(..., description="Second number.")
+
+
+@with_schema("urn:sd:schema:my-mcp-server.add.1")
+class AddResult(BaseModel):
+    sum: int = Field(..., description="a + b.")
+
+
+@ivcap_lambda("/add")
+def add(req: AddRequest) -> AddResult:
+    """Add two numbers
+
+    Returns the sum of the two provided numbers.
+    """
+    return AddResult(sum=req.a + req.b)
+
+
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+Run it purely as an MCP server over stdio (no HTTP port, no FastAPI, nothing IVCAP-specific) — ideal for Claude Desktop/Cline, which launch the server as a subprocess:
+
+```bash
+pip install ivcap-lambda[mcp]
+python my_mcp_server.py --with-mcp-stdio
+```
+
+Or over HTTP for remote clients / the MCP Inspector:
+
+```bash
+python my_mcp_server.py --with-mcp --port 8090
+```
+
+### What you can ignore (for now)
+
+These only matter for IVCAP REST deployment and have no effect over MCP:
+
+- `ToolOptions.max_wait_time` / `refresh_interval` — MCP's `tools/call` always awaits the result directly; there is no REST-style "poll me later" (`204`) equivalent in the base MCP spec
+- `ToolOptions.service_id` — only populates the IVCAP tool-description endpoint
+- `JobContext.ivcap` / `JobContext.job_authorization` — only relevant if your tool talks to IVCAP artifacts/services
+- `--print-tool-description` / `--print-service-description` and `[tool.poetry-plugin-ivcap]` — only needed for IVCAP platform registration
+
+### What still matters
+
+- **`@with_schema`** — generates the MCP tool's input/output JSON schema from your Pydantic model; still required
+- **Docstrings** — the first paragraph becomes the MCP tool's short description surfaced to the model; the rest is the longer description
+- **`JobContext` for progress** — accept it as an optional parameter and use `jobCtxt.report.step(...)` for anything that takes more than a second or two, so MCP clients show live progress instead of appearing to hang (bounded by an internal 600s call timeout)
+- **Raising `ValueError`** for bad input — surfaces as an MCP tool error (`is_error=True`) the model can read and react to, instead of a crash
+- **`def` or `async def`, your choice** — a tool function can be written either way; `ivcap-lambda` detects which at registration time and runs it correctly either way (see [Sync and async tool functions both work over MCP](#sync-and-async-tool-functions-both-work-over-mcp) above)
+
+### Testing without a real transport
+
+```python
+import asyncio
+from ivcap_lambda.mcp import _build_mcp_server
+import mcp
+
+async def main():
+    server = _build_mcp_server("My MCP Server", "0.1.0")
+    async with mcp.Client(server) as client:          # in-memory, no network/subprocess
+        result = await client.call_tool("add", {"req": {"a": 1, "b": 2}})
+        print(result.structured_content)  # {'sum': 3}
+
+asyncio.run(main())
+```
+
+See `examples/test-mcp/` in the [source repository](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python) for a complete runnable example covering both transports, including a plain-curl Streamable-HTTP test client. Its `echo` tool is defined with `async def` and demonstrates that async tool functions work identically to synchronous ones over MCP.
+
+### Deploying to IVCAP later
+
+Nothing in your tool code needs to change — add `ToolOptions(service_id=..., tags=[...])` and a `[tool.poetry-plugin-ivcap]` section to `pyproject.toml`, and follow the rest of this guide plus the [Deployment Guide](deployment.md). MCP was never a fork of the REST path; it's an additional transport over the same tool registry.
+
 ## See Also
 
+- [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) — the same IVCAP-first / MCP-first split, aimed at AI coding agents
 - [Tool Functions Guide](tool-functions.md) — Writing good tool functions
 - [Best Practices](best-practices.md) — Docstring and naming conventions
 - [MCP Protocol Specification](https://modelcontextprotocol.io/specification)
+- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) — the upstream SDK this support is built on
 - [`start_lambda_server` API](../api/server.md)
 
 

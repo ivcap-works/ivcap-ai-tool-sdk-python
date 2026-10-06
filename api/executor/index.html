@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.7.25
+        v0.8.1
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.7.25
+        v0.8.1
       </li>
     </ul>
   </div>
@@ -2346,7 +2346,20 @@ The generic type T represents the return type of the function.</p>
 <span class="normal"><a href="#__codelineno-0-298">298</a></span>
 <span class="normal"><a href="#__codelineno-0-299">299</a></span>
 <span class="normal"><a href="#__codelineno-0-300">300</a></span>
-<span class="normal"><a href="#__codelineno-0-301">301</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="k">class</span><span class="w"> </span><span class="nc">Executor</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+<span class="normal"><a href="#__codelineno-0-301">301</a></span>
+<span class="normal"><a href="#__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="k">class</span><span class="w"> </span><span class="nc">Executor</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
 <a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="sd">    A generic class that executes a function in a thread pool and returns the result via an asyncio Queue.</span>
 <a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="sd">    The generic type T represents the return type of the function.</span>
@@ -2422,150 +2435,163 @@ The generic type T represents the return type of the function.</p>
 <a id="__codelineno-0-155" name="__codelineno-0-155"></a>                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unexpected function parameter &#39;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-156" name="__codelineno-0-156"></a>
 <a id="__codelineno-0-157" name="__codelineno-0-157"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span>
-<a id="__codelineno-0-158" name="__codelineno-0-158"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">report_result</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-159" name="__codelineno-0-159"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]:</span>
-<a id="__codelineno-0-160" name="__codelineno-0-160"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-161" name="__codelineno-0-161"></a><span class="sd">        Execute the function with the given parameter in a thread and return a queue with the result.</span>
-<a id="__codelineno-0-162" name="__codelineno-0-162"></a>
-<a id="__codelineno-0-163" name="__codelineno-0-163"></a><span class="sd">        Args:</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="sd">            param: Any The parameter to pass to the function</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="sd">            job_id: str ID of this job</span>
-<a id="__codelineno-0-166" name="__codelineno-0-166"></a><span class="sd">            req: Request FastAPI&#39;s request object</span>
+<a id="__codelineno-0-158" name="__codelineno-0-158"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-159" name="__codelineno-0-159"></a>        <span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<a id="__codelineno-0-160" name="__codelineno-0-160"></a>        <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161"></a>        <span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+<a id="__codelineno-0-162" name="__codelineno-0-162"></a>        <span class="n">report_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-163" name="__codelineno-0-163"></a>        <span class="n">reporter</span><span class="p">:</span> <span class="n">EventReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]:</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166"></a><span class="sd">        Execute the function with the given parameter in a thread and return a queue with the result.</span>
 <a id="__codelineno-0-167" name="__codelineno-0-167"></a>
-<a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="sd">            An asyncio Queue that will contain either the result of type T or an ExecutionError</span>
-<a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-171" name="__codelineno-0-171"></a>        <span class="n">result_queue</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-<a id="__codelineno-0-172" name="__codelineno-0-172"></a>        <span class="n">event_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a>        <span class="k">def</span><span class="w"> </span><span class="nf">_process_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Verify the result, add it to the queue, and report it to IVCAP.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177"></a>            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-178" name="__codelineno-0-178"></a>                <span class="n">result</span> <span class="o">=</span> <span class="n">verify_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
-<a id="__codelineno-0-179" name="__codelineno-0-179"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-<a id="__codelineno-0-180" name="__codelineno-0-180"></a>                <span class="n">result</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181"></a>                    <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
-<a id="__codelineno-0-182" name="__codelineno-0-182"></a>                    <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183"></a>                    <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
-<a id="__codelineno-0-184" name="__codelineno-0-184"></a>                <span class="p">)</span>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> failed - </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>            <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> finished, sending result message&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a>                <span class="n">asyncio</span><span class="o">.</span><span class="n">run_coroutine_threadsafe</span><span class="p">(</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>                    <span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>                    <span class="n">event_loop</span><span class="p">,</span>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>                <span class="p">)</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a>                <span class="k">if</span> <span class="n">report_result</span><span class="p">:</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                    <span class="n">push_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a>                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a>        <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a>            <span class="n">context</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">ctxt</span><span class="p">)</span>  <span class="c1"># OTEL</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>            <span class="n">authorization</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;authorization&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>            <span class="n">jctxt</span> <span class="o">=</span> <span class="n">JobContext</span><span class="p">(</span>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>                <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>                <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span><span class="p">,</span>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>                <span class="n">report</span><span class="o">=</span><span class="n">create_event_reporter</span><span class="p">(</span>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>                    <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span> <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>                <span class="p">),</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>            <span class="p">)</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>            <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">jctxt</span><span class="p">)</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>            <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">context_param</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">request_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">req</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">jctxt</span>  <span class="c1"># self._job_ctxt</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>            <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RUN </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">span</span><span class="p">:</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>                <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.id&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>                <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.name&quot;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a>                <span class="n">loop</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>                <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>                    <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>                    <span class="k">if</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">):</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>                        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>                        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>                        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>                            <span class="n">res</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>                        <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>                            <span class="c1"># Propagate cancellation and generator shutdown properly</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>                            <span class="k">raise</span>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>                        <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>                            <span class="c1"># Gracefully shutdown remaining tasks and async generators to avoid</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>                            <span class="c1"># &#39;Task exception was never retrieved&#39; and similar warnings</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>                            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                                <span class="n">pending</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a>                                    <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">all_tasks</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                                <span class="p">]</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                                    <span class="n">t</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>                                <span class="k">if</span> <span class="n">pending</span><span class="p">:</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                                    <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a>                                        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                                            <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                                                <span class="o">*</span><span class="n">pending</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>                                            <span class="p">)</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                                        <span class="p">)</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a>                                <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                                    <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">loop</span><span class="o">.</span><span class="n">shutdown_asyncgens</span><span class="p">())</span>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a>                            <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a>                                <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a>                    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-252" name="__codelineno-0-252"></a>                        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-0-253" name="__codelineno-0-253"></a>                <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
-<a id="__codelineno-0-254" name="__codelineno-0-254"></a>                    <span class="c1"># Allow cooperative shutdown/cancellation to propagate cleanly</span>
-<a id="__codelineno-0-255" name="__codelineno-0-255"></a>                    <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;cancelled&quot;</span><span class="p">))</span>
-<a id="__codelineno-0-256" name="__codelineno-0-256"></a>                    <span class="k">raise</span>
-<a id="__codelineno-0-257" name="__codelineno-0-257"></a>                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-<a id="__codelineno-0-258" name="__codelineno-0-258"></a>                    <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-<a id="__codelineno-0-259" name="__codelineno-0-259"></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-<a id="__codelineno-0-260" name="__codelineno-0-260"></a>                        <span class="sa">f</span><span class="s2">&quot;while executing </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-261" name="__codelineno-0-261"></a>                    <span class="p">)</span>
-<a id="__codelineno-0-262" name="__codelineno-0-262"></a>                    <span class="n">res</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
-<a id="__codelineno-0-263" name="__codelineno-0-263"></a>                        <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span>
-<a id="__codelineno-0-264" name="__codelineno-0-264"></a>                        <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-<a id="__codelineno-0-265" name="__codelineno-0-265"></a>                        <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
-<a id="__codelineno-0-266" name="__codelineno-0-266"></a>                    <span class="p">)</span>
-<a id="__codelineno-0-267" name="__codelineno-0-267"></a>                <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-268" name="__codelineno-0-268"></a>                    <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-269" name="__codelineno-0-269"></a>
-<a id="__codelineno-0-270" name="__codelineno-0-270"></a>                <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-271" name="__codelineno-0-271"></a>                    <span class="n">_process_result</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
-<a id="__codelineno-0-272" name="__codelineno-0-272"></a>                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-<a id="__codelineno-0-273" name="__codelineno-0-273"></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;while delivering result fo </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-274" name="__codelineno-0-274"></a>
-<a id="__codelineno-0-275" name="__codelineno-0-275"></a>                <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-276" name="__codelineno-0-276"></a>
-<a id="__codelineno-0-277" name="__codelineno-0-277"></a>        <span class="c1"># Use the provided thread pool or create a new one</span>
-<a id="__codelineno-0-278" name="__codelineno-0-278"></a>        <span class="n">use_pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">or</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span>
-<a id="__codelineno-0-279" name="__codelineno-0-279"></a>            <span class="n">max_workers</span><span class="o">=</span><span class="mi">1</span>
-<a id="__codelineno-0-280" name="__codelineno-0-280"></a>        <span class="p">)</span>
-<a id="__codelineno-0-281" name="__codelineno-0-281"></a>        <span class="c1"># Submit the function to the thread pool</span>
-<a id="__codelineno-0-282" name="__codelineno-0-282"></a>        <span class="n">future</span> <span class="o">=</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_run</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">get_current</span><span class="p">())</span>
-<a id="__codelineno-0-283" name="__codelineno-0-283"></a>
-<a id="__codelineno-0-284" name="__codelineno-0-284"></a>        <span class="c1"># If we created a new pool, we should clean it up when done</span>
-<a id="__codelineno-0-285" name="__codelineno-0-285"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-286" name="__codelineno-0-286"></a>            <span class="n">future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-<a id="__codelineno-0-287" name="__codelineno-0-287"></a>        <span class="k">return</span> <span class="n">result_queue</span>
-<a id="__codelineno-0-288" name="__codelineno-0-288"></a>
-<a id="__codelineno-0-289" name="__codelineno-0-289"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">lookup_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-290" name="__codelineno-0-290"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the result of a job</span>
-<a id="__codelineno-0-291" name="__codelineno-0-291"></a>
-<a id="__codelineno-0-292" name="__codelineno-0-292"></a><span class="sd">        Args:</span>
-<a id="__codelineno-0-293" name="__codelineno-0-293"></a><span class="sd">            job_id (str): The id of the job requested</span>
-<a id="__codelineno-0-294" name="__codelineno-0-294"></a>
-<a id="__codelineno-0-295" name="__codelineno-0-295"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-296" name="__codelineno-0-296"></a><span class="sd">            Union[T, ExecutionError, None]: Returns the result fo a job, &#39;None&#39; is still in progress</span>
-<a id="__codelineno-0-297" name="__codelineno-0-297"></a>
-<a id="__codelineno-0-298" name="__codelineno-0-298"></a><span class="sd">        Raises:</span>
-<a id="__codelineno-0-299" name="__codelineno-0-299"></a><span class="sd">            KeyError: Unknown job - may have already expired</span>
-<a id="__codelineno-0-300" name="__codelineno-0-300"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-301" name="__codelineno-0-301"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="sd">            param: Any The parameter to pass to the function</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">            job_id: str ID of this job</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">            req: Request FastAPI&#39;s request object (or any duck-typed object</span>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="sd">                exposing a `.headers.get(...)` mapping, e.g. an MCP request shim)</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">            report_result: whether to push the result back to the IVCAP sidecar</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">            reporter: optional `EventReporter` instance to use for this invocation</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">                instead of the one produced by the globally configured event-reporter</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">                factory (e.g. `SidecarReporter`). Used to bridge progress reporting to</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="sd">                non-REST transports such as MCP.</span>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">            An asyncio Queue that will contain either the result of type T or an ExecutionError</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>        <span class="n">result_queue</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>        <span class="n">event_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>        <span class="k">def</span><span class="w"> </span><span class="nf">_process_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Verify the result, add it to the queue, and report it to IVCAP.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>                <span class="n">result</span> <span class="o">=</span> <span class="n">verify_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>                <span class="n">result</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>                    <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>                    <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                    <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>                <span class="p">)</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> failed - </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>            <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> finished, sending result message&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a>                <span class="n">asyncio</span><span class="o">.</span><span class="n">run_coroutine_threadsafe</span><span class="p">(</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a>                    <span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a>                    <span class="n">event_loop</span><span class="p">,</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>                <span class="p">)</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>                <span class="k">if</span> <span class="n">report_result</span><span class="p">:</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>                    <span class="n">push_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a>        <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>            <span class="n">context</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">ctxt</span><span class="p">)</span>  <span class="c1"># OTEL</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a>            <span class="n">authorization</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;authorization&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a>            <span class="n">jctxt</span> <span class="o">=</span> <span class="n">JobContext</span><span class="p">(</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>                <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a>                <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span><span class="p">,</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>                <span class="n">report</span><span class="o">=</span><span class="n">reporter</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>                <span class="k">if</span> <span class="n">reporter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>                <span class="k">else</span> <span class="n">create_event_reporter</span><span class="p">(</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>                    <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span> <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>                <span class="p">),</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>            <span class="p">)</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a>            <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">jctxt</span><span class="p">)</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>            <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">context_param</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">request_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">req</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">jctxt</span>  <span class="c1"># self._job_ctxt</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>            <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>            <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RUN </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">span</span><span class="p">:</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>                <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.id&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>                <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.name&quot;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>                <span class="n">loop</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>                <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                    <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>                    <span class="k">if</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">):</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>                            <span class="n">res</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                        <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>                            <span class="c1"># Propagate cancellation and generator shutdown properly</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                            <span class="k">raise</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                        <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>                            <span class="c1"># Gracefully shutdown remaining tasks and async generators to avoid</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                            <span class="c1"># &#39;Task exception was never retrieved&#39; and similar warnings</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>                            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                                <span class="n">pending</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a>                                    <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">all_tasks</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a>                                <span class="p">]</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a>                                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a>                                    <span class="n">t</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a>                                <span class="k">if</span> <span class="n">pending</span><span class="p">:</span>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a>                                    <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a>                                        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a>                                            <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a>                                                <span class="o">*</span><span class="n">pending</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span>
+<a id="__codelineno-0-258" name="__codelineno-0-258"></a>                                            <span class="p">)</span>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a>                                        <span class="p">)</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>                                <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>                                    <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">loop</span><span class="o">.</span><span class="n">shutdown_asyncgens</span><span class="p">())</span>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>                            <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>                                <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>                    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a>                        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a>                <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a>                    <span class="c1"># Allow cooperative shutdown/cancellation to propagate cleanly</span>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a>                    <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;cancelled&quot;</span><span class="p">))</span>
+<a id="__codelineno-0-269" name="__codelineno-0-269"></a>                    <span class="k">raise</span>
+<a id="__codelineno-0-270" name="__codelineno-0-270"></a>                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a>                    <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a>                        <span class="sa">f</span><span class="s2">&quot;while executing </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a>                    <span class="p">)</span>
+<a id="__codelineno-0-275" name="__codelineno-0-275"></a>                    <span class="n">res</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
+<a id="__codelineno-0-276" name="__codelineno-0-276"></a>                        <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span>
+<a id="__codelineno-0-277" name="__codelineno-0-277"></a>                        <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a>                        <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a>                    <span class="p">)</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a>                <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a>                    <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a>                <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a>                    <span class="n">_process_result</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a>                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;while delivering result fo </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>                <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>        <span class="c1"># Use the provided thread pool or create a new one</span>
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>        <span class="n">use_pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">or</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>            <span class="n">max_workers</span><span class="o">=</span><span class="mi">1</span>
+<a id="__codelineno-0-293" name="__codelineno-0-293"></a>        <span class="p">)</span>
+<a id="__codelineno-0-294" name="__codelineno-0-294"></a>        <span class="c1"># Submit the function to the thread pool</span>
+<a id="__codelineno-0-295" name="__codelineno-0-295"></a>        <span class="n">future</span> <span class="o">=</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_run</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">get_current</span><span class="p">())</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a>        <span class="c1"># If we created a new pool, we should clean it up when done</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a>            <span class="n">future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a>        <span class="k">return</span> <span class="n">result_queue</span>
+<a id="__codelineno-0-301" name="__codelineno-0-301"></a>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">lookup_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the result of a job</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a><span class="sd">            job_id (str): The id of the job requested</span>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a><span class="sd">            Union[T, ExecutionError, None]: Returns the result fo a job, &#39;None&#39; is still in progress</span>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a><span class="sd">        Raises:</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a><span class="sd">            KeyError: Unknown job - may have already expired</span>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2675,7 +2701,7 @@ accepting any new incoming requests.</p>
 
 
 <h3 id="ivcap_lambda.executor.Executor.execute" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">execute</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">req</span><span class="p">,</span> <span class="n">report_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">execute</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">req</span><span class="p">,</span> <span class="n">report_result</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">reporter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
@@ -2741,11 +2767,47 @@ accepting any new incoming requests.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Request FastAPI's request object</p>
+                <p>Request FastAPI's request object (or any duck-typed object
+exposing a <code>.headers.get(...)</code> mapping, e.g. an MCP request shim)</p>
               </div>
             </td>
             <td>
                 <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>report_result</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>whether to push the result back to the IVCAP sidecar</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>reporter</code>
+            </td>
+            <td>
+                  <code><span title="ivcap_service.EventReporter">EventReporter</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>optional <code>EventReporter</code> instance to use for this invocation
+instead of the one produced by the globally configured event-reporter
+factory (e.g. <code>SidecarReporter</code>). Used to bridge progress reporting to
+non-REST transports such as MCP.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -2907,137 +2969,163 @@ accepting any new incoming requests.</p>
 <span class="normal"><a href="#__codelineno-0-284">284</a></span>
 <span class="normal"><a href="#__codelineno-0-285">285</a></span>
 <span class="normal"><a href="#__codelineno-0-286">286</a></span>
-<span class="normal"><a href="#__codelineno-0-287">287</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-157" name="__codelineno-0-157"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span>
-<a id="__codelineno-0-158" name="__codelineno-0-158"></a>    <span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">report_result</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-159" name="__codelineno-0-159"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]:</span>
-<a id="__codelineno-0-160" name="__codelineno-0-160"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-161" name="__codelineno-0-161"></a><span class="sd">    Execute the function with the given parameter in a thread and return a queue with the result.</span>
-<a id="__codelineno-0-162" name="__codelineno-0-162"></a>
-<a id="__codelineno-0-163" name="__codelineno-0-163"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="sd">        param: Any The parameter to pass to the function</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="sd">        job_id: str ID of this job</span>
-<a id="__codelineno-0-166" name="__codelineno-0-166"></a><span class="sd">        req: Request FastAPI&#39;s request object</span>
+<span class="normal"><a href="#__codelineno-0-287">287</a></span>
+<span class="normal"><a href="#__codelineno-0-288">288</a></span>
+<span class="normal"><a href="#__codelineno-0-289">289</a></span>
+<span class="normal"><a href="#__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#__codelineno-0-292">292</a></span>
+<span class="normal"><a href="#__codelineno-0-293">293</a></span>
+<span class="normal"><a href="#__codelineno-0-294">294</a></span>
+<span class="normal"><a href="#__codelineno-0-295">295</a></span>
+<span class="normal"><a href="#__codelineno-0-296">296</a></span>
+<span class="normal"><a href="#__codelineno-0-297">297</a></span>
+<span class="normal"><a href="#__codelineno-0-298">298</a></span>
+<span class="normal"><a href="#__codelineno-0-299">299</a></span>
+<span class="normal"><a href="#__codelineno-0-300">300</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-157" name="__codelineno-0-157"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span>
+<a id="__codelineno-0-158" name="__codelineno-0-158"></a>    <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-159" name="__codelineno-0-159"></a>    <span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<a id="__codelineno-0-160" name="__codelineno-0-160"></a>    <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161"></a>    <span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+<a id="__codelineno-0-162" name="__codelineno-0-162"></a>    <span class="n">report_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-163" name="__codelineno-0-163"></a>    <span class="n">reporter</span><span class="p">:</span> <span class="n">EventReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]:</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166"></a><span class="sd">    Execute the function with the given parameter in a thread and return a queue with the result.</span>
 <a id="__codelineno-0-167" name="__codelineno-0-167"></a>
-<a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="sd">        An asyncio Queue that will contain either the result of type T or an ExecutionError</span>
-<a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-171" name="__codelineno-0-171"></a>    <span class="n">result_queue</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-<a id="__codelineno-0-172" name="__codelineno-0-172"></a>    <span class="n">event_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_process_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify the result, add it to the queue, and report it to IVCAP.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-178" name="__codelineno-0-178"></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">verify_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
-<a id="__codelineno-0-179" name="__codelineno-0-179"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-<a id="__codelineno-0-180" name="__codelineno-0-180"></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181"></a>                <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
-<a id="__codelineno-0-182" name="__codelineno-0-182"></a>                <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183"></a>                <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
-<a id="__codelineno-0-184" name="__codelineno-0-184"></a>            <span class="p">)</span>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> failed - </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>        <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> finished, sending result message&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a>            <span class="n">asyncio</span><span class="o">.</span><span class="n">run_coroutine_threadsafe</span><span class="p">(</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>                <span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>                <span class="n">event_loop</span><span class="p">,</span>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>            <span class="p">)</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a>            <span class="k">if</span> <span class="n">report_result</span><span class="p">:</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                <span class="n">push_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a>            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a>        <span class="n">context</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">ctxt</span><span class="p">)</span>  <span class="c1"># OTEL</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>        <span class="n">authorization</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;authorization&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>        <span class="n">jctxt</span> <span class="o">=</span> <span class="n">JobContext</span><span class="p">(</span>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>            <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>            <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span><span class="p">,</span>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>            <span class="n">report</span><span class="o">=</span><span class="n">create_event_reporter</span><span class="p">(</span>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>                <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span> <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>            <span class="p">),</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>        <span class="p">)</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>        <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">jctxt</span><span class="p">)</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>        <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">context_param</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">request_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">req</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">jctxt</span>  <span class="c1"># self._job_ctxt</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>        <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RUN </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">span</span><span class="p">:</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>            <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.id&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>            <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.name&quot;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a>            <span class="n">loop</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>                <span class="k">if</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">):</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>                    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>                    <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>                    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>                        <span class="n">res</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>                    <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>                        <span class="c1"># Propagate cancellation and generator shutdown properly</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>                        <span class="k">raise</span>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>                    <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>                        <span class="c1"># Gracefully shutdown remaining tasks and async generators to avoid</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>                        <span class="c1"># &#39;Task exception was never retrieved&#39; and similar warnings</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>                        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                            <span class="n">pending</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a>                                <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">all_tasks</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                            <span class="p">]</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                                <span class="n">t</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>                            <span class="k">if</span> <span class="n">pending</span><span class="p">:</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                                <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a>                                    <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                                        <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                                            <span class="o">*</span><span class="n">pending</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>                                        <span class="p">)</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                                    <span class="p">)</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a>                            <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                                <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">loop</span><span class="o">.</span><span class="n">shutdown_asyncgens</span><span class="p">())</span>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a>                        <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a>                            <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a>                <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-252" name="__codelineno-0-252"></a>                    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-0-253" name="__codelineno-0-253"></a>            <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
-<a id="__codelineno-0-254" name="__codelineno-0-254"></a>                <span class="c1"># Allow cooperative shutdown/cancellation to propagate cleanly</span>
-<a id="__codelineno-0-255" name="__codelineno-0-255"></a>                <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;cancelled&quot;</span><span class="p">))</span>
-<a id="__codelineno-0-256" name="__codelineno-0-256"></a>                <span class="k">raise</span>
-<a id="__codelineno-0-257" name="__codelineno-0-257"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-<a id="__codelineno-0-258" name="__codelineno-0-258"></a>                <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-<a id="__codelineno-0-259" name="__codelineno-0-259"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-<a id="__codelineno-0-260" name="__codelineno-0-260"></a>                    <span class="sa">f</span><span class="s2">&quot;while executing </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-261" name="__codelineno-0-261"></a>                <span class="p">)</span>
-<a id="__codelineno-0-262" name="__codelineno-0-262"></a>                <span class="n">res</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
-<a id="__codelineno-0-263" name="__codelineno-0-263"></a>                    <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span>
-<a id="__codelineno-0-264" name="__codelineno-0-264"></a>                    <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-<a id="__codelineno-0-265" name="__codelineno-0-265"></a>                    <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
-<a id="__codelineno-0-266" name="__codelineno-0-266"></a>                <span class="p">)</span>
-<a id="__codelineno-0-267" name="__codelineno-0-267"></a>            <span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-0-268" name="__codelineno-0-268"></a>                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-<a id="__codelineno-0-269" name="__codelineno-0-269"></a>
-<a id="__codelineno-0-270" name="__codelineno-0-270"></a>            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-271" name="__codelineno-0-271"></a>                <span class="n">_process_result</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
-<a id="__codelineno-0-272" name="__codelineno-0-272"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-<a id="__codelineno-0-273" name="__codelineno-0-273"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;while delivering result fo </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-274" name="__codelineno-0-274"></a>
-<a id="__codelineno-0-275" name="__codelineno-0-275"></a>            <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-276" name="__codelineno-0-276"></a>
-<a id="__codelineno-0-277" name="__codelineno-0-277"></a>    <span class="c1"># Use the provided thread pool or create a new one</span>
-<a id="__codelineno-0-278" name="__codelineno-0-278"></a>    <span class="n">use_pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">or</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span>
-<a id="__codelineno-0-279" name="__codelineno-0-279"></a>        <span class="n">max_workers</span><span class="o">=</span><span class="mi">1</span>
-<a id="__codelineno-0-280" name="__codelineno-0-280"></a>    <span class="p">)</span>
-<a id="__codelineno-0-281" name="__codelineno-0-281"></a>    <span class="c1"># Submit the function to the thread pool</span>
-<a id="__codelineno-0-282" name="__codelineno-0-282"></a>    <span class="n">future</span> <span class="o">=</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_run</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">get_current</span><span class="p">())</span>
-<a id="__codelineno-0-283" name="__codelineno-0-283"></a>
-<a id="__codelineno-0-284" name="__codelineno-0-284"></a>    <span class="c1"># If we created a new pool, we should clean it up when done</span>
-<a id="__codelineno-0-285" name="__codelineno-0-285"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-286" name="__codelineno-0-286"></a>        <span class="n">future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-<a id="__codelineno-0-287" name="__codelineno-0-287"></a>    <span class="k">return</span> <span class="n">result_queue</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="sd">        param: Any The parameter to pass to the function</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">        job_id: str ID of this job</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">        req: Request FastAPI&#39;s request object (or any duck-typed object</span>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="sd">            exposing a `.headers.get(...)` mapping, e.g. an MCP request shim)</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">        report_result: whether to push the result back to the IVCAP sidecar</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">        reporter: optional `EventReporter` instance to use for this invocation</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">            instead of the one produced by the globally configured event-reporter</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">            factory (e.g. `SidecarReporter`). Used to bridge progress reporting to</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="sd">            non-REST transports such as MCP.</span>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">        An asyncio Queue that will contain either the result of type T or an ExecutionError</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>    <span class="n">result_queue</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="n">event_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_process_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify the result, add it to the queue, and report it to IVCAP.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">verify_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>                <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>                <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>            <span class="p">)</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> failed - </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>        <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> finished, sending result message&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a>            <span class="n">asyncio</span><span class="o">.</span><span class="n">run_coroutine_threadsafe</span><span class="p">(</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a>                <span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a>                <span class="n">event_loop</span><span class="p">,</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>            <span class="p">)</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>            <span class="k">if</span> <span class="n">report_result</span><span class="p">:</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>                <span class="n">push_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="n">context</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">ctxt</span><span class="p">)</span>  <span class="c1"># OTEL</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a>        <span class="n">authorization</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;authorization&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="n">jctxt</span> <span class="o">=</span> <span class="n">JobContext</span><span class="p">(</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>            <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span><span class="p">,</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>            <span class="n">report</span><span class="o">=</span><span class="n">reporter</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>            <span class="k">if</span> <span class="n">reporter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="k">else</span> <span class="n">create_event_reporter</span><span class="p">(</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>                <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span> <span class="n">job_authorization</span><span class="o">=</span><span class="n">authorization</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>            <span class="p">),</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>        <span class="p">)</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a>        <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">jctxt</span><span class="p">)</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>        <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">context_param</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">request_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">req</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">job_ctxt_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">jctxt</span>  <span class="c1"># self._job_ctxt</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>        <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RUN </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">span</span><span class="p">:</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>            <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.id&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>            <span class="n">span</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s2">&quot;job.name&quot;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>            <span class="n">loop</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>                <span class="k">if</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">):</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                    <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>                        <span class="n">res</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                    <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>                        <span class="c1"># Propagate cancellation and generator shutdown properly</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                        <span class="k">raise</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                    <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>                        <span class="c1"># Gracefully shutdown remaining tasks and async generators to avoid</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                        <span class="c1"># &#39;Task exception was never retrieved&#39; and similar warnings</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>                        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                            <span class="n">pending</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a>                                <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">all_tasks</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a>                            <span class="p">]</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a>                            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a>                                <span class="n">t</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a>                            <span class="k">if</span> <span class="n">pending</span><span class="p">:</span>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a>                                <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a>                                    <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a>                                        <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a>                                            <span class="o">*</span><span class="n">pending</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span>
+<a id="__codelineno-0-258" name="__codelineno-0-258"></a>                                        <span class="p">)</span>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a>                                    <span class="p">)</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>                            <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>                                <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">loop</span><span class="o">.</span><span class="n">shutdown_asyncgens</span><span class="p">())</span>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>                        <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>                            <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>                <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a>                    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a>            <span class="k">except</span> <span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span> <span class="ne">GeneratorExit</span><span class="p">):</span>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a>                <span class="c1"># Allow cooperative shutdown/cancellation to propagate cleanly</span>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a>                <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;cancelled&quot;</span><span class="p">))</span>
+<a id="__codelineno-0-269" name="__codelineno-0-269"></a>                <span class="k">raise</span>
+<a id="__codelineno-0-270" name="__codelineno-0-270"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a>                <span class="n">span</span><span class="o">.</span><span class="n">record_exception</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a>                    <span class="sa">f</span><span class="s2">&quot;while executing </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a>                <span class="p">)</span>
+<a id="__codelineno-0-275" name="__codelineno-0-275"></a>                <span class="n">res</span> <span class="o">=</span> <span class="n">ExecutionError</span><span class="p">(</span>
+<a id="__codelineno-0-276" name="__codelineno-0-276"></a>                    <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span>
+<a id="__codelineno-0-277" name="__codelineno-0-277"></a>                    <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a>                    <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a>                <span class="p">)</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a>            <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a>                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_active_jobs</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a>                <span class="n">_process_result</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;while delivering result fo </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>            <span class="n">job_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>    <span class="c1"># Use the provided thread pool or create a new one</span>
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>    <span class="n">use_pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">or</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>        <span class="n">max_workers</span><span class="o">=</span><span class="mi">1</span>
+<a id="__codelineno-0-293" name="__codelineno-0-293"></a>    <span class="p">)</span>
+<a id="__codelineno-0-294" name="__codelineno-0-294"></a>    <span class="c1"># Submit the function to the thread pool</span>
+<a id="__codelineno-0-295" name="__codelineno-0-295"></a>    <span class="n">future</span> <span class="o">=</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_run</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">get_current</span><span class="p">())</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a>    <span class="c1"># If we created a new pool, we should clean it up when done</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a>        <span class="n">future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">use_pool</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a>    <span class="k">return</span> <span class="n">result_queue</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3137,31 +3225,31 @@ accepting any new incoming requests.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ivcap_lambda/executor.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-289">289</a></span>
-<span class="normal"><a href="#__codelineno-0-290">290</a></span>
-<span class="normal"><a href="#__codelineno-0-291">291</a></span>
-<span class="normal"><a href="#__codelineno-0-292">292</a></span>
-<span class="normal"><a href="#__codelineno-0-293">293</a></span>
-<span class="normal"><a href="#__codelineno-0-294">294</a></span>
-<span class="normal"><a href="#__codelineno-0-295">295</a></span>
-<span class="normal"><a href="#__codelineno-0-296">296</a></span>
-<span class="normal"><a href="#__codelineno-0-297">297</a></span>
-<span class="normal"><a href="#__codelineno-0-298">298</a></span>
-<span class="normal"><a href="#__codelineno-0-299">299</a></span>
-<span class="normal"><a href="#__codelineno-0-300">300</a></span>
-<span class="normal"><a href="#__codelineno-0-301">301</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-289" name="__codelineno-0-289"></a><span class="k">def</span><span class="w"> </span><span class="nf">lookup_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-290" name="__codelineno-0-290"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the result of a job</span>
-<a id="__codelineno-0-291" name="__codelineno-0-291"></a>
-<a id="__codelineno-0-292" name="__codelineno-0-292"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-293" name="__codelineno-0-293"></a><span class="sd">        job_id (str): The id of the job requested</span>
-<a id="__codelineno-0-294" name="__codelineno-0-294"></a>
-<a id="__codelineno-0-295" name="__codelineno-0-295"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-296" name="__codelineno-0-296"></a><span class="sd">        Union[T, ExecutionError, None]: Returns the result fo a job, &#39;None&#39; is still in progress</span>
-<a id="__codelineno-0-297" name="__codelineno-0-297"></a>
-<a id="__codelineno-0-298" name="__codelineno-0-298"></a><span class="sd">    Raises:</span>
-<a id="__codelineno-0-299" name="__codelineno-0-299"></a><span class="sd">        KeyError: Unknown job - may have already expired</span>
-<a id="__codelineno-0-300" name="__codelineno-0-300"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-301" name="__codelineno-0-301"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-302" name="__codelineno-0-302"></a><span class="k">def</span><span class="w"> </span><span class="nf">lookup_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span> <span class="o">|</span> <span class="n">ExecutionError</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the result of a job</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a><span class="sd">        job_id (str): The id of the job requested</span>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a><span class="sd">        Union[T, ExecutionError, None]: Returns the result fo a job, &#39;None&#39; is still in progress</span>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a><span class="sd">        KeyError: Unknown job - may have already expired</span>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_cache</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3269,7 +3357,7 @@ accepting any new incoming requests.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

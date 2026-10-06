@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.7.25
+        v0.8.1
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.7.25
+        v0.8.1
       </li>
     </ul>
   </div>
@@ -1572,25 +1572,57 @@ for agents that scan repository metadata before writing code.</p>
 and any context-scanning agents can find it automatically.</p>
 </div>
 <hr />
-<h1 id="agentsmd-building-ivcap-lambda-services">AGENTS.md: Building IVCAP Lambda Services<a class="headerlink" href="#agentsmd-building-ivcap-lambda-services" title="Permanent link">&para;</a></h1>
-<p>This document provides comprehensive instructions for AI coding agents on how to use the <code>ivcap-lambda</code> library to build IVCAP lambda-style services.</p>
+<h1 id="agentsmd-building-services-with-ivcap-lambda">AGENTS.md: Building Services with <code>ivcap-lambda</code><a class="headerlink" href="#agentsmd-building-services-with-ivcap-lambda" title="Permanent link">&para;</a></h1>
+<p>This document provides comprehensive instructions for AI coding agents on how to use the <code>ivcap-lambda</code> library. There are two primary development paths — pick the one matching the developer's goal, or read both if a project needs to do both.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><code>ivcap-lambda</code> is a Python library for building <strong>lambda-style HTTP services</strong> on the IVCAP platform. It extends <a href="https://github.com/ivcap-works/ivcap-service-sdk-python"><code>ivcap-service</code></a> (which provides base primitives for all IVCAP services) and adds FastAPI/uvicorn HTTP scaffolding.</p>
-<p><strong>Key distinction:</strong>
+<p><code>ivcap-lambda</code> turns a plain Python function into:</p>
+<ul>
+<li>A set of <strong>IVCAP-compatible HTTP endpoints</strong> (REST, with async "try-later" semantics), and/or</li>
+<li>A <strong>spec-compliant MCP (Model Context Protocol) server</strong> (Streamable-HTTP or stdio transport)</li>
+</ul>
+<p>...from the <em>same</em> tool-function code, using the <em>same</em> Pydantic request/result models and docstrings. It extends <a href="https://github.com/ivcap-works/ivcap-service-sdk-python"><code>ivcap-service</code></a> (base primitives shared by all IVCAP services) and adds FastAPI/uvicorn HTTP scaffolding plus the MCP adapter.</p>
+<p><strong>Key distinction from <code>ivcap-service</code>:</strong>
 - <code>ivcap-service</code> — batch services that poll a job queue (long-running workers)
-- <code>ivcap-lambda</code> — lambda/HTTP services that respond to individual tool invocations via REST endpoints</p>
-<p>Both share the same <code>Service</code>, <code>JobContext</code>, <code>EventReporter</code>, <code>with_schema</code>, <code>getLogger</code>, and artifact infrastructure from <code>ivcap-service</code>.</p>
+- <code>ivcap-lambda</code> — lambda/HTTP/MCP services that respond to individual tool invocations</p>
+<h2 id="which-track-do-i-need">Which Track Do I Need?<a class="headerlink" href="#which-track-do-i-need" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Your primary goal</th>
+<th>Read this</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build a service to deploy on the IVCAP platform (REST tool/agent endpoint); MCP is optional or not needed</td>
+<td><strong><a href="#track-a-ivcap-lambda-service">Track A: IVCAP Lambda Service</a></strong></td>
+</tr>
+<tr>
+<td>Build an MCP server (for Claude Desktop, Cursor, Cline, etc.); the ability to <em>also</em> run on IVCAP is a bonus, not the focus</td>
+<td><strong><a href="#track-b-mcp-first-server">Track B: MCP-First Server</a></strong></td>
+</tr>
+<tr>
+<td>Both — ship a service that's a first-class IVCAP tool <em>and</em> a first-class MCP server</td>
+<td>Read Track A fully, then skim Track B for what changes when MCP is the primary interface</td>
+</tr>
+</tbody>
+</table>
+<p>Both tracks share the same core building blocks (<code>@ivcap_lambda</code>, <code>ToolOptions</code>, <code>JobContext</code>, <code>@with_schema</code>) — see <a href="#shared-reference">Shared Reference</a> at the end for the full symbol table.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ivcap-service  (batch + base primitives)
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      │
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>      └── ivcap-lambda  (lambda / HTTP)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>      └── ivcap-lambda  (lambda / HTTP / MCP)
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                │
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                └── Your Tool Service
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                └── Your Tool Function
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                        │
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                        ├── POST /tool  ← submit job
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                        ├── GET  /tool  ← get tool description (for agents)
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                        └── GET  /jobs/{id}  ← poll deferred result
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                        ├── POST /tool          ← submit job (REST)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                        ├── GET  /tool          ← tool description (agents)
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                        ├── GET  /jobs/{id}     ← poll deferred result (REST)
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                        └── /mcp or stdio       ← MCP tools/call (--with-mcp[-stdio])
 </code></pre></div>
+<hr />
+<h1 id="track-a-ivcap-lambda-service">Track A: IVCAP Lambda Service<a class="headerlink" href="#track-a-ivcap-lambda-service" title="Permanent link">&para;</a></h1>
+<p>For developers whose primary goal is a service deployed on the IVCAP platform, reachable via REST and the IVCAP tool-description protocol. MCP support (Track B) can be bolted on later with zero code changes via <code>--with-mcp</code>/<code>--with-mcp-stdio</code>.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">ServiceContact</span><span class="p">,</span> <span class="n">ServiceLicense</span><span class="p">,</span> <span class="n">JobContext</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">,</span> <span class="n">with_schema</span>
@@ -1855,8 +1887,9 @@ and any context-scanning agents can find it automatically.</p>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>--port PORT                  Port (default 8090)
 <a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>--with-telemetry             Enable OpenTelemetry
 <a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>--with-mcp                   Enable MCP endpoint at /mcp
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>--print-tool-description     Print tool description JSON and exit
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>--print-service-description  Print service description JSON and exit
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>--with-mcp-stdio             Run as an MCP server over stdio instead of HTTP (for Claude Desktop/Cline)
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>--print-tool-description     Print tool description JSON and exit
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>--print-service-description  Print service description JSON and exit
 </code></pre></div></p>
 <h2 id="async-try-later-protocol">Async (Try-Later) Protocol<a class="headerlink" href="#async-try-later-protocol" title="Permanent link">&para;</a></h2>
 <p>When a job takes longer than <code>max_wait_time</code>:</p>
@@ -1870,11 +1903,21 @@ and any context-scanning agents can find it automatically.</p>
 </code></pre></div>
 <p>Force async: send <code>Prefer: respond-async</code> header.
 Custom timeout: send <code>Timeout: &lt;seconds&gt;</code> header.</p>
-<h2 id="mcp-support">MCP Support<a class="headerlink" href="#mcp-support" title="Permanent link">&para;</a></h2>
-<p>Enable for AI agent tooling:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--with-mcp<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
+<h2 id="optional-also-expose-as-mcp">Optional: Also Expose as MCP<a class="headerlink" href="#optional-also-expose-as-mcp" title="Permanent link">&para;</a></h2>
+<p>Everything registered via <code>@ivcap_lambda(...)</code> can <em>also</em> be exposed as a
+spec-compliant MCP server with <strong>zero code changes</strong> — just install the
+extra and pass a flag at startup:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ivcap-lambda<span class="o">[</span>mcp<span class="o">]</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--with-mcp<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span><span class="w">        </span><span class="c1"># HTTP (Streamable-HTTP transport)</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--with-mcp-stdio<span class="w">              </span><span class="c1"># stdio (local dev, Claude Desktop/Cline)</span>
 </code></pre></div>
-<p>This registers <code>/mcp</code> (Model Context Protocol endpoint) exposing all registered tools.</p>
+<p>If MCP is your primary interface rather than a bonus on top of a REST/IVCAP
+service, read <strong><a href="#track-b-mcp-first-server">Track B: MCP-First Server</a></strong>
+below instead — it covers starting from an MCP-only mindset and treating
+IVCAP deployment as the add-on. The underlying mechanism (same registry,
+same <code>Executor</code>, same progress bridging) is identical either way; only the
+starting point and which CLI flags/pieces of <code>ToolOptions</code>/<code>JobContext</code> you
+actually need differs.</p>
 <h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>my-service/
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>├── pyproject.toml
@@ -1894,16 +1937,118 @@ Custom timeout: send <code>Timeout: &lt;seconds&gt;</code> header.</p>
 <a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="n">service-type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;lambda&quot;</span>
 <a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="n">port</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">8095</span>
 </code></pre></div></p>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<p>That's the end of Track A. See <a href="#shared-reference">Shared Reference</a> below for Best Practices and the full symbol table (applicable to both tracks), or continue to Track B if MCP is also (or primarily) a goal.</p>
+<hr />
+<h1 id="track-b-mcp-first-server">Track B: MCP-First Server<a class="headerlink" href="#track-b-mcp-first-server" title="Permanent link">&para;</a></h1>
+<p>For developers whose primary goal is building an <strong>MCP server</strong> — one that works well in Claude Desktop, Cursor, Cline, or any other MCP host — where the ability to <em>also</em> run as an IVCAP lambda service is a nice-to-have, not the focus. You write exactly the same <code>@ivcap_lambda</code>-decorated functions as Track A; the difference is which parts of the library you actually need to think about, and which CLI flag you reach for first.</p>
+<h2 id="why-ivcap-lambda-for-an-mcp-only-project">Why <code>ivcap-lambda</code> for an MCP-only project?<a class="headerlink" href="#why-ivcap-lambda-for-an-mcp-only-project" title="Permanent link">&para;</a></h2>
+<p>Even if you never plan to deploy to IVCAP, <code>ivcap-lambda</code> gives you a production-quality MCP server for very little code because it's built on the <strong>official <code>mcp</code> Python SDK</strong> (not a custom reimplementation): spec-correct session handling, Streamable-HTTP <em>and</em> stdio transports, resumability, and progress notifications all come from that upstream dependency. On top, <code>ivcap-lambda</code> adds:</p>
+<ul>
+<li>Pydantic-model-driven tool schemas (define a request/result model once, get the MCP input/output schema and the REST schema for free)</li>
+<li>A thread pool + job-result cache so slow/blocking tool functions don't need to be rewritten as <code>async def</code></li>
+<li><code>jobCtxt.report.step(...)</code> progress reporting that is automatically bridged to native MCP <code>notifications/progress</code> messages</li>
+<li>A Swagger/OpenAPI UI (<code>/api</code>) and a tool-description endpoint "for free" if you ever <em>do</em> want to expose the same tool over plain REST</li>
+</ul>
+<h2 id="minimal-mcp-only-service">Minimal MCP-Only Service<a class="headerlink" href="#minimal-mcp-only-service" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">with_schema</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">ivcap_lambda</span><span class="p">,</span> <span class="n">start_lambda_server</span><span class="p">,</span> <span class="n">logging_init</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">logging_init</span><span class="p">()</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># `Service` metadata is still required by start_lambda_server(), but none of</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># its fields matter for MCP clients — only `name` is used (as the MCP</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># server&#39;s reported name). Keep it minimal.</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;My MCP Server&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my-mcp-server.add.request.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="k">class</span><span class="w"> </span><span class="nc">AddRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>    <span class="n">a</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;First number.&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>    <span class="n">b</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Second number.&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my-mcp-server.add.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="k">class</span><span class="w"> </span><span class="nc">AddResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>    <span class="nb">sum</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;a + b.&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/add&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">AddRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AddResult</span><span class="p">:</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Add two numbers</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a>
+<a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="sd">    Returns the sum of the two provided numbers.</span>
+<a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a>    <span class="k">return</span> <span class="n">AddResult</span><span class="p">(</span><span class="nb">sum</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">a</span> <span class="o">+</span> <span class="n">req</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+<a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a>
+<a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a>
+<a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<a id="__codelineno-18-34" name="__codelineno-18-34" href="#__codelineno-18-34"></a>    <span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
+</code></pre></div>
+<p>Run it as a pure MCP server — no HTTP port, no FastAPI server, nothing IVCAP-specific — ideal for local development against Claude Desktop/Cline, which launch the server as a stdio subprocess:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ivcap-lambda<span class="o">[</span>mcp<span class="o">]</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>python<span class="w"> </span>my_mcp_server.py<span class="w"> </span>--with-mcp-stdio
+</code></pre></div>
+<p>Or expose it over HTTP (Streamable-HTTP transport) for remote MCP clients / the MCP Inspector:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>python<span class="w"> </span>my_mcp_server.py<span class="w"> </span>--with-mcp<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># then: npx @modelcontextprotocol/inspector http://localhost:8090/mcp</span>
+</code></pre></div>
+<p><code>--with-mcp</code> and <code>--with-mcp-stdio</code> are mutually exclusive. With <code>--with-mcp-stdio</code>, no REST/Swagger/health endpoints are started at all — the process is purely an MCP server over stdio for as long as the host keeps the connection open.</p>
+<h2 id="things-you-can-mostly-ignore-in-an-mcp-first-project">Things You Can Mostly Ignore in an MCP-First Project<a class="headerlink" href="#things-you-can-mostly-ignore-in-an-mcp-first-project" title="Permanent link">&para;</a></h2>
+<p>These exist for IVCAP deployment and are safe to skip unless/until you decide to also run on IVCAP:</p>
+<ul>
+<li><code>ToolOptions.max_wait_time</code> / <code>refresh_interval</code> — only affect the REST "try-later" (<code>204</code>) path; MCP's <code>tools/call</code> always awaits the result directly (see <a href="#execution-semantics-mcp-vs-rest">Execution Semantics</a> below)</li>
+<li><code>ToolOptions.service_id</code> — only used to populate the IVCAP tool-description endpoint's <code>service_id</code> field</li>
+<li><code>JobContext.ivcap</code> / <code>JobContext.job_authorization</code> — IVCAP platform client and auth token; irrelevant unless your tool talks to IVCAP artifacts/services</li>
+<li><code>--print-tool-description</code> / <code>--print-service-description</code> — only needed for IVCAP platform registration</li>
+<li><code>[tool.poetry-plugin-ivcap]</code> in <code>pyproject.toml</code> — only needed if/when you register the service with IVCAP</li>
+</ul>
+<h2 id="things-worth-using-even-in-an-mcp-first-project">Things Worth Using Even in an MCP-First Project<a class="headerlink" href="#things-worth-using-even-in-an-mcp-first-project" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>@with_schema</code> on request/result models</strong> — still the mechanism that generates the MCP tool's input/output JSON schema from your Pydantic model; skipping it is not an option, it's load-bearing for both transports</li>
+<li><strong>Docstrings</strong> — the first paragraph becomes the MCP tool's short description surfaced to the LLM; the rest becomes the longer description. Same conventions as Track A: explain what the tool does, when to use it, and any constraints</li>
+<li><strong><code>JobContext</code> (optional parameter) for progress reporting</strong> — if a tool can take more than a second or two, accept <code>jobCtxt: JobContext</code> and wrap the slow part in <code>with jobCtxt.report.step(...)</code>; this shows up as live progress in MCP clients that render <code>notifications/progress</code> (e.g. the MCP Inspector), with zero MCP-specific code</li>
+<li><strong>Raising <code>ValueError</code> for bad input</strong> — surfaces as a proper MCP tool error (<code>is_error=True</code>) that the calling model can read and react to, instead of a crash</li>
+</ul>
+<h2 id="execution-semantics-mcp-vs-rest">Execution Semantics: MCP vs REST<a class="headerlink" href="#execution-semantics-mcp-vs-rest" title="Permanent link">&para;</a></h2>
+<p>MCP's <code>tools/call</code> is a single request/response RPC with progress delivered as notifications on the <em>same</em> call — there is no REST-style "it's taking a while, poll me later" (<code>204</code>/<code>Retry-Later</code>) equivalent in the base MCP spec. So when a tool is invoked over MCP, <code>ivcap-lambda</code> always waits for the result (bounded by an internal <code>600s</code> timeout) rather than ever deferring it. Implications for MCP-first design:</p>
+<ul>
+<li>Don't rely on <code>ToolOptions.max_wait_time</code> to bound how long an MCP client waits — it has no effect over MCP</li>
+<li>If a tool can genuinely take minutes, report progress via <code>jobCtxt.report.step(...)</code> so the client/host shows the user something is happening, rather than appearing to hang</li>
+<li>The REST "try-later" protocol (described in Track A) only matters if/when the same tool is also exposed over plain REST</li>
+</ul>
+<h2 id="testing-an-mcp-first-service">Testing an MCP-First Service<a class="headerlink" href="#testing-an-mcp-first-service" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Using the official mcp SDK&#39;s in-memory client (no network, no subprocess)</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda.mcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">_build_mcp_server</span>  <span class="c1"># or call register_mcp(app) and use its return value</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">mcp</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>    <span class="n">server</span> <span class="o">=</span> <span class="n">_build_mcp_server</span><span class="p">(</span><span class="s2">&quot;My MCP Server&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">mcp</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">server</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>        <span class="n">tools</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tools</span><span class="p">()</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>        <span class="nb">print</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">tools</span><span class="p">])</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">call_tool</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;req&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>        <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">structured_content</span><span class="p">)</span>  <span class="c1"># {&#39;sum&#39;: 3}</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div>
+<p>For an end-to-end example testing both the stdio and HTTP transports (including a plain-curl Streamable-HTTP client and progress-notification capture), see <code>examples/test-mcp/</code> in this repository — particularly <code>tests/mcp-call.sh</code> and the <code>make run-mcp-stdio</code> / <code>make test-*</code> targets. Its <code>echo</code> tool is defined with <code>async def</code> (not plain <code>def</code>) and confirms async tool functions work identically over MCP's <code>tools/call</code> as they do over REST (both tracks share the same <code>Executor</code>, which detects <code>async def</code> via <code>asyncio.iscoroutinefunction</code> and awaits it on a dedicated event loop — see section 10, "Async Tools", above).</p>
+<h2 id="deploying-to-ivcap-later-optional">Deploying to IVCAP Later (Optional)<a class="headerlink" href="#deploying-to-ivcap-later-optional" title="Permanent link">&para;</a></h2>
+<p>If a service built MCP-first later needs to also run on IVCAP, nothing in the tool code changes — add <code>ToolOptions(service_id=..., tags=[...])</code>, a <code>[tool.poetry-plugin-ivcap]</code> section to <code>pyproject.toml</code>, and follow Track A's <a href="#project-structure">Project Structure</a> / deployment steps. The same <code>@ivcap_lambda</code>-decorated function is already a valid REST endpoint; MCP was never a fork, just an additional transport over the same registry.</p>
+<p>That's the end of Track B.</p>
+<hr />
+<h1 id="shared-reference">Shared Reference<a class="headerlink" href="#shared-reference" title="Permanent link">&para;</a></h1>
+<h2 id="best-practices-both-tracks">Best Practices (Both Tracks)<a class="headerlink" href="#best-practices-both-tracks" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Always use <code>@with_schema</code></strong> on request/result models</li>
-<li><strong>Write comprehensive docstrings</strong> — agents use these to decide when to call your tool</li>
+<li><strong>Write comprehensive docstrings</strong> — both AI agents (IVCAP) and MCP hosts/models use these to decide when and how to call your tool</li>
 <li><strong>Describe every field</strong> with <code>Field(description="...")</code></li>
 <li><strong>Accept <code>JobContext</code></strong> when you need progress reporting or artifact access</li>
 <li><strong>Use steps</strong> for long operations: <code>with jobCtxt.report.step("name", "msg") as step:</code></li>
 <li><strong>Raise <code>ValueError</code></strong> for user input errors, other exceptions for system errors</li>
 <li><strong>Call <code>logging_init()</code> once</strong> at module level before any loggers</li>
-<li><strong>Don't mutate module-level state</strong> per job — tools may run concurrently</li>
+<li><strong>Don't mutate module-level state</strong> per job — tools may run concurrently (true for both REST and MCP invocations)</li>
 </ol>
 <h2 id="key-symbols-summary">Key Symbols Summary<a class="headerlink" href="#key-symbols-summary" title="Permanent link">&para;</a></h2>
 <table>
@@ -1912,6 +2057,7 @@ Custom timeout: send <code>Timeout: &lt;seconds&gt;</code> header.</p>
 <th>Symbol</th>
 <th>Package</th>
 <th>Description</th>
+<th>Track</th>
 </tr>
 </thead>
 <tbody>
@@ -1919,87 +2065,117 @@ Custom timeout: send <code>Timeout: &lt;seconds&gt;</code> header.</p>
 <td><code>ivcap_lambda</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Decorator to register a tool function</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>start_lambda_server</code></td>
 <td><code>ivcap_lambda</code></td>
-<td>Start the HTTP server</td>
+<td>Start the HTTP server, or the MCP server over stdio with <code>--with-mcp-stdio</code></td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>ToolOptions</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Per-tool configuration</td>
+<td>Both (some fields REST-only, see Track B)</td>
 </tr>
 <tr>
 <td><code>ExecutorOpts</code></td>
 <td><code>ivcap_lambda.executor</code></td>
 <td>Thread-pool and cache configuration</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>logging_init</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Initialise structured logging</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>get_event_reporter</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Get <code>EventReporter</code> for current thread</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>get_job_id</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Get job ID for current thread</td>
+<td>Both</td>
+</tr>
+<tr>
+<td><code>register_mcp</code></td>
+<td><code>ivcap_lambda.mcp</code></td>
+<td>Mount the MCP Streamable-HTTP server onto a FastAPI app programmatically</td>
+<td>MCP</td>
+</tr>
+<tr>
+<td><code>run_mcp_stdio</code></td>
+<td><code>ivcap_lambda.mcp</code></td>
+<td>Run the MCP server over stdio programmatically</td>
+<td>MCP</td>
 </tr>
 <tr>
 <td><code>Service</code></td>
 <td><code>ivcap_service</code></td>
 <td>Service metadata</td>
+<td>Both (minimal for MCP-only)</td>
 </tr>
 <tr>
 <td><code>ServiceContact</code></td>
 <td><code>ivcap_service</code></td>
 <td>Contact details model</td>
+<td>IVCAP-focused</td>
 </tr>
 <tr>
 <td><code>ServiceLicense</code></td>
 <td><code>ivcap_service</code></td>
 <td>License model</td>
+<td>IVCAP-focused</td>
 </tr>
 <tr>
 <td><code>JobContext</code></td>
 <td><code>ivcap_service</code></td>
 <td>Per-job context</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>with_schema</code></td>
 <td><code>ivcap_service</code></td>
 <td>Add <code>$schema</code> URN to a Pydantic model</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>getLogger</code></td>
 <td><code>ivcap_service</code></td>
 <td>Structured logger</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>GenericEvent</code></td>
 <td><code>ivcap_service.events</code></td>
 <td>Named progress event</td>
+<td>Both</td>
 </tr>
 <tr>
 <td><code>GenericErrorEvent</code></td>
 <td><code>ivcap_service.events</code></td>
 <td>Error event</td>
+<td>Both</td>
 </tr>
 </tbody>
 </table>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/">Full docs</a></li>
+<li><a href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/mcp/">MCP &amp; Agent Integration guide</a> — full MCP walkthrough including both tracks</li>
+<li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/DESIGN.md">DESIGN.md</a> — internal architecture, for anyone extending <code>ivcap-lambda</code> itself</li>
 <li><a href="https://ivcap-works.github.io/ivcap-service-sdk-python/">ivcap-service SDK</a> — base library</li>
 <li><a href="https://github.com/ivcap-works/ivcap-python-ai-tool-template">Template repository</a> — ready-to-clone starter</li>
 <li><a href="https://ivcap.works">IVCAP Platform</a></li>
 <li><a href="https://docs.pydantic.dev/">Pydantic Docs</a></li>
 <li><a href="https://modelcontextprotocol.io/specification">MCP Specification</a></li>
+<li><a href="https://github.com/modelcontextprotocol/python-sdk">MCP Python SDK</a> — the upstream SDK <code>ivcap-lambda</code>'s MCP support is built on</li>
 </ul>
 
 
@@ -2063,7 +2239,7 @@ Custom timeout: send <code>Timeout: &lt;seconds&gt;</code> header.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
