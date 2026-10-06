@@ -1,4 +1,5 @@
 {
+  "$schema": "urn:sd:schema:ai-tester.request.1",
   "events": {
     "count": 5
   }

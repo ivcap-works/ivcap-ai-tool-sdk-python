@@ -1,0 +1,5 @@
+{
+  "duration_seconds": 5,
+  "target_cpu_percent": 60,
+  "progress_interval_seconds": 1
+}

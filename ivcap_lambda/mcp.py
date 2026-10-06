@@ -3,261 +3,292 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
-import asyncio
-import json
-from typing import Any, Literal
+"""Model Context Protocol (MCP) support for ivcap-lambda.
 
-from fastapi import FastAPI, Request, Response, status
-from ivcap_service import ExecutionError, IvcapResult, getLogger
+Exposes every tool registered via `@ivcap_lambda(...)` as a spec-compliant MCP
+server (Streamable HTTP transport), built on top of the official `mcp` Python
+SDK (https://github.com/modelcontextprotocol/python-sdk).
+
+Each registered tool is re-registered, unchanged, as an MCP tool: the same
+Pydantic request/result models and docstring used for the REST endpoint are
+reused to build the MCP tool's input/output schema and description. Progress
+reported via `jobCtxt.report.step(...)` (the `EventReporter` API) is bridged
+to native MCP `notifications/progress` messages when a tool is invoked over
+MCP - no changes are required in tool code.
+
+Requires the optional `mcp` package: `pip install ivcap-lambda[mcp]`.
+"""
+
+# NOTE: intentionally no `from __future__ import annotations` here. Tool
+# wrappers are built dynamically with a *local variable* (`input_model`) as a
+# parameter annotation (see `_make_mcp_tool`); the MCP SDK resolves string
+# annotations via `typing.get_type_hints()`/`eval_str=True` against the
+# function's `__globals__`, which would fail to find a local variable name.
+
+import asyncio
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from ivcap_service import (
+    EventReporter,
+    ExecutionError,
+    IvcapResult,
+    get_function_return_type,
+    getLogger,
+)
 from pydantic import BaseModel
+from uuid6 import uuid6
 
 from .builder import ToolDescription, tools
 
 logger = getLogger("mcp")
 
+try:
+    from mcp.server.mcpserver import Context, MCPServer
+    from mcp.server.mcpserver.exceptions import ToolError
+    from mcp.server.transport_security import TransportSecuritySettings
 
-class Notification(BaseModel):
-    type: str = "notification"
-    message: str
+    _MCP_SDK_AVAILABLE = True
+except ImportError:  # pragma: no cover - exercised when extra isn't installed
+    _MCP_SDK_AVAILABLE = False
 
-
-# {
-#   "jsonrpc": "2.0",
-#   "id": 5,
-#   "result": {
-#     "content": [
-#       {
-#         "type": "text",
-#         "text": "{\"temperature\": 22.5, \"conditions\": \"Partly cloudy\", \"humidity\": 65}"
-#       }
-#     ],
-#     "structuredContent": {
-#       "temperature": 22.5,
-#       "conditions": "Partly cloudy",
-#       "humidity": 65
-#     }
-#   }
-# }
-class Result(BaseModel):
-    type: str = "result"
-    data: Any
+# Max. time to wait for a tool invoked over MCP to complete. MCP's base
+# `tools/call` is a single request/response round-trip (progress is streamed
+# as notifications on the same call, not a separate poll), so - unlike the
+# REST "try-later" protocol - there is no fallback to defer the result.
+MCP_CALL_TIMEOUT = 600.0
 
 
-class JsonRpcRequest(BaseModel):
-    """
-    Pydantic model for a JSON-RPC 2.0 request object.
+class _MCPRequestShim:
+    """Minimal stand-in for `fastapi.Request` used when invoking a tool's
+    `Executor` from within an MCP tool call.
+
+    `Executor.execute()` only ever calls `req.headers.get(...)`, so a plain
+    object carrying a header mapping is sufficient here; it avoids requiring a
+    real `starlette.requests.Request` (MCP clients speak a different
+    transport/protocol than IVCAP's REST job submission, so there is no
+    equivalent "job-id"/"authorization" header convention to rely on beyond
+    whatever the MCP transport happened to carry).
     """
 
-    jsonrpc: Literal["2.0"]
-    method: str
-    params: dict[str, Any] | list[Any] | None = None
-    id: int | str | None = None
+    def __init__(self, headers: dict[str, str] | None):
+        self.headers: dict[str, str] = headers or {}
 
 
-class JsonRpcSuccessResponse(BaseModel):
-    """
-    Pydantic model for a JSON-RPC 2.0 success response.
-    """
-
-    jsonrpc: Literal["2.0"]
-    result: Any
-    id: int | str | None
-
-
-class JsonRpcErrorObject(BaseModel):
-    """
-    Pydantic model for the error object in a JSON-RPC 2.0 error response.
-    """
-
-    code: int
-    message: str
-    data: Any | None = None
+def _event_message(event) -> str:
+    """Best-effort extraction of a human-readable message from an
+    `ivcap_service.events.BaseEvent` for forwarding as an MCP progress
+    notification's `message`."""
+    options = getattr(event, "options", None)
+    if options and options.get("message"):
+        return str(options["message"])
+    error = getattr(event, "error", None)
+    if error:
+        return str(error)
+    name = getattr(event, "name", None)
+    return str(name) if name else event.__class__.__name__
 
 
-class JsonRpcErrorResponse(BaseModel):
-    """
-    Pydantic model for a JSON-RPC 2.0 error response.
-    """
-
-    jsonrpc: Literal["2.0"]
-    error: JsonRpcErrorObject
-    id: int | str | None
-
-
-# JsonRpcResponse = JsonRpcSuccessResponse | JsonRpcErrorResponse
-
-
-# === Tool Runner (non-streaming path) ===
-async def run_tool_once(
-    req_id: str, tool_name: str, input: dict, httpReq: Request
-) -> Result:
-    tool = next((t for t in tools if t.name == tool_name), None)
-    if not tool:
-        return Result(type="error", data=f"Tool '{tool_name}' not found")
-
+def _log_progress_delivery_error(future) -> None:
     try:
-        input_model = tool.input[0]
-        if input_model:
-            # verify parameters
-            m = input_model(**input)
-        else:
-            m = input  # type: ignore[assignment]
-        queue = await tool.executor.execute(
-            m, f"urn:mcp:{req_id}", httpReq, report_result=False
-        )
-        result = await asyncio.wait_for(queue.get(), timeout=600)
-        queue.task_done()
-    except (asyncio.CancelledError, GeneratorExit):
-        # allow cooperative shutdown; propagate cancellation cleanly
-        raise
-    except Exception as e:
-        return Result(type="error", data=str(e))
+        future.result()
+    except Exception as ex:  # pragma: no cover - best-effort logging only
+        logger.debug(f"failed to deliver MCP progress notification - {ex}")
 
-    if isinstance(result, IvcapResult):
-        if isinstance(result.raw, BaseModel):
-            try:
-                data = result.raw.model_dump()
-                return Result(type="result", data=data)
-            except Exception:
-                pass
 
+class McpEventReporter(EventReporter):
+    """Bridges `jobCtxt.report` calls (the `EventReporter` API used by tool
+    code) to native MCP `notifications/progress` messages, so that a tool
+    written against `jobCtxt.report.step(...)` gets progress reporting
+    whether it is invoked over REST (sidecar events) or MCP - with no changes
+    required in tool code.
+
+    `EventReporter` methods are synchronous and are invoked from the
+    `Executor`'s worker thread, while MCP's `ctx.report_progress()` is a
+    coroutine that must run on the event loop owning the MCP session. This
+    reporter schedules it there via `asyncio.run_coroutine_threadsafe()`,
+    best-effort: a failure to deliver a progress notification never breaks
+    the tool call itself.
+    """
+
+    def __init__(
+        self,
+        job_id: str,
+        job_authorization: str | None,
+        ctx: "Context",
+        loop: asyncio.AbstractEventLoop,
+    ):
+        super().__init__(job_id, job_authorization)
+        self._ctx = ctx
+        self._loop = loop
+        self._progress = 0.0
+
+    def _send(self, event) -> None:
+        # Always log locally too (matches the base EventReporter's behaviour).
+        super()._send(event)
         try:
-            data = str(result.content)  # type: ignore[assignment]
-            return Result(type="result", data=data)
-        except Exception as ex:
-            result = ExecutionError(
-                error=f"while converting result to string - {ex}", type=""
+            self._progress += 1.0
+            message = _event_message(event)
+            future = asyncio.run_coroutine_threadsafe(
+                self._ctx.report_progress(self._progress, message=message),
+                self._loop,
             )
-
-    if not isinstance(result, ExecutionError):
-        # this should never happen
-        logger.error(f"expected 'ExecutionError' but got {type(result)}")
-        result = ExecutionError(
-            error="please report unexpected internal error - expected 'ExecutionError' but got {type(result)}",
-            type="internal_error",
-        )
-    return Result(type="error", data=str(result.error))
+            future.add_done_callback(_log_progress_delivery_error)
+        except Exception as ex:  # pragma: no cover - defensive, must not raise
+            logger.debug(f"{self.job_id}: failed to forward event to MCP - {ex}")
 
 
-async def handle_tools_call(req_id, params, req: JsonRpcRequest, httpReq: Request):
-    tool_name = params["name"]
-    tool_args = params.get("arguments", {})
+def _make_mcp_tool(td: ToolDescription):
+    """Builds an async function suitable for `MCPServer.add_tool()` that
+    delegates to the same `Executor` (and hence the same worker-thread pool,
+    job cache, and OTEL instrumentation) used by `td`'s REST endpoint.
 
-    message = await run_tool_once(req_id, tool_name, tool_args, httpReq)
-    mtype = message.type
-    if mtype == "error":
-        data = message.data or "???"
-        error = JsonRpcErrorObject(code=1000, message=str(data), data=data)
-        return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
-
-    elif mtype == "notification":
-        # Not expected in non-streaming mode; treat as no-op
-        error = JsonRpcErrorObject(
-            code=1001,
-            message="Unexpected notification message type in non-streaming mode",
-        )
-        return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
-
-    elif mtype == "result":
-        return _result_response(req_id, message)
-
-    else:
-        error = JsonRpcErrorObject(
-            code=1002,
-            message=f"Unknown message type `{mtype}' received from tool",
-        )
-        return JsonRpcErrorResponse(id=req_id, error=error, jsonrpc="2.0")
-
-
-def _result_response(req_id, message):
-    # If result is not a string, convert to string
-    data = message.data or ""
-    result = {}
-    if not isinstance(data, str):
-        text = json.dumps(data)
-        result["structuredContent"] = data
-    else:
-        text = data
-
-    result["content"] = [{"type": "text", "text": text}]
-    return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")
-
-
-def register_mcp(app: FastAPI, path_prefix: str = "/mcp"):
+    The wrapper's signature is `(req: <input_model>, ctx: Context) ->
+    <output_model | Any>` - the exact same shape `@ivcap_lambda` already
+    expects from tool functions - so the MCP SDK derives the tool's input and
+    output JSON schemas from the very same Pydantic models used for the REST
+    `POST`/`GET` endpoints.
     """
-    Register the MCP JSON-RPC handler on the given FastAPI app and path_prefix.
-    This replaces the @app.post(...) decorator usage.
-    The worker_fn and executor parameters are accepted for API symmetry but are not
-    directly used by the MCP route.
+    input_model, _ = td.input
+    if input_model is None:
+        raise ValueError(
+            f"cannot expose tool '{td.name}' over MCP: it has no Pydantic "
+            "input model (first argument must be a `pydantic.BaseModel`)"
+        )
+    output_model = get_function_return_type(td.worker_fn)
+
+    async def _tool(req: input_model, ctx: Context):  # type: ignore[valid-type]
+        job_id = f"mcp:{uuid6()}"
+        headers = dict(ctx.headers) if ctx.headers else {}
+        shim_req = _MCPRequestShim(headers)
+        loop = asyncio.get_running_loop()
+        authorization = headers.get("authorization")
+        reporter = McpEventReporter(job_id, authorization, ctx, loop)
+
+        queue = await td.executor.execute(
+            req,
+            job_id,
+            shim_req,  # type: ignore[arg-type]
+            report_result=False,
+            reporter=reporter,
+        )
+        try:
+            result = await asyncio.wait_for(queue.get(), timeout=MCP_CALL_TIMEOUT)
+            queue.task_done()
+        except TimeoutError as ex:
+            raise ToolError(
+                f"tool '{td.name}' did not complete within "
+                f"{MCP_CALL_TIMEOUT:.0f} seconds"
+            ) from ex
+
+        if isinstance(result, ExecutionError):
+            raise ToolError(result.error)
+        if isinstance(result, IvcapResult):
+            if isinstance(result.raw, BaseModel):
+                return result.raw
+            return result.content
+        return result
+
+    _tool.__name__ = td.worker_fn.__name__
+    _tool.__doc__ = td.worker_fn.__doc__
+    if output_model is not None:
+        _tool.__annotations__["return"] = output_model
+    return _tool
+
+
+def _require_mcp_sdk() -> None:
+    if not _MCP_SDK_AVAILABLE:
+        raise ImportError(
+            "MCP support requires the optional 'mcp' package. Install it with "
+            "`pip install ivcap-lambda[mcp]` (or `poetry add ivcap-lambda -E mcp`)."
+        )
+
+
+def _build_mcp_server(name: str, version: str = "") -> "MCPServer":
+    """Build an `MCPServer` registering every tool from `@ivcap_lambda(...)`,
+    shared by both the HTTP (`register_mcp`) and stdio (`run_mcp_stdio`)
+    entry points so tool registration logic lives in exactly one place.
     """
+    _require_mcp_sdk()
 
-    async def handle_rpc(
-        rpcReq: JsonRpcRequest, httpReq: Request
-    ) -> JsonRpcSuccessResponse | JsonRpcErrorResponse | Response:
-        method = rpcReq.method
-        req_id = rpcReq.id
-        params = rpcReq.params
+    mcp_server = MCPServer(name or "ivcap-lambda", version=version or "")
+    for td in tools:
+        mcp_server.add_tool(
+            _make_mcp_tool(td),
+            name=td.name,
+            description=td.worker_fn.__doc__,
+        )
+    return mcp_server
 
-        if method == "tools/call":
-            return await handle_tools_call(req_id, params, rpcReq, httpReq)
 
-        elif method == "tools/list":
-            return await handle_tools_list(req_id)
+def register_mcp(app: FastAPI, path_prefix: str = "/mcp") -> "MCPServer":
+    """Build an MCP server from every tool registered via `@ivcap_lambda(...)`
+    and mount it onto `app` at `path_prefix` (Streamable HTTP transport).
 
-        elif method == "initialize":
-            return await handle_initialize(req_id, app)
+    Requires the optional `mcp` package: `pip install ivcap-lambda[mcp]`.
 
-        elif method == "notifications/initialized":
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
+    Args:
+        app (FastAPI): The FastAPI app to mount the MCP server on.
+        path_prefix (str): The path to mount the MCP endpoint at. Defaults to "/mcp".
 
-        return await handle_unknown_method(req_id)
+    Returns:
+        The underlying `mcp.server.mcpserver.MCPServer` instance, e.g. for use
+        with `mcp.Client(mcp_server)` in tests (no network required).
+    """
+    mcp_server = _build_mcp_server(app.title, app.version)
 
-    app.add_api_route(
-        path_prefix,
-        handle_rpc,
-        methods=["POST"],
-        response_model=None,
-        response_model_exclude_none=True,
-        response_model_by_alias=True,
+    mcp_asgi_app = mcp_server.streamable_http_app(
+        streamable_http_path=path_prefix,
+        # The service is typically deployed behind an IVCAP ingress/proxy under
+        # an arbitrary hostname, not `localhost`; the default DNS-rebinding
+        # protection would otherwise reject every request with a 421.
+        transport_security=TransportSecuritySettings(
+            enable_dns_rebinding_protection=False
+        ),
     )
-    logger.info(f"Added MCP endpoint at '{path_prefix}'")
+    # Mount at the application root ("") rather than at `path_prefix` itself:
+    # `mcp_asgi_app` already serves its one route at `streamable_http_path`, so
+    # mounting it again under `path_prefix` would require clients to hit
+    # `{path_prefix}{path_prefix}` and trips Starlette's trailing-slash
+    # redirect when `path_prefix` is mounted verbatim as a sub-app.
+    app.mount("", mcp_asgi_app)
+
+    # `streamable_http_app()` returns a Starlette app whose own lifespan must
+    # be entered for the session manager's background work to run. FastAPI's
+    # router already owns a `lifespan_context`; wrap it so both run.
+    previous_lifespan = app.router.lifespan_context
+
+    @asynccontextmanager
+    async def combined_lifespan(app: FastAPI):
+        async with previous_lifespan(app):
+            async with mcp_server.session_manager.run():
+                yield
+
+    app.router.lifespan_context = combined_lifespan
+
+    logger.info(f"Added MCP endpoint at '{path_prefix}' ({len(tools)} tool(s))")
+    return mcp_server
 
 
-async def handle_unknown_method(req_id):
-    return JsonRpcErrorResponse(
-        jsonrpc="2.0",
-        id=req_id,
-        error=JsonRpcErrorObject(code=-32601, message="Unknown method"),
-    )
+def run_mcp_stdio(name: str, version: str = "") -> None:
+    """Run every tool registered via `@ivcap_lambda(...)` as an MCP server
+    over the **stdio** transport instead of HTTP.
 
+    This is a blocking call (it owns the process's stdin/stdout for as long
+    as the MCP host keeps the connection open) intended for local
+    development with stdio-based MCP clients/hosts (Claude Desktop, Cline,
+    the MCP Inspector, etc.) that launch the tool as a subprocess rather than
+    connecting over HTTP - useful for iterating on a tool without deploying
+    it or running the full FastAPI/uvicorn HTTP server.
 
-async def handle_tools_list(req_id) -> JsonRpcSuccessResponse:
-    def f(td: ToolDescription):
-        _, description = ((td.worker_fn.__doc__ or "").lstrip() + "\n").split("\n", 1)
-        input_type = td.input[0]
-        return {
-            "name": td.name,
-            "description": description.strip(),
-            "inputSchema": input_type.model_json_schema() if input_type else {},
-        }
+    Requires the optional `mcp` package: `pip install ivcap-lambda[mcp]`.
 
-    tl = [f(t) for t in tools]
-    result = {"tools": tl, "isLast": True}  # "nextCursor": None }
-    return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")
-
-
-async def handle_initialize(req_id, app) -> JsonRpcSuccessResponse:
-    result = {
-        "protocolVersion": "2024-11-05",
-        "serverInfo": {"name": f"MCP Server for {app.title}", "version": app.version},
-        "capabilities": {
-            "tools": {"listChanged": False},
-            # "resources": {},
-            # "prompts": {},
-            "toolProvider": {
-                "version": "1.0.0",
-                "toolInvocationModes": ["standard", "streaming"],
-            },
-        },
-    }
-    return JsonRpcSuccessResponse(id=req_id, result=result, jsonrpc="2.0")
+    Args:
+        name (str): Name to report to the MCP client as `serverInfo.name`.
+        version (str): Version to report to the MCP client as `serverInfo.version`.
+    """
+    mcp_server = _build_mcp_server(name, version)
+    logger.info(f"Starting MCP stdio server ({len(tools)} tool(s))")
+    # `mcp_server.run()` is synchronous (it owns the event loop via `anyio.run`
+    # internally) and blocks until the client disconnects/EOF on stdin.
+    mcp_server.run(transport="stdio")

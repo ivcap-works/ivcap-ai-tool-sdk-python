@@ -1,7 +1,7 @@
 [project]
-name = "test-tool"
+name = "test-mcp"
 version = "0.1.0"
-description = "AI tool to test various platform aspects"
+description = "Standalone MCP test service exposing the 'compute', 'wordle', and 'echo' tools"
 authors = [
     {name = "Max Ott",email = "max.ott@data61.csiro.au"}
 ]
@@ -10,8 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "ivcap-lambda[mcp]",
-    "openai (>=1.95.1,<2.0.0)",
-    # 'ivcap_service.testkit' (used by tool-service.py) requires >=0.7.0,
+    # 'ivcap_service.testkit' (used by mcp-service.py) requires >=0.7.0,
     # the first release that includes it.
     "ivcap-service (>=0.7.0,<0.8.0)"
 ]
@@ -25,12 +24,11 @@ ivcap-lambda = {path = "../..", develop = true, extras = ["mcp"]}
 ivcap-service = {path = "../../../ivcap-service2-sdk-python", develop = true}
 
 [tool.poetry-plugin-ivcap]
-service-file = "tool-service.py"
-service-id = "urn:ivcap:service:3165bf7f-5851-5c32-bbf5-3d89c476368e"
+service-file = "mcp-service.py"
+service-id = "urn:ivcap:service:e193a29b-5576-42ef-a702-3eca2c2c31c7"
 service-type = "lambda"
-port = 8095
+port = 8096
 # policy = "urn:ivcap:policy:ivcap.open.metadata"
-
 
 [tool.poetry]
 package-mode = false

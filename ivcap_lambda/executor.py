@@ -155,7 +155,12 @@ class Executor(Generic[T]):
                 raise Exception(f"unexpected function parameter '{k}'")
 
     async def execute(
-        self, param: Any, job_id: str, req: Request, report_result=True
+        self,
+        param: Any,
+        job_id: str,
+        req: Request,
+        report_result=True,
+        reporter: EventReporter | None = None,
     ) -> asyncio.Queue[T | ExecutionError]:
         """
         Execute the function with the given parameter in a thread and return a queue with the result.
@@ -163,7 +168,13 @@ class Executor(Generic[T]):
         Args:
             param: Any The parameter to pass to the function
             job_id: str ID of this job
-            req: Request FastAPI's request object
+            req: Request FastAPI's request object (or any duck-typed object
+                exposing a `.headers.get(...)` mapping, e.g. an MCP request shim)
+            report_result: whether to push the result back to the IVCAP sidecar
+            reporter: optional `EventReporter` instance to use for this invocation
+                instead of the one produced by the globally configured event-reporter
+                factory (e.g. `SidecarReporter`). Used to bridge progress reporting to
+                non-REST transports such as MCP.
 
         Returns:
             An asyncio Queue that will contain either the result of type T or an ExecutionError
@@ -200,7 +211,9 @@ class Executor(Generic[T]):
             jctxt = JobContext(
                 job_id=job_id,
                 job_authorization=authorization,
-                report=create_event_reporter(
+                report=reporter
+                if reporter is not None
+                else create_event_reporter(
                     job_id=job_id, job_authorization=authorization
                 ),
             )

@@ -1,0 +1,5 @@
+{
+  "duration_seconds": 1,
+  "target_cpu_percent": 10,
+  "throw_exception_at_end": true
+}

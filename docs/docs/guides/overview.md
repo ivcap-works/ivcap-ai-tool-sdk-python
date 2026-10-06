@@ -35,13 +35,13 @@ Upload and download IVCAP artifacts:
 
 ### [MCP & Agent Integration](mcp.md)
 
-Expose tools to AI agent frameworks:
-- Enabling the MCP endpoint
-- Using the `--with-mcp` flag
-- Connecting MCP clients
+Expose tools to AI agent frameworks, covering both directions:
+- Adding MCP (`--with-mcp`/`--with-mcp-stdio`) to an existing IVCAP lambda service
+- Building an MCP server first, with IVCAP deployment as an optional bonus
+- Connecting MCP clients (Claude Desktop, Cline, MCP Inspector)
 - Tool description endpoints
 
-**Read this if:** You want your tools to be directly callable by AI agents via the Model Context Protocol.
+**Read this if:** You want your tools to be directly callable by AI agents/MCP hosts via the Model Context Protocol — whether that's your primary goal or an add-on to a REST service.
 
 ## Advanced Topics
 

@@ -117,6 +117,8 @@ async def async_greet(req: MyRequest) -> MyResult:
     return MyResult(greeting=f"Hello, {req.name}!")
 ```
 
+This works identically whether `async_greet` is reached via the REST `POST` endpoint or (if `--with-mcp`/`--with-mcp-stdio` is enabled) via MCP's `tools/call` — `ivcap-lambda` detects `async def` functions automatically (via `asyncio.iscoroutinefunction`) and awaits them on a dedicated event loop inside the executor's thread pool, with no extra configuration needed either way. See the [MCP & Agent Integration Guide](mcp.md#sync-and-async-tool-functions-both-work-over-mcp) and `examples/test-mcp/mcp-service.py`'s `echo` tool for a runnable MCP example.
+
 ## Endpoints Created per Tool
 
 For each `@ivcap_lambda`-decorated function at path `{prefix}`, three routes are registered:

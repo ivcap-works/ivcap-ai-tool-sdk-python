@@ -1,24 +1,38 @@
 import os
-import sys
 from asyncio import sleep as async_sleep
-from typing import Dict, Any
-from pydantic import HttpUrl, BaseModel, Field
-from fastapi import Request as FRequest
-import httpx
-import requests
 from time import sleep, time
 
-from ivcap_service import getLogger, Service, with_schema
-from ivcap_lambda import start_lambda_server, ivcap_lambda, ToolOptions, logging_init
-from ivcap_lambda.executor import JobContext
-from ivcap_service.events import GenericEvent
+from fastapi import Request as FRequest
+from ivcap_service import (
+    JobContext,
+    Service,
+    ServiceContact,
+    ServiceLicense,
+    getLogger,
+    with_schema,
+)
+from ivcap_service.testkit import (
+    ArtifactResult,
+    ArtifactTester,
+    CallTester,
+    ConsumeComputeResult,
+    ConsumeComputeTester,
+    EventResult,
+    EventTester,
+    LlmResult,
+    LlmTester,
+    WordleResult,
+    WordleTester,
+    completion,
+    consume_compute,
+    handle_artifact,
+    handle_wordle,
+    make_request,
+    send_events,
+)
+from pydantic import BaseModel, Field
 
-from wordle import WordleProps, WordleResult, play_random_wordle
-
-this_dir = os.path.dirname(__file__)
-src_dir = os.path.abspath(os.path.join(this_dir, "../../src"))
-sys.path.insert(0, src_dir)
-
+from ivcap_lambda import ToolOptions, ivcap_lambda, logging_init, start_lambda_server
 
 logging_init()
 logger = getLogger("app")
@@ -26,111 +40,16 @@ logger = getLogger("app")
 
 service = Service(
     name="AI Test Tool for IVCAP",
-    description="""
-Test tool to exercise various aspects of the IVCAP platform.
-""",
-    contact={
-        "name": "Max Ott",
-        "email": "max.ott@data61.csiro.au",
-    },
-    license={
-        "name": "MIT",
-        "url": "https://opensource.org/license/MIT",
-    },
+    version=os.environ.get("VERSION", "???"),
+    contact=ServiceContact(
+        name="Max Ott",
+        email="max.ott@data61.csiro.au",
+    ),
+    license=ServiceLicense(
+        name="MIT",
+        url="https://opensource.org/license/MIT",
+    ),
 )
-
-
-class ArtifactDownloader(BaseModel):
-    artifact_id: str = Field(
-        ...,
-        description="The URN of the artifact to download.",
-    )
-    block_size: int = Field(
-        8192,
-        description="Number of bytes to read per chunk when streaming the artifact.",
-        ge=1,
-    )
-    max_size: Optional[int] = Field(
-        None,
-        description="Optional maximum total bytes to download before stopping early.",
-        ge=1,
-    )
-
-
-class CallTester(BaseModel):
-    method: str = Field(
-        ...,
-        description="The HTTP method to use (GET, POST, PUT, DELETE, etc.).",
-        pattern="^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$",  # Only allow valid methods
-    )
-    url: HttpUrl = Field(..., description="The full URL of the API endpoint.")
-    params: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Optional dictionary of query parameters to be appended to the URL.",
-    )
-    data: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Optional JSON payload to be sent in the request body (for POST/PUT).",
-    )
-    headers: Optional[Dict[str, str]] = Field(
-        None, description="Optional dictionary of headers to include in the request."
-    )
-    timeout: int = Field(
-        5,
-        description="The timeout duration for the request in seconds.",
-        ge=1,  # Minimum value of 1 second to prevent infinite waiting
-    )
-
-
-class ChatMessage(BaseModel):
-    content: str = Field(..., description="The content of this message.")
-    role: str = Field(..., description="The role of the messages author.")
-    name: Optional[str] = Field(
-        None, description="An optional name for the participant."
-    )
-
-
-class LlmTester(BaseModel):
-    messages: List[ChatMessage] = Field(
-        ..., description="A list of messages to be passed to the LLM."
-    )
-    model: Optional[str] = Field(
-        "sciansa-default", description="The LLM model to use [gpt-3.5-turbo]."
-    )
-
-
-class EventTester(BaseModel):
-    count: int = Field(default=5, description="Number of events to send")
-    sleep: int = Field(
-        default=1, description="the number of seconds to sleep until next event"
-    )
-
-
-@with_schema("urn:sd:schema:ai-tester.request.1")
-class Request(BaseModel):
-    echo: Optional[str] = Field(None, description="a string to echo in result")
-    call: Optional[CallTester] = Field(None, description="Optionally call a service")
-    llm: Optional[LlmTester] = Field(
-        None, description="Optionally callan LLM's completion service"
-    )
-    wordle: Optional[WordleProps] = Field(
-        None, description="Optionally play a wordle game"
-    )
-    create_oom_error: Optional[bool] = Field(
-        False, description="Optionally cause an OOM error"
-    )
-    sleep: Optional[int] = Field(
-        0, description="the number of seconds to sleep before replying"
-    )
-    raise_error: Optional[str] = Field(
-        None, description="raise an error with this message"
-    )
-    events: Optional[EventTester] = Field(
-        None, description="Optionally create lots of events"
-    )
-    download_artifact: Optional[ArtifactDownloader] = Field(
-        None, description="Optionally download an artifact by its URN"
-    )
 
 
 class RequestContext(BaseModel):
@@ -140,30 +59,73 @@ class RequestContext(BaseModel):
 
     @classmethod
     def from_freq(cls, freq: FRequest):
-        return cls(headers=freq.headers.items(), method=freq.method, url=str(freq.url))
+        return cls(
+            headers=list(freq.headers.items()), method=freq.method, url=str(freq.url)
+        )
+
+
+# Most of the business logic below is implemented by, and shared with, the
+# 'ivcap_service.testkit' worker functions (also used by the 'test-batch'
+# batch-service example) - see 'ivcap_service/testkit/' for the
+# implementation of 'CallTester'/'make_request', 'LlmTester'/'completion',
+# 'WordleTester'/'handle_wordle', 'ConsumeComputeTester'/'consume_compute'
+# (which also covers raising exceptions, exiting with a code, or causing an
+# OOM error at the end of the run), 'ArtifactTester'/'handle_artifact', and
+# 'EventTester'/'send_events'.
+@with_schema("urn:sd:schema:ai-tester.request.1")
+class Request(BaseModel):
+    echo: str | None = Field(None, description="a string to echo in result")
+    call: CallTester | None = Field(None, description="Optionally call a service")
+    llm: LlmTester | None = Field(
+        None, description="Optionally call an LLM's completion service"
+    )
+    wordle: WordleTester | None = Field(
+        None, description="Optionally play a game of Wordle with a built-in AI solver"
+    )
+    consume_cpu: ConsumeComputeTester | None = Field(
+        None,
+        description=(
+            "Optionally consume a target percentage of CPU for a given duration "
+            "- also used to test raising an exception, exiting with a specific "
+            "code, or causing an OOM error at the end of the run"
+        ),
+    )
+    artifact: ArtifactTester | None = Field(
+        None,
+        description="Optionally download an artifact (and optionally re-upload it)",
+    )
+    events: EventTester | None = Field(
+        None, description="Optionally emit a number of progress events"
+    )
+    sleep: int | None = Field(
+        0, description="the number of seconds to sleep before replying"
+    )
 
 
 @with_schema("urn:sd:schema:ai-tester.1")
 class Result(BaseModel):
-    echo: Optional[str] = Field(None, description="echos string from request")
-    call_result: Optional[Dict] = Field(
+    echo: str | None = Field(None, description="echos string from request")
+    call_result: dict | None = Field(
         None, description="result of executing the 'call'"
     )
-    llm_result: Optional[Dict] = Field(
+    llm_result: LlmResult | None = Field(
         None, description="result of executing the 'llm'"
     )
-    wordle_result: Optional[WordleResult] = Field(
+    wordle_result: WordleResult | None = Field(
         None, description="result of executing the 'wordle' game"
     )
-    artifact_result: Optional[Dict] = Field(
-        None, description="result of downloading an artifact"
+    consume_result: ConsumeComputeResult | None = Field(
+        None, description="result of executing the 'consume_cpu' CPU load test"
+    )
+    artifact_result: ArtifactResult | None = Field(
+        None,
+        description="result of downloading (and optionally re-uploading) an artifact",
+    )
+    event_result: EventResult | None = Field(
+        None, description="result of executing the 'events' test"
     )
     request: RequestContext = Field(description="information on the incoming request")
     run_time: float = Field(description="time in seconds this job took")
-
-
-# class ExecCtxt(ExecutionContext, BaseModel):
-#     msg: str
 
 
 @ivcap_lambda("/", opts=ToolOptions(tags=["Test Tool"], service_id="/"))
@@ -171,7 +133,8 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
     """
     Run various tests
 
-    This is a simple test harness to execute various functionalities
+    This is a simple test harness to execute various functionalities, most of
+    which are backed by the shared 'ivcap_service.testkit' worker functions.
     """
     result = Result(run_time=0, request=RequestContext.from_freq(freq))
     start_time = time()  # Start timer
@@ -181,33 +144,25 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
             result.echo = req.echo
 
         if req.call is not None:
-            result.call_result = make_request(req.call)
+            result.call_result = make_request(req.call, jobCtxt)
 
         if req.llm is not None:
             result.llm_result = completion(req.llm)
 
         if req.wordle is not None:
-            result.wordle_result = play_random_wordle(req.wordle)
+            result.wordle_result = handle_wordle(req.wordle, jobCtxt)
+
+        if req.consume_cpu is not None:
+            result.consume_result = consume_compute(req.consume_cpu, jobCtxt)
+
+        if req.artifact is not None:
+            result.artifact_result = handle_artifact(req.artifact, jobCtxt)
 
         if req.events is not None:
-            send_events(req.events, jobCtxt)
+            result.event_result = send_events(req.events, jobCtxt)
 
-        if req.download_artifact is not None:
-            result.artifact_result = download_artifact_content(
-                req.download_artifact, jobCtxt
-            )
-
-        if req.create_oom_error:
-            # This will eventually raise a MemoryError or be killed by the OS
-            data = []
-            while True:
-                data.append(" " * 100_000_000)
-
-        if req.sleep > 0:
+        if req.sleep:
             sleep(req.sleep)
-
-        if req.raise_error:
-            raise BaseException(req.raise_error)
 
         result.run_time = round(time() - start_time, 2)
         step.finished(f"Finished tool execution in {result.run_time} seconds")
@@ -218,6 +173,10 @@ def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
 async def async_tester(req: Request, freq: FRequest) -> Result:
     """
     Run various tests in 'async' mode
+
+    Exercises the ivcap-lambda library's support for 'async def' tool
+    functions - the only aspect of this tool not already covered by the
+    (synchronous) 'ivcap_service.testkit' worker functions.
     """
     result = Result(run_time=0, request=RequestContext.from_freq(freq))
     start_time = time()  # Start timer
@@ -231,50 +190,23 @@ async def async_tester(req: Request, freq: FRequest) -> Result:
     if req.llm is not None:
         result.llm_result = await async_completion(req.llm)
 
-    if req.wordle is not None:
-        result.wordle_result = play_random_wordle(req.wordle)
-
-    if req.create_oom_error:
-        # This will eventually raise a MemoryError or be killed by the OS
-        data = []
-        while True:
-            data.append(" " * 100_000_000)
-
-    if req.sleep > 0:
+    if req.sleep:
         await async_sleep(req.sleep)
 
     result.run_time = round(time() - start_time, 2)
     return result
 
 
-def completion(req: LlmTester):
-    import openai
-
-    try:
-        client = create_openai_client(openai.OpenAI)
-        response = client.chat.completions.create(
-            model=req.model, messages=req.messages
-        )
-        return format_llm_response(response)
-    except Exception as ex:
-        logger.warning(f"llm execution failed - {ex}")
-        raise ex
-
-
-async def async_completion(req: LlmTester):
+async def async_completion(req: LlmTester) -> LlmResult:
     import openai
 
     client = create_openai_client(openai.AsyncOpenAI)
     response = await client.chat.completions.create(
-        model=req.model, messages=req.messages
+        model=req.model, messages=[m.model_dump() for m in req.messages]
     )
-    return format_llm_response(response)
-
-
-def format_llm_response(response):
     messages = [c.message.model_dump() for c in response.choices]
     usage = response.usage.model_dump()
-    return {"messages": messages, "usage": usage}
+    return LlmResult(messages=messages, usage=usage)
 
 
 def create_openai_client(f):
@@ -284,119 +216,6 @@ def create_openai_client(f):
     else:
         return f(base_url=f"{base_url}/v1", api_key="not-needed")
 
-
-def make_request(req: CallTester) -> Any:
-    """
-    Makes a generic HTTP request.
-
-    :param request_data: CallTester object containing request details.
-    :return: JSON response or error message.
-    """
-    try:
-        url = str(req.url)
-        params = req.params
-        response = httpx.request(
-            method=req.method.upper(),
-            url=url,
-            params=params,
-            json=req.data,
-            headers=req.headers,
-            timeout=req.timeout,
-        )
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
-        return response.json()
-
-    except requests.exceptions.RequestException as e:
-        return {"error": str(e)}
-
-
-def send_events(req: EventTester, jobCtxt: JobContext):
-    for i in range(req.count):
-        with jobCtxt.report.step("work", message=f"step#{i}"):
-            sleep(req.sleep)
-    jobCtxt.report.emit(GenericEvent(name="finished"))
-
-
-def download_artifact_content(req: ArtifactDownloader, jobCtxt: JobContext) -> Dict:
-    """Stream an artifact by URN using the ivcap_client SDK and return a
-    summary dict containing metadata and download statistics.
-
-    Iterates over artifact.as_stream() chunks, emitting a job event for every
-    block via step.info() with a running byte total.  All downloaded data is
-    discarded.  Stops early when max_size bytes have been received (if set).
-    Errors during download are captured and reported in the result dict rather
-    than propagating to the caller.
-    """
-    logger.info(
-        f"downloading artifact '{req.artifact_id}' "
-        f"(block_size={req.block_size}, max_size={req.max_size})"
-    )
-
-    chunks_received = 0
-    bytes_received = 0
-    error = None
-    artifact_id = req.artifact_id
-    artifact_name = None
-    artifact_size = None
-    artifact_mime_type = None
-
-    with jobCtxt.report.step(
-        "download-artifact", f"Downloading artifact {req.artifact_id}"
-    ) as step:
-        try:
-            artifact = jobCtxt.ivcap.get_artifact(req.artifact_id)
-            artifact_id = artifact.id
-            artifact_name = getattr(artifact, "name", None)
-            artifact_size = getattr(artifact, "size", None)
-            artifact_mime_type = getattr(artifact, "mime_type", None)
-
-            for chunk in artifact.as_stream(chunk_size=req.block_size):
-                chunks_received += 1
-                bytes_received += len(chunk)
-                step.info(
-                    GenericEvent(
-                        name="artifact-chunk",
-                        options={
-                            "chunk": chunks_received,
-                            "bytes_this_chunk": len(chunk),
-                            "bytes_total": bytes_received,
-                        },
-                    )
-                )
-                if req.max_size is not None and bytes_received >= req.max_size:
-                    logger.info(
-                        f"stopping early: reached max_size={req.max_size} "
-                        f"after {chunks_received} chunks ({bytes_received} bytes)"
-                    )
-                    break
-
-        except Exception as ex:
-            logger.warning(
-                f"artifact download failed after {chunks_received} chunks "
-                f"({bytes_received} bytes) - {ex}"
-            )
-            error = str(ex)
-
-        size_info = f" of {artifact_size}" if artifact_size is not None else ""
-        step.finished(
-            f"downloaded {chunks_received} chunks / {bytes_received} bytes{size_info}"
-            + (" [error]" if error else "")
-        )
-
-    return {
-        "artifact_id": artifact_id,
-        "name": artifact_name,
-        "artifact_size": artifact_size,
-        "mime_type": artifact_mime_type,
-        "chunks_received": chunks_received,
-        "bytes_received": bytes_received,
-        "stopped_early": req.max_size is not None and bytes_received >= req.max_size,
-        "error": error,
-    }
-
-
-# add_tool_api_route(app, "/", tester, opts=ToolOptions(tags=["Test Tool"], service_id="/"), context=ExecCtxt(msg="Boo!"))
-# add_tool_api_route(app, "/async", async_tester, opts=ToolOptions(tags=["Test Tool"]))
 
 if __name__ == "__main__":
     import argparse

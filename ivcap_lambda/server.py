@@ -99,6 +99,15 @@ def start_lambda_server(
     )
     parser.add_argument("--with-mcp", action="store_true", help="Add an MCP endpoint")
     parser.add_argument(
+        "--with-mcp-stdio",
+        action="store_true",
+        help=(
+            "Run as an MCP server over stdio instead of starting the HTTP "
+            "server (for local development with stdio-based MCP clients, "
+            "e.g. Claude Desktop, Cline). Requires the 'mcp' extra."
+        ),
+    )
+    parser.add_argument(
         "--print-service-description",
         type=str,
         metavar="NAME",
@@ -121,6 +130,9 @@ def start_lambda_server(
         args = custom_args(parser)
     else:
         args = parser.parse_args()
+
+    if args.with_mcp_stdio and args.with_mcp:
+        parser.error("--with-mcp-stdio and --with-mcp are mutually exclusive")
 
     if args.print_tool_description:
         tool = next((t for t in tools if t.name == args.print_tool_description), None)
@@ -152,6 +164,29 @@ def start_lambda_server(
         f"{title} - {os.getenv('VERSION')} - v{get_version()}|v{get_service_version()}"
     )
 
+    # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
+    set_event_reporter_factory(SidecarReporter)  # type: ignore[arg-type]
+
+    def get_context():
+        jctxt = get_job_context()
+        if jctxt is None or jctxt.job_id is None:
+            logger.warning("missing job context in thread")
+            return None
+        return jctxt
+
+    set_context(get_context)
+
+    if args.with_mcp_stdio:
+        # Run as a stdio MCP server instead of the HTTP/uvicorn server: no
+        # FastAPI app involved, so there is nothing to instrument there, but
+        # outbound httpx/requests calls (e.g. via JobContext.ivcap) are still
+        # instrumented the same way as for the HTTP server.
+        from .mcp import run_mcp_stdio
+
+        otel_instrument(with_telemetry, None, logger)
+        run_mcp_stdio(service.name, app.version)
+        return
+
     # Check for '_healtz' service
     healtz = find_first(app.routes, lambda r: r.path == "/_healtz")
     if healtz is None:
@@ -164,18 +199,6 @@ def start_lambda_server(
         from .mcp import register_mcp
 
         register_mcp(app, "/mcp")
-
-    # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
-    set_event_reporter_factory(SidecarReporter)  # type: ignore[arg-type]
-
-    def get_context():
-        jctxt = get_job_context()
-        if jctxt is None or jctxt.job_id is None:
-            logger.warning("missing job context in thread")
-            return None
-        return jctxt
-
-    set_context(get_context)
 
     otel_instrument(
         with_telemetry, lambda _: FastAPIInstrumentor.instrument_app(app), logger

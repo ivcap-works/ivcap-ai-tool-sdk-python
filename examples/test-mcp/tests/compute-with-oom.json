@@ -1,0 +1,5 @@
+{
+  "duration_seconds": 1,
+  "target_cpu_percent": 10,
+  "create_oom_error_at_end": true
+}
