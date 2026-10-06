@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.1
+        v0.8.2
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.1
+        v0.8.2
       </li>
     </ul>
   </div>
@@ -1562,18 +1562,26 @@
 
 <h1 id="agent-guide">Agent Guide<a class="headerlink" href="#agent-guide" title="Permanent link">&para;</a></h1>
 <p>This page is the machine-readable quick-reference for <code>ivcap-lambda</code>, designed for
-AI coding assistants (Copilot, Cursor, Claude, Cline, …).</p>
+AI coding assistants (Copilot, Cursor, Claude, Cline, …). It's split into a router
+(<code>AGENTS.md</code> at the project root) plus three track-specific playbooks under
+<code>docs/agents/</code>, so an agent working on one specific task only needs to load the
+relevant file(s).</p>
 <p>It is also available at the project root as
-<a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md"><code>AGENTS.md</code></a>
+<a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md"><code>AGENTS.md</code></a>,
+which routes to three track-specific files under <code>docs/agents/</code> in the source
+repository (<a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md">Track A</a>,
+<a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-b-mcp-first.md">Track B</a>,
+<a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md">Track C</a>)
 for agents that scan repository metadata before writing code.</p>
 <div class="admonition tip">
 <p class="admonition-title">Also available in your repo</p>
-<p>When you clone this repository, <code>AGENTS.md</code> is at the project root so your IDE
-and any context-scanning agents can find it automatically.</p>
+<p>When you clone this repository, <code>AGENTS.md</code> is at the project root (with its
+linked files under <code>docs/agents/</code>) so your IDE and any context-scanning agents
+can find it automatically.</p>
 </div>
 <hr />
 <h1 id="agentsmd-building-services-with-ivcap-lambda">AGENTS.md: Building Services with <code>ivcap-lambda</code><a class="headerlink" href="#agentsmd-building-services-with-ivcap-lambda" title="Permanent link">&para;</a></h1>
-<p>This document provides comprehensive instructions for AI coding agents on how to use the <code>ivcap-lambda</code> library. There are two primary development paths — pick the one matching the developer's goal, or read both if a project needs to do both.</p>
+<p>This document routes AI coding agents to the right playbook for building services with the <code>ivcap-lambda</code> library. There are three entry points, each in its own self-contained file under <code>docs/agents/</code> — read only the one matching the developer's goal; cross-references between them are explicit where needed.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>ivcap-lambda</code> turns a plain Python function into:</p>
 <ul>
@@ -1595,19 +1603,23 @@ and any context-scanning agents can find it automatically.</p>
 <tbody>
 <tr>
 <td>Build a service to deploy on the IVCAP platform (REST tool/agent endpoint); MCP is optional or not needed</td>
-<td><strong><a href="#track-a-ivcap-lambda-service">Track A: IVCAP Lambda Service</a></strong></td>
+<td><strong><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md">Track A: IVCAP Lambda Service</a></strong></td>
 </tr>
 <tr>
 <td>Build an MCP server (for Claude Desktop, Cursor, Cline, etc.); the ability to <em>also</em> run on IVCAP is a bonus, not the focus</td>
-<td><strong><a href="#track-b-mcp-first-server">Track B: MCP-First Server</a></strong></td>
+<td><strong><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-b-mcp-first.md">Track B: MCP-First Server</a></strong></td>
 </tr>
 <tr>
 <td>Both — ship a service that's a first-class IVCAP tool <em>and</em> a first-class MCP server</td>
 <td>Read Track A fully, then skim Track B for what changes when MCP is the primary interface</td>
 </tr>
+<tr>
+<td>Already have a server built directly on the plain <code>mcp</code> Python SDK and want to move it onto <code>ivcap-lambda</code> (keeping it a working MCP server, and gaining a clean IVCAP service for free)</td>
+<td><strong><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md">Track C: Converting an Existing Plain <code>mcp</code> SDK Server</a></strong> — self-contained, no need to read Track A/B first</td>
+</tr>
 </tbody>
 </table>
-<p>Both tracks share the same core building blocks (<code>@ivcap_lambda</code>, <code>ToolOptions</code>, <code>JobContext</code>, <code>@with_schema</code>) — see <a href="#shared-reference">Shared Reference</a> at the end for the full symbol table.</p>
+<p>All three tracks share the same core building blocks (<code>@ivcap_lambda</code>, <code>ToolOptions</code>, <code>JobContext</code>, <code>@with_schema</code>) — see <a href="#shared-reference">Shared Reference</a> below for the full symbol table and best practices, applicable regardless of which track you read.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ivcap-service  (batch + base primitives)
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      │
@@ -1621,425 +1633,8 @@ and any context-scanning agents can find it automatically.</p>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                        └── /mcp or stdio       ← MCP tools/call (--with-mcp[-stdio])
 </code></pre></div>
 <hr />
-<h1 id="track-a-ivcap-lambda-service">Track A: IVCAP Lambda Service<a class="headerlink" href="#track-a-ivcap-lambda-service" title="Permanent link">&para;</a></h1>
-<p>For developers whose primary goal is a service deployed on the IVCAP platform, reachable via REST and the IVCAP tool-description protocol. MCP support (Track B) can be bolted on later with zero code changes via <code>--with-mcp</code>/<code>--with-mcp-stdio</code>.</p>
-<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">ServiceContact</span><span class="p">,</span> <span class="n">ServiceLicense</span><span class="p">,</span> <span class="n">JobContext</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">,</span> <span class="n">with_schema</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">start_lambda_server</span><span class="p">,</span> <span class="n">ivcap_lambda</span><span class="p">,</span> <span class="n">ToolOptions</span><span class="p">,</span> <span class="n">logging_init</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">logging_init</span><span class="p">()</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;my_service&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Lambda Service&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">contact</span><span class="o">=</span><span class="n">ServiceContact</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Your Name&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;you@example.com&quot;</span><span class="p">),</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">license</span><span class="o">=</span><span class="n">ServiceLicense</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MIT&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://opensource.org/license/MIT&quot;</span><span class="p">),</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my_service.request.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Text to process.&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my_service.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Processing result.&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/process&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="n">ToolOptions</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Text&quot;</span><span class="p">],</span> <span class="n">service_id</span><span class="o">=</span><span class="s2">&quot;/process&quot;</span><span class="p">))</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">MyRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyResult</span><span class="p">:</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Process text</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="sd">    Takes input text and returns a processed version.</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="sd">    Describe what the tool does for agent consumers here.</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job=</span><span class="si">{</span><span class="n">jobCtxt</span><span class="o">.</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="s2">&quot;Processing...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>    <span class="k">return</span> <span class="n">MyResult</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>
-<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>
-<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>    <span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="step-by-step-guide">Step-by-Step Guide<a class="headerlink" href="#step-by-step-guide" title="Permanent link">&para;</a></h2>
-<h3 id="1-import-required-components">1. Import Required Components<a class="headerlink" href="#1-import-required-components" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">Service</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">ServiceContact</span><span class="p">,</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">ServiceLicense</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">JobContext</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">getLogger</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">with_schema</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">start_lambda_server</span><span class="p">,</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">ivcap_lambda</span><span class="p">,</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">ToolOptions</span><span class="p">,</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">logging_init</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">)</span>
-</code></pre></div>
-<p>Key imports:
-- <code>Service</code>, <code>ServiceContact</code>, <code>ServiceLicense</code> — service metadata (from <code>ivcap_service</code>)
-- <code>JobContext</code> — per-invocation context with job ID, reporter, and IVCAP client (from <code>ivcap_service</code>)
-- <code>getLogger</code> — structured logger (from <code>ivcap_service</code>)
-- <code>with_schema</code> — decorator to attach <code>$schema</code> URN to a Pydantic model (from <code>ivcap_service</code>)
-- <code>start_lambda_server</code> — start the FastAPI/uvicorn HTTP server (from <code>ivcap_lambda</code>)
-- <code>ivcap_lambda</code> — decorator to register a tool function (from <code>ivcap_lambda</code>)
-- <code>ToolOptions</code> — per-tool configuration (from <code>ivcap_lambda</code>)
-- <code>logging_init</code> — initialise structured logging (from <code>ivcap_lambda</code>)</p>
-<h3 id="2-initialize-logging">2. Initialize Logging<a class="headerlink" href="#2-initialize-logging" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">logging_init</span><span class="p">()</span>  <span class="c1"># call once at module level</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;my_service&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="3-define-the-service">3. Define the Service<a class="headerlink" href="#3-define-the-service" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Lambda Service&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">contact</span><span class="o">=</span><span class="n">ServiceContact</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Your Name&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;you@example.com&quot;</span><span class="p">),</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">license</span><span class="o">=</span><span class="n">ServiceLicense</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MIT&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://opensource.org/license/MIT&quot;</span><span class="p">),</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">)</span>
-</code></pre></div>
-<h3 id="4-define-request-and-result-models">4. Define Request and Result Models<a class="headerlink" href="#4-define-request-and-result-models" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Must inherit from <code>pydantic.BaseModel</code></li>
-<li>Must be decorated with <code>@with_schema("urn:...")</code></li>
-<li>Every field must have a <code>description</code> in <code>Field()</code></li>
-<li>Do <strong>NOT</strong> add a <code>$schema</code> or <code>jschema</code> field manually</li>
-</ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my_service.request.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">param1</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;First parameter.&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">param2</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Optional integer parameter.&quot;</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my_service.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The result.&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of items processed.&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Schema URN format:</strong>
-- Request: <code>urn:{namespace}:schema:{service-name}.request.{version}</code>
-- Result:  <code>urn:{namespace}:schema:{service-name}.{version}</code></p>
-<h3 id="5-register-a-tool-function-with-ivcap_lambda">5. Register a Tool Function with <code>@ivcap_lambda</code><a class="headerlink" href="#5-register-a-tool-function-with-ivcap_lambda" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/process&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="n">ToolOptions</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">],</span> <span class="n">service_id</span><span class="o">=</span><span class="s2">&quot;/process&quot;</span><span class="p">))</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">MyRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyResult</span><span class="p">:</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;One-line summary for Swagger/agents</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="sd">    Detailed description of what this tool does, when to use it,</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="sd">    and any constraints. This text is shown to AI agents.</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="o">...</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="k">return</span> <span class="n">MyResult</span><span class="p">(</span><span class="n">result</span><span class="o">=...</span><span class="p">,</span> <span class="n">count</span><span class="o">=...</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Function signature rules:</strong>
-- First parameter: the request model type (required)
-- Additional parameters (optional, detected by type annotation):
-  - <code>JobContext</code> — injected automatically
-  - <code>fastapi.Request</code> — injected automatically
-  - <code>ExecutionContext</code> subclass — injected if passed to decorator
-- Return type: the result model type (required)</p>
-<h3 id="6-tooloptions-fields">6. <code>ToolOptions</code> Fields<a class="headerlink" href="#6-tooloptions-fields" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>name</code></td>
-<td>inferred</td>
-<td>Human-readable tool name</td>
-</tr>
-<tr>
-<td><code>tags</code></td>
-<td>inferred</td>
-<td>OpenAPI tags</td>
-</tr>
-<tr>
-<td><code>max_wait_time</code></td>
-<td><code>5.0</code></td>
-<td>Seconds POST waits before returning <code>204 Try-Later</code></td>
-</tr>
-<tr>
-<td><code>refresh_interval</code></td>
-<td><code>3</code></td>
-<td><code>Retry-Later</code> header value</td>
-</tr>
-<tr>
-<td><code>service_id</code></td>
-<td><code>None</code></td>
-<td>Overrides service ID in tool description; prepend <code>/</code> to auto-prefix URL</td>
-</tr>
-<tr>
-<td><code>executor_opts</code></td>
-<td><code>None</code></td>
-<td><code>ExecutorOpts(max_workers, job_cache_size, job_cache_ttl)</code></td>
-</tr>
-<tr>
-<td><code>is_ready</code></td>
-<td><code>None</code></td>
-<td><code>Callable[[], bool]</code> — readiness check</td>
-</tr>
-<tr>
-<td><code>post_route_opts</code></td>
-<td><code>{}</code></td>
-<td>Extra kwargs for FastAPI route</td>
-</tr>
-</tbody>
-</table>
-<h3 id="7-using-jobcontext">7. Using JobContext<a class="headerlink" href="#7-using-jobcontext" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">MyRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyResult</span><span class="p">:</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="c1"># Job identifier</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="n">job_id</span> <span class="o">=</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">job_id</span>  <span class="c1"># str URN</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="c1"># Progress reporting</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;step-name&quot;</span><span class="p">,</span> <span class="s2">&quot;Human message&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="n">do_work</span><span class="p">()</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="s2">&quot;Work done&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="c1"># IVCAP platform client (lazy property)</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">ivcap</span> <span class="o">=</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">ivcap</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="n">artifact</span> <span class="o">=</span> <span class="n">ivcap</span><span class="o">.</span><span class="n">get_artifact</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">artifact_id</span><span class="p">)</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="n">data</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">as_stream</span><span class="p">())</span>
-</code></pre></div>
-<p><strong>JobContext fields:</strong>
-- <code>job_id</code> (<code>str</code>) — unique job URN
-- <code>report</code> (<code>EventReporter</code>) — emit progress events
-- <code>job_authorization</code> (<code>str | None</code>) — bearer token for downstream requests
-- <code>ivcap</code> (<code>IVCAP</code>) — IVCAP client (artifacts, services, aspects)</p>
-<h3 id="8-progress-reporting">8. Progress Reporting<a class="headerlink" href="#8-progress-reporting" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span><span class="p">,</span> <span class="n">GenericErrorEvent</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># Step context manager (recommended)</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;download&quot;</span><span class="p">,</span> <span class="s2">&quot;Downloading data&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">download</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="n">step</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;progress&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)}))</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># Direct methods</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step_started</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Starting&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step_finished</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Ready&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step_error</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;Init failed&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="c1"># One-off event</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}))</span>
-</code></pre></div>
-<h3 id="9-artifact-handling">9. Artifact Handling<a class="headerlink" href="#9-artifact-handling" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">ivcap</span> <span class="o">=</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">ivcap</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Download</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">artifact</span> <span class="o">=</span> <span class="n">ivcap</span><span class="o">.</span><span class="n">get_artifact</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">artifact_id</span><span class="p">)</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">data</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">as_stream</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">65536</span><span class="p">))</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Stream to temp file (auto-deleted)</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="k">with</span> <span class="n">artifact</span><span class="o">.</span><span class="n">as_local_file</span><span class="p">()</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="n">content</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="c1"># Upload</span>
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="n">result</span> <span class="o">=</span> <span class="n">ivcap</span><span class="o">.</span><span class="n">upload_artifact</span><span class="p">(</span>
-<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;output.json&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="n">io_stream</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">output_bytes</span><span class="p">),</span>
-<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>    <span class="n">content_type</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="n">content_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">output_bytes</span><span class="p">),</span>
-<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="p">)</span>
-<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="n">result_urn</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">id</span>
-</code></pre></div>
-<h3 id="10-async-tools">10. Async Tools<a class="headerlink" href="#10-async-tools" title="Permanent link">&para;</a></h3>
-<p>Async functions are fully supported:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/async-process&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_process</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">MyRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyResult</span><span class="p">:</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Process asynchronously&quot;&quot;&quot;</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="k">return</span> <span class="n">MyResult</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="11-error-handling">11. Error Handling<a class="headerlink" href="#11-error-handling" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/safe&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">safe</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">MyRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyResult</span><span class="p">:</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">req</span><span class="o">.</span><span class="n">param1</span><span class="p">:</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;param1 must not be empty&quot;</span><span class="p">)</span>  <span class="c1"># → 400 Bad Request</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">risky_operation</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>        <span class="k">raise</span>  <span class="c1"># → 500 Internal Server Error with traceback</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="k">return</span> <span class="n">MyResult</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</code></pre></div>
-<ul>
-<li><code>ValueError</code> → <code>400 Bad Request</code></li>
-<li>Other exceptions → <code>500 Internal Server Error</code></li>
-<li>Pydantic validation failures → <code>422 Unprocessable Entity</code> (before function runs)</li>
-</ul>
-<h3 id="12-start-the-server">12. Start the Server<a class="headerlink" href="#12-start-the-server" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    <span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Built-in CLI flags:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>--host HOST                  Bind address (default 0.0.0.0)
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>--port PORT                  Port (default 8090)
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>--with-telemetry             Enable OpenTelemetry
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>--with-mcp                   Enable MCP endpoint at /mcp
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>--with-mcp-stdio             Run as an MCP server over stdio instead of HTTP (for Claude Desktop/Cline)
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>--print-tool-description     Print tool description JSON and exit
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>--print-service-description  Print service description JSON and exit
-</code></pre></div></p>
-<h2 id="async-try-later-protocol">Async (Try-Later) Protocol<a class="headerlink" href="#async-try-later-protocol" title="Permanent link">&para;</a></h2>
-<p>When a job takes longer than <code>max_wait_time</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>POST /tool {payload}
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>→ 204 No Content
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>  Location: /jobs/{job_id}
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>  Retry-Later: 3
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>GET /jobs/{job_id}
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>→ 200 OK {result}
-</code></pre></div>
-<p>Force async: send <code>Prefer: respond-async</code> header.
-Custom timeout: send <code>Timeout: &lt;seconds&gt;</code> header.</p>
-<h2 id="optional-also-expose-as-mcp">Optional: Also Expose as MCP<a class="headerlink" href="#optional-also-expose-as-mcp" title="Permanent link">&para;</a></h2>
-<p>Everything registered via <code>@ivcap_lambda(...)</code> can <em>also</em> be exposed as a
-spec-compliant MCP server with <strong>zero code changes</strong> — just install the
-extra and pass a flag at startup:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ivcap-lambda<span class="o">[</span>mcp<span class="o">]</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--with-mcp<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span><span class="w">        </span><span class="c1"># HTTP (Streamable-HTTP transport)</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--with-mcp-stdio<span class="w">              </span><span class="c1"># stdio (local dev, Claude Desktop/Cline)</span>
-</code></pre></div>
-<p>If MCP is your primary interface rather than a bonus on top of a REST/IVCAP
-service, read <strong><a href="#track-b-mcp-first-server">Track B: MCP-First Server</a></strong>
-below instead — it covers starting from an MCP-only mindset and treating
-IVCAP deployment as the add-on. The underlying mechanism (same registry,
-same <code>Executor</code>, same progress bridging) is identical either way; only the
-starting point and which CLI flags/pieces of <code>ToolOptions</code>/<code>JobContext</code> you
-actually need differs.</p>
-<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>my-service/
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>├── pyproject.toml
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>├── my_service.py          # entry point
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>├── Dockerfile
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>└── tests/
-<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    └── call-process.json  # test payload
-</code></pre></div>
-<p><strong>pyproject.toml:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">[tool.poetry.dependencies]</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.11,&lt;4.0&quot;</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="n">ivcap-lambda</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=0.7&quot;</span>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="k">[tool.poetry-plugin-ivcap]</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="n">service-file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_service.py&quot;</span>
-<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">service-id</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;urn:ivcap:service:&lt;uuid&gt;&quot;</span>
-<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="n">service-type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;lambda&quot;</span>
-<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="n">port</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">8095</span>
-</code></pre></div></p>
-<p>That's the end of Track A. See <a href="#shared-reference">Shared Reference</a> below for Best Practices and the full symbol table (applicable to both tracks), or continue to Track B if MCP is also (or primarily) a goal.</p>
-<hr />
-<h1 id="track-b-mcp-first-server">Track B: MCP-First Server<a class="headerlink" href="#track-b-mcp-first-server" title="Permanent link">&para;</a></h1>
-<p>For developers whose primary goal is building an <strong>MCP server</strong> — one that works well in Claude Desktop, Cursor, Cline, or any other MCP host — where the ability to <em>also</em> run as an IVCAP lambda service is a nice-to-have, not the focus. You write exactly the same <code>@ivcap_lambda</code>-decorated functions as Track A; the difference is which parts of the library you actually need to think about, and which CLI flag you reach for first.</p>
-<h2 id="why-ivcap-lambda-for-an-mcp-only-project">Why <code>ivcap-lambda</code> for an MCP-only project?<a class="headerlink" href="#why-ivcap-lambda-for-an-mcp-only-project" title="Permanent link">&para;</a></h2>
-<p>Even if you never plan to deploy to IVCAP, <code>ivcap-lambda</code> gives you a production-quality MCP server for very little code because it's built on the <strong>official <code>mcp</code> Python SDK</strong> (not a custom reimplementation): spec-correct session handling, Streamable-HTTP <em>and</em> stdio transports, resumability, and progress notifications all come from that upstream dependency. On top, <code>ivcap-lambda</code> adds:</p>
-<ul>
-<li>Pydantic-model-driven tool schemas (define a request/result model once, get the MCP input/output schema and the REST schema for free)</li>
-<li>A thread pool + job-result cache so slow/blocking tool functions don't need to be rewritten as <code>async def</code></li>
-<li><code>jobCtxt.report.step(...)</code> progress reporting that is automatically bridged to native MCP <code>notifications/progress</code> messages</li>
-<li>A Swagger/OpenAPI UI (<code>/api</code>) and a tool-description endpoint "for free" if you ever <em>do</em> want to expose the same tool over plain REST</li>
-</ul>
-<h2 id="minimal-mcp-only-service">Minimal MCP-Only Service<a class="headerlink" href="#minimal-mcp-only-service" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">with_schema</span>
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">ivcap_lambda</span><span class="p">,</span> <span class="n">start_lambda_server</span><span class="p">,</span> <span class="n">logging_init</span>
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">logging_init</span><span class="p">()</span>
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
-<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># `Service` metadata is still required by start_lambda_server(), but none of</span>
-<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># its fields matter for MCP clients — only `name` is used (as the MCP</span>
-<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># server&#39;s reported name). Keep it minimal.</span>
-<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;My MCP Server&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
-<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
-<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my-mcp-server.add.request.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="k">class</span><span class="w"> </span><span class="nc">AddRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>    <span class="n">a</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;First number.&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>    <span class="n">b</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Second number.&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>
-<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>
-<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:my-mcp-server.add.1&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="k">class</span><span class="w"> </span><span class="nc">AddResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>    <span class="nb">sum</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;a + b.&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a>
-<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>
-<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/add&quot;</span><span class="p">)</span>
-<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">AddRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AddResult</span><span class="p">:</span>
-<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Add two numbers</span>
-<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a>
-<a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="sd">    Returns the sum of the two provided numbers.</span>
-<a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a>    <span class="k">return</span> <span class="n">AddResult</span><span class="p">(</span><span class="nb">sum</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">a</span> <span class="o">+</span> <span class="n">req</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
-<a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a>
-<a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a>
-<a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<a id="__codelineno-18-34" name="__codelineno-18-34" href="#__codelineno-18-34"></a>    <span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
-</code></pre></div>
-<p>Run it as a pure MCP server — no HTTP port, no FastAPI server, nothing IVCAP-specific — ideal for local development against Claude Desktop/Cline, which launch the server as a stdio subprocess:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ivcap-lambda<span class="o">[</span>mcp<span class="o">]</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>python<span class="w"> </span>my_mcp_server.py<span class="w"> </span>--with-mcp-stdio
-</code></pre></div>
-<p>Or expose it over HTTP (Streamable-HTTP transport) for remote MCP clients / the MCP Inspector:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>python<span class="w"> </span>my_mcp_server.py<span class="w"> </span>--with-mcp<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># then: npx @modelcontextprotocol/inspector http://localhost:8090/mcp</span>
-</code></pre></div>
-<p><code>--with-mcp</code> and <code>--with-mcp-stdio</code> are mutually exclusive. With <code>--with-mcp-stdio</code>, no REST/Swagger/health endpoints are started at all — the process is purely an MCP server over stdio for as long as the host keeps the connection open.</p>
-<h2 id="things-you-can-mostly-ignore-in-an-mcp-first-project">Things You Can Mostly Ignore in an MCP-First Project<a class="headerlink" href="#things-you-can-mostly-ignore-in-an-mcp-first-project" title="Permanent link">&para;</a></h2>
-<p>These exist for IVCAP deployment and are safe to skip unless/until you decide to also run on IVCAP:</p>
-<ul>
-<li><code>ToolOptions.max_wait_time</code> / <code>refresh_interval</code> — only affect the REST "try-later" (<code>204</code>) path; MCP's <code>tools/call</code> always awaits the result directly (see <a href="#execution-semantics-mcp-vs-rest">Execution Semantics</a> below)</li>
-<li><code>ToolOptions.service_id</code> — only used to populate the IVCAP tool-description endpoint's <code>service_id</code> field</li>
-<li><code>JobContext.ivcap</code> / <code>JobContext.job_authorization</code> — IVCAP platform client and auth token; irrelevant unless your tool talks to IVCAP artifacts/services</li>
-<li><code>--print-tool-description</code> / <code>--print-service-description</code> — only needed for IVCAP platform registration</li>
-<li><code>[tool.poetry-plugin-ivcap]</code> in <code>pyproject.toml</code> — only needed if/when you register the service with IVCAP</li>
-</ul>
-<h2 id="things-worth-using-even-in-an-mcp-first-project">Things Worth Using Even in an MCP-First Project<a class="headerlink" href="#things-worth-using-even-in-an-mcp-first-project" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong><code>@with_schema</code> on request/result models</strong> — still the mechanism that generates the MCP tool's input/output JSON schema from your Pydantic model; skipping it is not an option, it's load-bearing for both transports</li>
-<li><strong>Docstrings</strong> — the first paragraph becomes the MCP tool's short description surfaced to the LLM; the rest becomes the longer description. Same conventions as Track A: explain what the tool does, when to use it, and any constraints</li>
-<li><strong><code>JobContext</code> (optional parameter) for progress reporting</strong> — if a tool can take more than a second or two, accept <code>jobCtxt: JobContext</code> and wrap the slow part in <code>with jobCtxt.report.step(...)</code>; this shows up as live progress in MCP clients that render <code>notifications/progress</code> (e.g. the MCP Inspector), with zero MCP-specific code</li>
-<li><strong>Raising <code>ValueError</code> for bad input</strong> — surfaces as a proper MCP tool error (<code>is_error=True</code>) that the calling model can read and react to, instead of a crash</li>
-</ul>
-<h2 id="execution-semantics-mcp-vs-rest">Execution Semantics: MCP vs REST<a class="headerlink" href="#execution-semantics-mcp-vs-rest" title="Permanent link">&para;</a></h2>
-<p>MCP's <code>tools/call</code> is a single request/response RPC with progress delivered as notifications on the <em>same</em> call — there is no REST-style "it's taking a while, poll me later" (<code>204</code>/<code>Retry-Later</code>) equivalent in the base MCP spec. So when a tool is invoked over MCP, <code>ivcap-lambda</code> always waits for the result (bounded by an internal <code>600s</code> timeout) rather than ever deferring it. Implications for MCP-first design:</p>
-<ul>
-<li>Don't rely on <code>ToolOptions.max_wait_time</code> to bound how long an MCP client waits — it has no effect over MCP</li>
-<li>If a tool can genuinely take minutes, report progress via <code>jobCtxt.report.step(...)</code> so the client/host shows the user something is happening, rather than appearing to hang</li>
-<li>The REST "try-later" protocol (described in Track A) only matters if/when the same tool is also exposed over plain REST</li>
-</ul>
-<h2 id="testing-an-mcp-first-service">Testing an MCP-First Service<a class="headerlink" href="#testing-an-mcp-first-service" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Using the official mcp SDK&#39;s in-memory client (no network, no subprocess)</span>
-<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda.mcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">_build_mcp_server</span>  <span class="c1"># or call register_mcp(app) and use its return value</span>
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">mcp</span>
-<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
-<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>    <span class="n">server</span> <span class="o">=</span> <span class="n">_build_mcp_server</span><span class="p">(</span><span class="s2">&quot;My MCP Server&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">)</span>
-<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">mcp</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">server</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>        <span class="n">tools</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tools</span><span class="p">()</span>
-<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>        <span class="nb">print</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">tools</span><span class="p">])</span>
-<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">call_tool</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;req&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
-<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>        <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">structured_content</span><span class="p">)</span>  <span class="c1"># {&#39;sum&#39;: 3}</span>
-<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>
-<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
-</code></pre></div>
-<p>For an end-to-end example testing both the stdio and HTTP transports (including a plain-curl Streamable-HTTP client and progress-notification capture), see <code>examples/test-mcp/</code> in this repository — particularly <code>tests/mcp-call.sh</code> and the <code>make run-mcp-stdio</code> / <code>make test-*</code> targets. Its <code>echo</code> tool is defined with <code>async def</code> (not plain <code>def</code>) and confirms async tool functions work identically over MCP's <code>tools/call</code> as they do over REST (both tracks share the same <code>Executor</code>, which detects <code>async def</code> via <code>asyncio.iscoroutinefunction</code> and awaits it on a dedicated event loop — see section 10, "Async Tools", above).</p>
-<h2 id="deploying-to-ivcap-later-optional">Deploying to IVCAP Later (Optional)<a class="headerlink" href="#deploying-to-ivcap-later-optional" title="Permanent link">&para;</a></h2>
-<p>If a service built MCP-first later needs to also run on IVCAP, nothing in the tool code changes — add <code>ToolOptions(service_id=..., tags=[...])</code>, a <code>[tool.poetry-plugin-ivcap]</code> section to <code>pyproject.toml</code>, and follow Track A's <a href="#project-structure">Project Structure</a> / deployment steps. The same <code>@ivcap_lambda</code>-decorated function is already a valid REST endpoint; MCP was never a fork, just an additional transport over the same registry.</p>
-<p>That's the end of Track B.</p>
-<hr />
 <h1 id="shared-reference">Shared Reference<a class="headerlink" href="#shared-reference" title="Permanent link">&para;</a></h1>
-<h2 id="best-practices-both-tracks">Best Practices (Both Tracks)<a class="headerlink" href="#best-practices-both-tracks" title="Permanent link">&para;</a></h2>
+<h2 id="best-practices-all-tracks">Best Practices (All Tracks)<a class="headerlink" href="#best-practices-all-tracks" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Always use <code>@with_schema</code></strong> on request/result models</li>
 <li><strong>Write comprehensive docstrings</strong> — both AI agents (IVCAP) and MCP hosts/models use these to decide when and how to call your tool</li>
@@ -2065,43 +1660,43 @@ actually need differs.</p>
 <td><code>ivcap_lambda</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Decorator to register a tool function</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>start_lambda_server</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Start the HTTP server, or the MCP server over stdio with <code>--with-mcp-stdio</code></td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>ToolOptions</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Per-tool configuration</td>
-<td>Both (some fields REST-only, see Track B)</td>
+<td>All (some fields REST-only, see Track B)</td>
 </tr>
 <tr>
 <td><code>ExecutorOpts</code></td>
 <td><code>ivcap_lambda.executor</code></td>
 <td>Thread-pool and cache configuration</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>logging_init</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Initialise structured logging</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>get_event_reporter</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Get <code>EventReporter</code> for current thread</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>get_job_id</code></td>
 <td><code>ivcap_lambda</code></td>
 <td>Get job ID for current thread</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>register_mcp</code></td>
@@ -2119,7 +1714,7 @@ actually need differs.</p>
 <td><code>Service</code></td>
 <td><code>ivcap_service</code></td>
 <td>Service metadata</td>
-<td>Both (minimal for MCP-only)</td>
+<td>All (minimal for MCP-only)</td>
 </tr>
 <tr>
 <td><code>ServiceContact</code></td>
@@ -2137,38 +1732,41 @@ actually need differs.</p>
 <td><code>JobContext</code></td>
 <td><code>ivcap_service</code></td>
 <td>Per-job context</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>with_schema</code></td>
 <td><code>ivcap_service</code></td>
 <td>Add <code>$schema</code> URN to a Pydantic model</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>getLogger</code></td>
 <td><code>ivcap_service</code></td>
 <td>Structured logger</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>GenericEvent</code></td>
 <td><code>ivcap_service.events</code></td>
 <td>Named progress event</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 <tr>
 <td><code>GenericErrorEvent</code></td>
 <td><code>ivcap_service.events</code></td>
 <td>Error event</td>
-<td>Both</td>
+<td>All</td>
 </tr>
 </tbody>
 </table>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
+<li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md">Track A: IVCAP Lambda Service</a></li>
+<li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-b-mcp-first.md">Track B: MCP-First Server</a></li>
+<li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md">Track C: Converting an Existing Plain <code>mcp</code> SDK Server</a></li>
 <li><a href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/">Full docs</a></li>
-<li><a href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/mcp/">MCP &amp; Agent Integration guide</a> — full MCP walkthrough including both tracks</li>
+<li><a href="https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/mcp/">MCP &amp; Agent Integration guide</a> — full MCP walkthrough including all three paths</li>
 <li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/DESIGN.md">DESIGN.md</a> — internal architecture, for anyone extending <code>ivcap-lambda</code> itself</li>
 <li><a href="https://ivcap-works.github.io/ivcap-service-sdk-python/">ivcap-service SDK</a> — base library</li>
 <li><a href="https://github.com/ivcap-works/ivcap-python-ai-tool-template">Template repository</a> — ready-to-clone starter</li>

@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.1
+        v0.8.2
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.1
+        v0.8.2
       </li>
     </ul>
   </div>
@@ -1025,6 +1025,67 @@
     <span class="md-ellipsis">
       
         Deploying to IVCAP later
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#converting-an-existing-plain-mcp-sdk-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting an Existing Plain mcp SDK Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting an Existing Plain mcp SDK Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-changes-and-what-doesnt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What changes and what doesn't
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-before-and-after" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: before and after
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrating-progress-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating progress reporting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resources-and-prompts-have-no-equivalent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resources and prompts have no equivalent
       
     </span>
   </a>
@@ -2056,6 +2117,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#converting-an-existing-plain-mcp-sdk-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting an Existing Plain mcp SDK Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting an Existing Plain mcp SDK Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-changes-and-what-doesnt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What changes and what doesn't
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-before-and-after" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: before and after
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrating-progress-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating progress reporting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resources-and-prompts-have-no-equivalent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resources and prompts have no equivalent
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2092,8 +2214,9 @@
 <ul>
 <li><strong><a href="#adding-mcp-to-an-ivcap-lambda-service">I have (or am building) an IVCAP lambda service and want to add MCP</a></strong> — MCP is an add-on, zero code changes</li>
 <li><strong><a href="#mcp-first-development">I'm building an MCP server first, and IVCAP deployment is a bonus</a></strong> — start from an MCP-only mindset</li>
+<li><strong><a href="#converting-an-existing-plain-mcp-sdk-server">I already have a server built on the plain <code>mcp</code> Python SDK and want to migrate it</a></strong> — keep it working the same for MCP clients, gain a clean IVCAP service</li>
 </ul>
-<p>See also <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md">AGENTS.md</a> (Track A / Track B) for the same split aimed at AI coding agents.</p>
+<p>See also <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md">AGENTS.md</a> for the same three-way split aimed at AI coding agents, routing to <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md">Track A</a>, <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-b-mcp-first.md">Track B</a>, and <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md">Track C (migrating from the plain <code>mcp</code> SDK)</a>.</p>
 <h2 id="what-is-mcp">What is MCP?<a class="headerlink" href="#what-is-mcp" title="Permanent link">&para;</a></h2>
 <p>The Model Context Protocol is an open standard that lets AI models discover and call tools via a standardised interface, supporting both HTTP (Streamable-HTTP) and stdio transports. By enabling MCP, your <code>ivcap-lambda</code> service becomes a first-class tool provider for any MCP-compatible host, in addition to (or instead of) being an IVCAP REST tool.</p>
 <h2 id="adding-mcp-to-an-ivcap-lambda-service">Adding MCP to an IVCAP Lambda Service<a class="headerlink" href="#adding-mcp-to-an-ivcap-lambda-service" title="Permanent link">&para;</a></h2>
@@ -2314,9 +2437,146 @@
 <p>See <code>examples/test-mcp/</code> in the <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python">source repository</a> for a complete runnable example covering both transports, including a plain-curl Streamable-HTTP test client. Its <code>echo</code> tool is defined with <code>async def</code> and demonstrates that async tool functions work identically to synchronous ones over MCP.</p>
 <h3 id="deploying-to-ivcap-later">Deploying to IVCAP later<a class="headerlink" href="#deploying-to-ivcap-later" title="Permanent link">&para;</a></h3>
 <p>Nothing in your tool code needs to change — add <code>ToolOptions(service_id=..., tags=[...])</code> and a <code>[tool.poetry-plugin-ivcap]</code> section to <code>pyproject.toml</code>, and follow the rest of this guide plus the <a href="../deployment/">Deployment Guide</a>. MCP was never a fork of the REST path; it's an additional transport over the same tool registry.</p>
+<h2 id="converting-an-existing-plain-mcp-sdk-server">Converting an Existing Plain <code>mcp</code> SDK Server<a class="headerlink" href="#converting-an-existing-plain-mcp-sdk-server" title="Permanent link">&para;</a></h2>
+<p>Already have a working MCP server built directly on the official <a href="https://pypi.org/project/mcp/"><code>mcp</code></a> Python SDK (<code>MCPServer</code>/<code>FastMCP</code>, <code>@mcp.tool()</code>) and want to move it onto <code>ivcap-lambda</code>? This section covers migrating it so it keeps working <strong>exactly the same for MCP clients/hosts</strong> — same tool names, descriptions, and schemas — while also becoming a clean, first-class IVCAP REST service, with no further code changes needed when that's useful.</p>
+<p>See also <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md">AGENTS.md's Track C: Converting an Existing Plain <code>mcp</code> SDK Server</a> for the same material aimed at AI coding agents performing the migration.</p>
+<h3 id="what-changes-and-what-doesnt">What changes and what doesn't<a class="headerlink" href="#what-changes-and-what-doesnt" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Plain <code>mcp</code> SDK</th>
+<th><code>ivcap-lambda</code> equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mcp = MCPServer("Demo")</code> (or <code>FastMCP(...)</code>)</td>
+<td><code>service = Service(name="Demo")</code> — metadata only; tools register themselves via <code>@ivcap_lambda</code>, not by decorating a server instance</td>
+</tr>
+<tr>
+<td><code>@mcp.tool()</code> on a function with several plain-typed params</td>
+<td><code>@ivcap_lambda("/add")</code> on a function taking <strong>one</strong> Pydantic request model as its first parameter</td>
+</tr>
+<tr>
+<td>Plain/primitive return value</td>
+<td>A single <code>@with_schema</code>-decorated Pydantic result model</td>
+</tr>
+<tr>
+<td><code>ctx: Context</code> + <code>await ctx.report_progress(...)</code></td>
+<td><code>jobCtxt: JobContext</code> + <code>with jobCtxt.report.step("name", "msg") as step: ...</code> (no <code>await</code> needed)</td>
+</tr>
+<tr>
+<td><code>mcp.run(transport="stdio")</code></td>
+<td><code>start_lambda_server(service)</code> in code, <code>--with-mcp-stdio</code> on the command line</td>
+</tr>
+<tr>
+<td><code>mcp.run(transport="streamable-http")</code></td>
+<td><code>start_lambda_server(service)</code> in code, <code>--with-mcp --port &lt;port&gt;</code> on the command line</td>
+</tr>
+<tr>
+<td><code>@mcp.resource(...)</code> / <code>@mcp.prompt(...)</code></td>
+<td>No equivalent — <code>ivcap-lambda</code> only exposes tools</td>
+</tr>
+</tbody>
+</table>
+<p>The tool name, docstring (short/long description split), input/output JSON schema shape, progress notifications, and error behaviour (<code>ValueError</code> → <code>is_error=True</code>) are all preserved unchanged for MCP clients.</p>
+<h3 id="example-before-and-after">Example: before and after<a class="headerlink" href="#example-before-and-after" title="Permanent link">&para;</a></h3>
+<p>The one required reshaping step is collecting a tool's separate scalar parameters into a single Pydantic request model, because <code>@ivcap_lambda</code> always passes a single parsed model as the first argument (the same model used for both the REST <code>POST</code> body and the MCP <code>req</code> argument):</p>
+<div class="highlight"><span class="filename">Before: plain mcp SDK</span><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mcp.server</span><span class="w"> </span><span class="kn">import</span> <span class="n">MCPServer</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">mcp</span> <span class="o">=</span> <span class="n">MCPServer</span><span class="p">(</span><span class="s2">&quot;Demo&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="nd">@mcp</span><span class="o">.</span><span class="n">tool</span><span class="p">()</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Add two numbers.&quot;&quot;&quot;</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    <span class="n">mcp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">transport</span><span class="o">=</span><span class="s2">&quot;stdio&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">After: ivcap-lambda</span><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span><span class="p">,</span> <span class="n">with_schema</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">ivcap_lambda</span><span class="p">,</span> <span class="n">start_lambda_server</span><span class="p">,</span> <span class="n">logging_init</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">logging_init</span><span class="p">()</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Demo&quot;</span><span class="p">)</span>  <span class="c1"># only `name` matters to MCP clients</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:demo.add.request.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">AddRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>    <span class="n">a</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;First number.&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">b</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Second number.&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:demo.add.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="k">class</span><span class="w"> </span><span class="nc">AddResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;a + b.&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/add&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a><span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">AddRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AddResult</span><span class="p">:</span>
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Add two numbers.</span>
+<a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>
+<a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a><span class="sd">    Returns the sum of the two provided numbers.</span>
+<a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a>    <span class="k">return</span> <span class="n">AddResult</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">a</span> <span class="o">+</span> <span class="n">req</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+<a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a>
+<a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a>
+<a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a>    <span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
+</code></pre></div>
+<p>Run it the same way the old server was launched, just append the transport flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ivcap-lambda<span class="o">[</span>mcp<span class="o">]</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>python<span class="w"> </span>server.py<span class="w"> </span>--with-mcp-stdio<span class="w">          </span><span class="c1"># stdio, unchanged for Claude Desktop/Cline</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="c1"># or</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>python<span class="w"> </span>server.py<span class="w"> </span>--with-mcp<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span><span class="w">    </span><span class="c1"># Streamable-HTTP</span>
+</code></pre></div>
+<p>Existing Claude Desktop / Cline <code>mcpServers</code> config entries only need the <code>args</code> updated to include the new flag — the overall shape is unchanged:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="p">{</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">&quot;demo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;server.py&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--with-mcp-stdio&quot;</span><span class="p">],</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">      </span><span class="nt">&quot;cwd&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/absolute/path/to/server&quot;</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="migrating-progress-reporting">Migrating progress reporting<a class="headerlink" href="#migrating-progress-reporting" title="Permanent link">&para;</a></h3>
+<div class="highlight"><span class="filename">Before</span><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mcp.server.mcpserver</span><span class="w"> </span><span class="kn">import</span> <span class="n">Context</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="nd">@mcp</span><span class="o">.</span><span class="n">tool</span><span class="p">()</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">long_task</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a long task.&quot;&quot;&quot;</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report_progress</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;step </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>    <span class="k">return</span> <span class="s2">&quot;done&quot;</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">After</span><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:demo.long-task.request.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">LongTaskRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of steps to run.&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:sd:schema:demo.long-task.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">LongTaskResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Final status.&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/long-task&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">long_task</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">LongTaskRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LongTaskResult</span><span class="p">:</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a long task.&quot;&quot;&quot;</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;running&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">n</span><span class="p">):</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>            <span class="n">step</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;step </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>    <span class="k">return</span> <span class="n">LongTaskResult</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><code>async def</code> is not required just to report progress — plain <code>def</code> tool functions report progress identically over MCP (see <a href="#sync-and-async-tool-functions-both-work-over-mcp">Sync and async tool functions both work over MCP</a> above). Only use <code>async def</code> if the function body itself needs to <code>await</code> something.</p>
+<h3 id="resources-and-prompts-have-no-equivalent">Resources and prompts have no equivalent<a class="headerlink" href="#resources-and-prompts-have-no-equivalent" title="Permanent link">&para;</a></h3>
+<p><code>ivcap-lambda</code> only re-exposes <code>@ivcap_lambda</code>-registered functions as MCP <strong>tools</strong> — there is no equivalent for <code>@mcp.resource(...)</code> or <code>@mcp.prompt(...)</code>. If the existing server relies on these, either keep them running on a small separate plain-<code>mcp</code> server alongside the migrated tools, or redesign them as tools (a read-only "resource" that just returns data can usually become a tool that returns a Pydantic model instead).</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md">AGENTS.md</a> — the same IVCAP-first / MCP-first split, aimed at AI coding agents</li>
+<li><a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md">AGENTS.md</a> — the same three-way split (IVCAP-first / MCP-first / migrate-from-plain-mcp), aimed at AI coding agents</li>
 <li><a href="../tool-functions/">Tool Functions Guide</a> — Writing good tool functions</li>
 <li><a href="../best-practices/">Best Practices</a> — Docstring and naming conventions</li>
 <li><a href="https://modelcontextprotocol.io/specification">MCP Protocol Specification</a></li>

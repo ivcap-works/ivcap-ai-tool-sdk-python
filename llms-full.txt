@@ -1016,8 +1016,9 @@ This guide covers both ways people arrive at MCP support:
 
 - **[I have (or am building) an IVCAP lambda service and want to add MCP](#adding-mcp-to-an-ivcap-lambda-service)** — MCP is an add-on, zero code changes
 - **[I'm building an MCP server first, and IVCAP deployment is a bonus](#mcp-first-development)** — start from an MCP-only mindset
+- **[I already have a server built on the plain `mcp` Python SDK and want to migrate it](#converting-an-existing-plain-mcp-sdk-server)** — keep it working the same for MCP clients, gain a clean IVCAP service
 
-See also [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) (Track A / Track B) for the same split aimed at AI coding agents.
+See also [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) for the same three-way split aimed at AI coding agents, routing to [Track A](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md), [Track B](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-b-mcp-first.md), and [Track C (migrating from the plain `mcp` SDK)](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md).
 
 ## What is MCP?
 
@@ -1312,9 +1313,143 @@ See `examples/test-mcp/` in the [source repository](https://github.com/ivcap-wor
 
 Nothing in your tool code needs to change — add `ToolOptions(service_id=..., tags=[...])` and a `[tool.poetry-plugin-ivcap]` section to `pyproject.toml`, and follow the rest of this guide plus the [Deployment Guide](deployment.md). MCP was never a fork of the REST path; it's an additional transport over the same tool registry.
 
+## Converting an Existing Plain `mcp` SDK Server
+
+Already have a working MCP server built directly on the official [`mcp`](https://pypi.org/project/mcp/) Python SDK (`MCPServer`/`FastMCP`, `@mcp.tool()`) and want to move it onto `ivcap-lambda`? This section covers migrating it so it keeps working **exactly the same for MCP clients/hosts** — same tool names, descriptions, and schemas — while also becoming a clean, first-class IVCAP REST service, with no further code changes needed when that's useful.
+
+See also [AGENTS.md's Track C: Converting an Existing Plain `mcp` SDK Server](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md) for the same material aimed at AI coding agents performing the migration.
+
+### What changes and what doesn't
+
+| Plain `mcp` SDK | `ivcap-lambda` equivalent |
+|---|---|
+| `mcp = MCPServer("Demo")` (or `FastMCP(...)`) | `service = Service(name="Demo")` — metadata only; tools register themselves via `@ivcap_lambda`, not by decorating a server instance |
+| `@mcp.tool()` on a function with several plain-typed params | `@ivcap_lambda("/add")` on a function taking **one** Pydantic request model as its first parameter |
+| Plain/primitive return value | A single `@with_schema`-decorated Pydantic result model |
+| `ctx: Context` + `await ctx.report_progress(...)` | `jobCtxt: JobContext` + `with jobCtxt.report.step("name", "msg") as step: ...` (no `await` needed) |
+| `mcp.run(transport="stdio")` | `start_lambda_server(service)` in code, `--with-mcp-stdio` on the command line |
+| `mcp.run(transport="streamable-http")` | `start_lambda_server(service)` in code, `--with-mcp --port <port>` on the command line |
+| `@mcp.resource(...)` / `@mcp.prompt(...)` | No equivalent — `ivcap-lambda` only exposes tools |
+
+The tool name, docstring (short/long description split), input/output JSON schema shape, progress notifications, and error behaviour (`ValueError` → `is_error=True`) are all preserved unchanged for MCP clients.
+
+### Example: before and after
+
+The one required reshaping step is collecting a tool's separate scalar parameters into a single Pydantic request model, because `@ivcap_lambda` always passes a single parsed model as the first argument (the same model used for both the REST `POST` body and the MCP `req` argument):
+
+```python title="Before: plain mcp SDK"
+from mcp.server import MCPServer
+
+mcp = MCPServer("Demo")
+
+
+@mcp.tool()
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
+```
+
+```python title="After: ivcap-lambda"
+from pydantic import BaseModel, Field
+from ivcap_service import Service, with_schema
+from ivcap_lambda import ivcap_lambda, start_lambda_server, logging_init
+
+logging_init()
+service = Service(name="Demo")  # only `name` matters to MCP clients
+
+
+@with_schema("urn:sd:schema:demo.add.request.1")
+class AddRequest(BaseModel):
+    a: int = Field(..., description="First number.")
+    b: int = Field(..., description="Second number.")
+
+
+@with_schema("urn:sd:schema:demo.add.1")
+class AddResult(BaseModel):
+    result: int = Field(..., description="a + b.")
+
+
+@ivcap_lambda("/add")
+def add(req: AddRequest) -> AddResult:
+    """Add two numbers.
+
+    Returns the sum of the two provided numbers.
+    """
+    return AddResult(result=req.a + req.b)
+
+
+if __name__ == "__main__":
+    start_lambda_server(service)
+```
+
+Run it the same way the old server was launched, just append the transport flag:
+
+```bash
+pip install ivcap-lambda[mcp]
+python server.py --with-mcp-stdio          # stdio, unchanged for Claude Desktop/Cline
+# or
+python server.py --with-mcp --port 8090    # Streamable-HTTP
+```
+
+Existing Claude Desktop / Cline `mcpServers` config entries only need the `args` updated to include the new flag — the overall shape is unchanged:
+
+```json
+{
+  "mcpServers": {
+    "demo": {
+      "command": "python",
+      "args": ["server.py", "--with-mcp-stdio"],
+      "cwd": "/absolute/path/to/server"
+    }
+  }
+}
+```
+
+### Migrating progress reporting
+
+```python title="Before"
+from mcp.server.mcpserver import Context
+
+@mcp.tool()
+async def long_task(n: int, ctx: Context) -> str:
+    """Run a long task."""
+    for i in range(n):
+        await ctx.report_progress(i, total=n, message=f"step {i}")
+    return "done"
+```
+
+```python title="After"
+@with_schema("urn:sd:schema:demo.long-task.request.1")
+class LongTaskRequest(BaseModel):
+    n: int = Field(..., description="Number of steps to run.")
+
+@with_schema("urn:sd:schema:demo.long-task.1")
+class LongTaskResult(BaseModel):
+    status: str = Field(..., description="Final status.")
+
+@ivcap_lambda("/long-task")
+def long_task(req: LongTaskRequest, jobCtxt: JobContext) -> LongTaskResult:
+    """Run a long task."""
+    with jobCtxt.report.step("run", "running") as step:
+        for i in range(req.n):
+            step.info(f"step {i}")
+        step.finished("done")
+    return LongTaskResult(status="done")
+```
+
+`async def` is not required just to report progress — plain `def` tool functions report progress identically over MCP (see [Sync and async tool functions both work over MCP](#sync-and-async-tool-functions-both-work-over-mcp) above). Only use `async def` if the function body itself needs to `await` something.
+
+### Resources and prompts have no equivalent
+
+`ivcap-lambda` only re-exposes `@ivcap_lambda`-registered functions as MCP **tools** — there is no equivalent for `@mcp.resource(...)` or `@mcp.prompt(...)`. If the existing server relies on these, either keep them running on a small separate plain-`mcp` server alongside the migrated tools, or redesign them as tools (a read-only "resource" that just returns data can usually become a tool that returns a Pydantic model instead).
+
 ## See Also
 
-- [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) — the same IVCAP-first / MCP-first split, aimed at AI coding agents
+- [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) — the same three-way split (IVCAP-first / MCP-first / migrate-from-plain-mcp), aimed at AI coding agents
 - [Tool Functions Guide](tool-functions.md) — Writing good tool functions
 - [Best Practices](best-practices.md) — Docstring and naming conventions
 - [MCP Protocol Specification](https://modelcontextprotocol.io/specification)
