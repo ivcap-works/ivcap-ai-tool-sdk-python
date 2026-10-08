@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.2
+        v0.8.3
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.2
+        v0.8.3
       </li>
     </ul>
   </div>
@@ -864,6 +864,17 @@
     <span class="md-ellipsis">
       
         Accessing Artifact Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#converting-local-file-path-parameters-to-artifact-urns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting Local File-Path Parameters to Artifact URNs
       
     </span>
   </a>
@@ -1780,6 +1791,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#converting-local-file-path-parameters-to-artifact-urns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting Local File-Path Parameters to Artifact URNs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1976,6 +1998,31 @@
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Content-type: </span><span class="si">{</span><span class="n">artifact</span><span class="o">.</span><span class="n">content_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ID: </span><span class="si">{</span><span class="n">artifact</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="converting-local-file-path-parameters-to-artifact-urns">Converting Local File-Path Parameters to Artifact URNs<a class="headerlink" href="#converting-local-file-path-parameters-to-artifact-urns" title="Permanent link">&para;</a></h2>
+<p>If you're turning an existing function into an IVCAP tool, it may have a parameter that assumed the caller had the file available on a local/shared filesystem, e.g. <code>fasta_path: str</code>. On IVCAP there is no shared filesystem between the caller and the service, so <strong>any such parameter must become an artifact URN field</strong> (<code>fasta_urn: str</code>), resolved lazily via <code>jobCtxt.ivcap.get_artifact(...)</code> instead of opened directly with <code>open(...)</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nd">@with_schema</span><span class="p">(</span><span class="s2">&quot;urn:example:schema:genome.request.1&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">GenomeRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">fasta_urn</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>        <span class="o">...</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;IVCAP artifact URN of the genome FASTA file (or a urn:file://... URN for local testing).&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="p">)</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">_resolve_fasta</span><span class="p">(</span><span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">,</span> <span class="n">fasta_urn</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve the genome FASTA artifact (existence-checked, not downloaded yet).&quot;&quot;&quot;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="k">return</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">ivcap</span><span class="o">.</span><span class="n">get_artifact</span><span class="p">(</span><span class="n">fasta_urn</span><span class="p">)</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/analyse-genome&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">analyse_genome</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">GenomeRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GenomeResult</span><span class="p">:</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyse a genome FASTA file.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="n">artifact</span> <span class="o">=</span> <span class="n">_resolve_fasta</span><span class="p">(</span><span class="n">jobCtxt</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">fasta_urn</span><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="k">with</span> <span class="n">artifact</span><span class="o">.</span><span class="n">as_local_file</span><span class="p">()</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>   <span class="c1"># downloaded to a temp file on first use</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>        <span class="o">...</span>
+</code></pre></div>
+<ul>
+<li><code>get_artifact(urn)</code> is lazy — it only checks that the artifact exists, it doesn't download any bytes yet. Only <code>as_local_file()</code>/<code>as_stream()</code> actually pull data.</li>
+<li><strong>For local testing</strong>, pass a local-file artifact URN such as <code>fasta_urn="urn:file://demo_data/sample.fasta"</code>. <code>jobCtxt.ivcap.get_artifact()</code> transparently resolves <code>urn:file://...</code> (and plain <code>file://...</code>) URNs to a <code>LocalFileArtifact</code> with no network call, so the exact same code path reads straight off disk — no test-only branching required.</li>
+<li>Full details on the local-mode/<code>urn:file://</code> scheme and the rest of the artifact API: <a href="https://github.com/ivcap-works/ivcap-client-sdk-python/blob/main/AGENTS.md">ivcap-client SDK AGENTS.md</a> and the <a href="https://ivcap-works.github.io/ivcap-client-sdk-python/guides/artifacts/">Working with Artifacts guide</a>.</li>
+</ul>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://ivcap-works.github.io/ivcap-service-sdk-python/guides/artifacts/">ivcap-service Artifacts Guide</a> — Full artifact client documentation</li>

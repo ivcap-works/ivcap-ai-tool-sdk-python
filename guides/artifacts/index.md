@@ -167,6 +167,34 @@ logger.info(f"Content-type: {artifact.content_type}")
 logger.info(f"ID: {artifact.id}")
 ```
 
+## Converting Local File-Path Parameters to Artifact URNs
+
+If you're turning an existing function into an IVCAP tool, it may have a parameter that assumed the caller had the file available on a local/shared filesystem, e.g. `fasta_path: str`. On IVCAP there is no shared filesystem between the caller and the service, so **any such parameter must become an artifact URN field** (`fasta_urn: str`), resolved lazily via `jobCtxt.ivcap.get_artifact(...)` instead of opened directly with `open(...)`:
+
+```python
+@with_schema("urn:example:schema:genome.request.1")
+class GenomeRequest(BaseModel):
+    fasta_urn: str = Field(
+        ...,
+        description="IVCAP artifact URN of the genome FASTA file (or a urn:file://... URN for local testing).",
+    )
+
+def _resolve_fasta(jobCtxt: JobContext, fasta_urn: str):
+    """Resolve the genome FASTA artifact (existence-checked, not downloaded yet)."""
+    return jobCtxt.ivcap.get_artifact(fasta_urn)
+
+@ivcap_lambda("/analyse-genome")
+def analyse_genome(req: GenomeRequest, jobCtxt: JobContext) -> GenomeResult:
+    """Analyse a genome FASTA file."""
+    artifact = _resolve_fasta(jobCtxt, req.fasta_urn)
+    with artifact.as_local_file() as path:   # downloaded to a temp file on first use
+        ...
+```
+
+- `get_artifact(urn)` is lazy — it only checks that the artifact exists, it doesn't download any bytes yet. Only `as_local_file()`/`as_stream()` actually pull data.
+- **For local testing**, pass a local-file artifact URN such as `fasta_urn="urn:file://demo_data/sample.fasta"`. `jobCtxt.ivcap.get_artifact()` transparently resolves `urn:file://...` (and plain `file://...`) URNs to a `LocalFileArtifact` with no network call, so the exact same code path reads straight off disk — no test-only branching required.
+- Full details on the local-mode/`urn:file://` scheme and the rest of the artifact API: [ivcap-client SDK AGENTS.md](https://github.com/ivcap-works/ivcap-client-sdk-python/blob/main/AGENTS.md) and the [Working with Artifacts guide](https://ivcap-works.github.io/ivcap-client-sdk-python/guides/artifacts/).
+
 ## See Also
 
 - [ivcap-service Artifacts Guide](https://ivcap-works.github.io/ivcap-service-sdk-python/guides/artifacts/) — Full artifact client documentation

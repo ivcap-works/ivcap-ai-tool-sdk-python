@@ -93,8 +93,11 @@ ivcap service register service.json
 --port PORT                  Port to listen on (default: 8090 / $PORT)
 --with-telemetry             Initialise OpenTelemetry tracing
 --with-mcp                   Expose an MCP endpoint at /mcp
+--list-services              List the names of all registered services/tools and exit
 --print-tool-description     Print the tool description JSON and exit
 --print-service-description  Print the full service description JSON and exit
+--service-name NAME          Override the service name used in --print-service-description
+                              (defaults to "<service.name>-<tool-name-with-dashes>")
 ```
 
 ## Custom CLI Flags

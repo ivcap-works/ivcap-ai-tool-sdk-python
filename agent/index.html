@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.2
+        v0.8.3
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.2
+        v0.8.3
       </li>
     </ul>
   </div>
@@ -1644,6 +1644,7 @@ can find it automatically.</p>
 <li><strong>Raise <code>ValueError</code></strong> for user input errors, other exceptions for system errors</li>
 <li><strong>Call <code>logging_init()</code> once</strong> at module level before any loggers</li>
 <li><strong>Don't mutate module-level state</strong> per job — tools may run concurrently (true for both REST and MCP invocations)</li>
+<li><strong>Convert local file-path parameters to artifact URNs.</strong> Any request field that assumed the calling user had a file available on a shared/local filesystem (e.g. <code>fasta_path: str</code>) must be renamed to an artifact URN field (<code>fasta_urn: str</code>) and resolved via <code>jobCtxt.ivcap.get_artifact(fasta_urn)</code> — not opened directly. See <a href="https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md#9a-converting-local-file-path-parameters-to-artifact-urns">Track A §9a</a> for the pattern, including a <code>urn:file://demo_data/...</code> fallback that still works for local testing without a platform connection. Full artifact API: <a href="https://github.com/ivcap-works/ivcap-client-sdk-python/blob/main/AGENTS.md">ivcap-client SDK AGENTS.md</a> / <a href="https://ivcap-works.github.io/ivcap-client-sdk-python/guides/artifacts/">Working with Artifacts guide</a>.</li>
 </ol>
 <h2 id="key-symbols-summary">Key Symbols Summary<a class="headerlink" href="#key-symbols-summary" title="Permanent link">&para;</a></h2>
 <table>

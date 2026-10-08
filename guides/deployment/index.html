@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.2
+        v0.8.3
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.2
+        v0.8.3
       </li>
     </ul>
   </div>
@@ -2067,8 +2067,11 @@
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>--port PORT                  Port to listen on (default: 8090 / $PORT)
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>--with-telemetry             Initialise OpenTelemetry tracing
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>--with-mcp                   Expose an MCP endpoint at /mcp
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>--print-tool-description     Print the tool description JSON and exit
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>--print-service-description  Print the full service description JSON and exit
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>--list-services              List the names of all registered services/tools and exit
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>--print-tool-description     Print the tool description JSON and exit
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>--print-service-description  Print the full service description JSON and exit
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>--service-name NAME          Override the service name used in --print-service-description
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>                              (defaults to &quot;&lt;service.name&gt;-&lt;tool-name-with-dashes&gt;&quot;)
 </code></pre></div>
 <h2 id="custom-cli-flags">Custom CLI Flags<a class="headerlink" href="#custom-cli-flags" title="Permanent link">&para;</a></h2>
 <p>Add your own command-line flags via <code>custom_args</code>:</p>
