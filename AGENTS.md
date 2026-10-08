@@ -55,6 +55,7 @@ ivcap-service  (batch + base primitives)
 6. **Raise `ValueError`** for user input errors, other exceptions for system errors
 7. **Call `logging_init()` once** at module level before any loggers
 8. **Don't mutate module-level state** per job — tools may run concurrently (true for both REST and MCP invocations)
+9. **Convert local file-path parameters to artifact URNs.** Any request field that assumed the calling user had a file available on a shared/local filesystem (e.g. `fasta_path: str`) must be renamed to an artifact URN field (`fasta_urn: str`) and resolved via `jobCtxt.ivcap.get_artifact(fasta_urn)` — not opened directly. See [Track A §9a](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md#9a-converting-local-file-path-parameters-to-artifact-urns) for the pattern, including a `urn:file://demo_data/...` fallback that still works for local testing without a platform connection. Full artifact API: [ivcap-client SDK AGENTS.md](https://github.com/ivcap-works/ivcap-client-sdk-python/blob/main/AGENTS.md) / [Working with Artifacts guide](https://ivcap-works.github.io/ivcap-client-sdk-python/guides/artifacts/).
 
 ## Key Symbols Summary
 

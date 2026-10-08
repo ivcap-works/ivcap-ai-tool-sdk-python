@@ -224,6 +224,44 @@ result = ivcap.upload_artifact(
 result_urn = result.id
 ```
 
+### 9a. Converting Local File-Path Parameters to Artifact URNs
+
+When turning an existing function into an IVCAP tool, it will often have a parameter that assumed direct filesystem access to a file the *calling user* had locally available, e.g. `fasta_path: str`. On IVCAP there is no shared filesystem between caller and service, so **any such parameter must be converted to an artifact URN field** (`*_urn: str`) and resolved via `jobCtxt.ivcap.get_artifact(...)` instead of opened directly:
+
+```python
+# Before: assumes the file is already on the service's local disk
+def analyse(fasta_path: str) -> ...:
+    with open(fasta_path) as f:
+        ...
+
+# After: accept an IVCAP artifact URN instead
+@with_schema("urn:sd:schema:genome.request.1")
+class GenomeRequest(BaseModel):
+    fasta_urn: str = Field(
+        ...,
+        description="IVCAP artifact URN of the genome FASTA file (or a urn:file://... URN for local testing).",
+    )
+
+def _resolve_fasta(jobCtxt: JobContext, fasta_urn: str):
+    """Resolve the genome FASTA artifact (existence-checked, not downloaded yet)."""
+    return jobCtxt.ivcap.get_artifact(fasta_urn)
+
+@ivcap_lambda("/analyse-genome")
+def analyse_genome(req: GenomeRequest, jobCtxt: JobContext) -> GenomeResult:
+    """Analyse a genome FASTA file."""
+    artifact = _resolve_fasta(jobCtxt, req.fasta_urn)
+    with artifact.as_local_file() as path:   # lazily downloaded to a temp file
+        ...
+    # or stream it without touching disk: for chunk in artifact.as_stream(): ...
+```
+
+**Rules:**
+- Rename every `*_path: str` (or similarly-named local-filesystem) request field to `*_urn: str` and describe it as an artifact URN in `Field(description=...)`.
+- Resolve it with `jobCtxt.ivcap.get_artifact(urn)` — this only checks that the artifact exists, it does **not** download any data yet (lazy).
+- Only pull the actual bytes/local file when the function body needs them, via `artifact.as_local_file()` (temp file, auto-deleted on exit) or `artifact.as_stream(chunk_size=...)`.
+- **For local testing**, the identical code path keeps working unmodified: pass a local-file artifact URN such as `fasta_urn="urn:file://demo_data/sample.fasta"`. `jobCtxt.ivcap.get_artifact()` transparently resolves `urn:file://...`/`file://...` URNs to a `LocalFileArtifact` with no network call, so `as_local_file()`/`as_stream()` just read straight off disk.
+- Full artifact client API (upload, download, local-mode, `urn:file://` semantics): [ivcap-client SDK AGENTS.md](https://github.com/ivcap-works/ivcap-client-sdk-python/blob/main/AGENTS.md) and the human-facing [Working with Artifacts guide](https://ivcap-works.github.io/ivcap-client-sdk-python/guides/artifacts/).
+
 ### 10. Async Tools
 
 Async functions are fully supported:
@@ -271,8 +309,11 @@ if __name__ == "__main__":
 --with-telemetry             Enable OpenTelemetry
 --with-mcp                   Enable MCP endpoint at /mcp
 --with-mcp-stdio             Run as an MCP server over stdio instead of HTTP (for Claude Desktop/Cline)
+--list-services              List the names of all registered services/tools and exit
 --print-tool-description     Print tool description JSON and exit
 --print-service-description  Print service description JSON and exit
+--service-name NAME          Override the service name used in --print-service-description
+                              (defaults to "<service.name>-<tool-name-with-dashes>")
 ```
 
 ## Async (Try-Later) Protocol

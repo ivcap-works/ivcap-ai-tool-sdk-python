@@ -286,7 +286,7 @@ def _return_job_result(el, job_id):
             headers=h,
         )
     elif isinstance(el, ExecutionError):
-        if el.type is ValueError:
+        if el.type == ValueError.__name__:
             m = ErrorModel(message=el.error, code=400)
             status_code = status.HTTP_400_BAD_REQUEST
         else:

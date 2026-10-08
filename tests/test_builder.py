@@ -122,16 +122,11 @@ def test_post_job_honours_incoming_job_id_header():
     assert resp.headers["job-id"] == "urn:ivcap:job:abc123"
 
 
-def test_post_job_value_error_currently_returns_500():
-    """NOTE: `_return_job_result` compares `el.type is ValueError` where
-    `el.type` is the *string* class name (e.g. "ValueError") produced by
-    `Executor`, while `ValueError` is the exception *class* - that
-    comparison is always False. So a `ValueError` raised in a tool function
-    currently falls through to the generic 500/ExecutionErrorModel branch,
-    even though the docs/AGENTS.md describe a 400 Bad Request for
-    ValueError. This test documents the *current* (likely buggy) behaviour;
-    if `builder.py` is fixed to compare `el.type == "ValueError"`, update
-    this test to assert a 400 response with an ErrorModel body instead.
+def test_post_job_value_error_returns_400():
+    """`_return_job_result` maps a `ValueError` raised in a tool function to
+    a 400 Bad Request with an `ErrorModel` body (no traceback leaked), by
+    comparing `el.type` - the string class name (e.g. "ValueError")
+    produced by `Executor` - against `ValueError.__name__`.
     """
     app = _new_app()
 
@@ -143,10 +138,10 @@ def test_post_job_value_error_currently_returns_500():
 
     client = TestClient(app)
     resp = client.post("/fail", json={"text": "hi"})
-    assert resp.status_code == 500
+    assert resp.status_code == 400
     body = resp.json()
     assert "bad input: hi" in body["message"]
-    assert "traceback" in body
+    assert "traceback" not in body
 
 
 def test_post_job_generic_exception_returns_500():

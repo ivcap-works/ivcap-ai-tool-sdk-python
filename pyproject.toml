@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap-lambda"
-version = "0.8.2"
+version = "0.8.3"
 description = "Helper functions for building lambda-style services on the IVCAP platform"
 
 authors = ["Max Ott <max.ott@csiro.au>"]

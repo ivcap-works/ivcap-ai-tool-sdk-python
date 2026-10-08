@@ -108,6 +108,11 @@ def start_lambda_server(
         ),
     )
     parser.add_argument(
+        "--list-services",
+        action="store_true",
+        help="List the names of all registered services/tools and exit",
+    )
+    parser.add_argument(
         "--print-service-description",
         type=str,
         metavar="NAME",
@@ -115,6 +120,15 @@ def start_lambda_server(
         const=tool_names[0],
         default=None,
         help=f"Print service description to stdout [{','.join(tool_names)}]",
+    )
+    parser.add_argument(
+        "--service-name",
+        type=str,
+        default=None,
+        help=(
+            "Override the service name used in --print-service-description "
+            "(defaults to the tool name, with '_' replaced by '-')"
+        ),
     )
     parser.add_argument(
         "--print-tool-description",
@@ -133,6 +147,11 @@ def start_lambda_server(
 
     if args.with_mcp_stdio and args.with_mcp:
         parser.error("--with-mcp-stdio and --with-mcp are mutually exclusive")
+
+    if args.list_services:
+        for name in tool_names:
+            print(name)
+        sys.exit(0)
 
     if args.print_tool_description:
         tool = next((t for t in tools if t.name == args.print_tool_description), None)
@@ -157,7 +176,11 @@ def start_lambda_server(
                 file=sys.stderr,
             )
             sys.exit(1)
-        print_rest_service_definition(service, tool.worker_fn)
+        tool_slug = tool.name.replace("_", "-")
+        name = args.service_name or f"{service.name}-{tool_slug}"
+        print_rest_service_definition(
+            service, tool.worker_fn, name=name, path=tool.path_prefix
+        )
         sys.exit(0)
 
     logger.info(

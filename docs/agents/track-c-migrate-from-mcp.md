@@ -166,6 +166,7 @@ No `await`/`async def` is required just to report progress — `def` and
 
 - Multiple scalar parameters → one `@with_schema`-decorated Pydantic request model
 - Plain/primitive return value → one `@with_schema`-decorated Pydantic result model
+- Any parameter that assumed a local file already on disk (e.g. `fasta_path: str`) must become an artifact URN field (`fasta_urn: str`), resolved via `jobCtxt.ivcap.get_artifact(fasta_urn)` instead of `open(...)` — see [Track A, §9a](track-a-ivcap-service.md#9a-converting-local-file-path-parameters-to-artifact-urns) for the full pattern. `urn:file://demo_data/...` URNs keep working unchanged for local testing.
 - `ctx: Context` + `await ctx.report_progress(...)` → `jobCtxt: JobContext` + `with jobCtxt.report.step(...)`
 - One `MCPServer`/`FastMCP` instance + `@mcp.tool()` → a `Service(...)` instance (metadata only) + one `@ivcap_lambda(...)` per tool function
 - `mcp.run(transport=...)` → `start_lambda_server(service)` + a CLI flag (`--with-mcp-stdio` / `--with-mcp --port ...`) at launch time, not in code
