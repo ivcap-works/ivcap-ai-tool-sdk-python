@@ -60,7 +60,11 @@ The component (from `ivcap-service`) that forwards progress events from the tool
 
 ## OpenTelemetry / OTEL
 
-An open standard for exporting logs, metrics, and traces. Enabled with `--with-telemetry`; the FastAPI app is automatically instrumented.
+An open standard for exporting logs, metrics, and traces. Setting
+`OTEL_EXPORTER_OTLP_ENDPOINT` enables export and automatically instruments the
+FastAPI app; `--with-telemetry` and `--without-telemetry` provide explicit
+overrides. Exporter configuration is supplied by
+[`ivcap-service`](https://ivcap-works.github.io/ivcap-service-sdk-python/guides/observability/#opentelemetry--openobserve-integration).
 
 ## URN
 

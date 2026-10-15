@@ -17,6 +17,7 @@ from ivcap_service import (
     Service,
     SidecarReporter,
     getLogger,
+    init_openobserve_from_env,
     otel_instrument,
     print_tool_definition,
     service_log_config,
@@ -66,7 +67,8 @@ def start_lambda_server(
         logger (Logger): optional logger instance; defaults to getLogger("app")
         custom_args (Optional[Callable[[argparse.ArgumentParser], argparse.Namespace]], optional): callback to add extra CLI arguments. Defaults to None.
         run_opts (Optional[Dict[str, Any]], optional): extra options forwarded to uvicorn.Config. Defaults to None.
-        with_telemetry: (Optional[bool]): Instantiate or block use of OpenTelemetry tracing
+        with_telemetry: (Optional[bool]): Tri-state control of OpenTelemetry
+            instrumentation. CLI flags take precedence over this parameter.
     """
     if len(tools) == 0:
         raise ValueError(
@@ -94,8 +96,16 @@ def start_lambda_server(
     parser.add_argument(
         "--port", type=int, default=os.environ.get("PORT", "8090"), help="Port number"
     )
-    parser.add_argument(
-        "--with-telemetry", action="store_true", help="Initialise OpenTelemetry"
+    telemetry_group = parser.add_mutually_exclusive_group()
+    telemetry_group.add_argument(
+        "--with-telemetry",
+        action="store_true",
+        help="Force-enable OpenTelemetry instrumentation",
+    )
+    telemetry_group.add_argument(
+        "--without-telemetry",
+        action="store_true",
+        help="Force-disable OpenTelemetry instrumentation",
     )
     parser.add_argument("--with-mcp", action="store_true", help="Add an MCP endpoint")
     parser.add_argument(
@@ -187,7 +197,21 @@ def start_lambda_server(
         f"{title} - {os.getenv('VERSION')} - v{get_version()}|v{get_service_version()}"
     )
 
-    # print(f">>>> OTEL_EXPORTER_OTLP_ENDPOINT: {os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT')}")
+    try:
+        init_openobserve_from_env(
+            logger=logger,
+            service_name=service.name,
+            service_version=service.version,
+        )
+    except Exception as exc:
+        logger.warning("OpenTelemetry initialization failed: %s", exc)
+
+    effective_with_telemetry = with_telemetry
+    if getattr(args, "without_telemetry", False):
+        effective_with_telemetry = False
+    elif getattr(args, "with_telemetry", False):
+        effective_with_telemetry = True
+
     set_event_reporter_factory(SidecarReporter)  # type: ignore[arg-type]
 
     def get_context():
@@ -206,7 +230,7 @@ def start_lambda_server(
         # instrumented the same way as for the HTTP server.
         from .mcp import run_mcp_stdio
 
-        otel_instrument(with_telemetry, None, logger)
+        otel_instrument(effective_with_telemetry, None, logger)
         run_mcp_stdio(service.name, app.version)
         return
 
@@ -224,7 +248,9 @@ def start_lambda_server(
         register_mcp(app, "/mcp")
 
     otel_instrument(
-        with_telemetry, lambda _: FastAPIInstrumentor.instrument_app(app), logger
+        effective_with_telemetry,
+        lambda _: FastAPIInstrumentor.instrument_app(app),
+        logger,
     )
 
     async def _add_version(request: Request, call_next) -> Response:

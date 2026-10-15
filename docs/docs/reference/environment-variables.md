@@ -33,6 +33,12 @@ Complete reference of all environment variables used by `ivcap-lambda` and the u
 
 ## OpenObserve Integration
 
+These variables are implemented by the underlying `ivcap-service` SDK. See
+its [OpenTelemetry / OpenObserve environment variable
+reference](https://ivcap-works.github.io/ivcap-service-sdk-python/reference/environment-variables/#opentelemetry--openobserve-configuration)
+for the complete and authoritative list, including authentication,
+signal-specific headers, stream routing, and exporter controls.
+
 ### OPENOBSERVE_URL
 - **Type**: String
 - **Description**: Base URL for the OpenObserve instance
@@ -69,7 +75,9 @@ Complete reference of all environment variables used by `ivcap-lambda` and the u
 
 ### OTEL_EXPORTER_OTLP_ENDPOINT
 - **Type**: String
-- **Description**: Custom OTLP endpoint for metrics and traces
+- **Description**: OTLP/HTTP endpoint for logs, metrics, and traces. Setting
+  this variable alone enables telemetry export and instrumentation; no
+  `OPENOBSERVE_*` variable or `--with-telemetry` flag is required
 - **Example**: `http://otel-collector:4318`
 
 ### OTEL_EXPORTER_OTLP_HEADERS

@@ -306,7 +306,8 @@ if __name__ == "__main__":
 ```
 --host HOST                  Bind address (default 0.0.0.0)
 --port PORT                  Port (default 8090)
---with-telemetry             Enable OpenTelemetry
+--with-telemetry             Force-enable OpenTelemetry instrumentation
+--without-telemetry          Force-disable OpenTelemetry instrumentation
 --with-mcp                   Enable MCP endpoint at /mcp
 --with-mcp-stdio             Run as an MCP server over stdio instead of HTTP (for Claude Desktop/Cline)
 --list-services              List the names of all registered services/tools and exit

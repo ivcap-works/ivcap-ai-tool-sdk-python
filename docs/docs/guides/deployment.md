@@ -91,7 +91,8 @@ ivcap service register service.json
 ```
 --host HOST                  Bind address (default: 0.0.0.0 / $HOST)
 --port PORT                  Port to listen on (default: 8090 / $PORT)
---with-telemetry             Initialise OpenTelemetry tracing
+--with-telemetry             Force-enable OpenTelemetry instrumentation
+--without-telemetry          Force-disable OpenTelemetry instrumentation
 --with-mcp                   Expose an MCP endpoint at /mcp
 --list-services              List the names of all registered services/tools and exit
 --print-tool-description     Print the tool description JSON and exit
