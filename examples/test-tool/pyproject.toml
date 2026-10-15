@@ -18,7 +18,7 @@ dependencies = [
 
 [tool.poetry.dependencies]
 # Use local path during development; switch to PyPI version constraint after publishing:
-# ivcap-lambda = {version = ">=0.7.22,<0.8.0", extras = ["mcp"]}
+# ivcap-lambda = {version = ">=0.8.3,<0.9.0", extras = ["mcp"]}
 ivcap-lambda = {path = "../..", develop = true, extras = ["mcp"]}
 # ivcap_service.testkit requires >=0.7.0; use local path during development,
 # switching to the PyPI version constraint above for published builds.
