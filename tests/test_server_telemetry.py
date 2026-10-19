@@ -82,3 +82,39 @@ def test_exporter_initialization_failure_does_not_stop_server(telemetry_startup)
         "OpenTelemetry initialization failed: %s", init_openobserve.side_effect
     )
     instrument.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "thread_name",
+    [
+        "OtelBatchLogRecordProcessor",
+        "OtelBatchSpanRecordProcessor",
+        "OtelPeriodicExportingMetricReader",
+    ],
+)
+def test_missing_job_context_does_not_warn_for_otel_threads(
+    telemetry_startup, monkeypatch, thread_name
+):
+    logger = Mock()
+    monkeypatch.setattr(
+        server_module, "current_thread", lambda: SimpleNamespace(name=thread_name)
+    )
+    _start([], logger=logger)
+
+    context_provider = server_module.set_context.call_args.args[0]
+    assert context_provider() is None
+    logger.warning.assert_not_called()
+
+
+def test_missing_job_context_still_warns_for_other_threads(
+    telemetry_startup, monkeypatch
+):
+    logger = Mock()
+    monkeypatch.setattr(
+        server_module, "current_thread", lambda: SimpleNamespace(name="worker-1")
+    )
+    _start([], logger=logger)
+
+    context_provider = server_module.set_context.call_args.args[0]
+    assert context_provider() is None
+    logger.warning.assert_called_once_with("missing job context in thread")

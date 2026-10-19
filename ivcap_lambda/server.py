@@ -9,6 +9,7 @@ import sys
 from collections.abc import Callable
 from logging import Logger
 from signal import SIGTERM, signal
+from threading import current_thread
 from typing import Any
 
 import uvicorn
@@ -217,7 +218,8 @@ def start_lambda_server(
     def get_context():
         jctxt = get_job_context()
         if jctxt is None or jctxt.job_id is None:
-            logger.warning("missing job context in thread")
+            if not current_thread().name.startswith("Otel"):
+                logger.warning("missing job context in thread")
             return None
         return jctxt
 
