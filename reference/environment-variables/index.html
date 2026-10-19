@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.3
+        v0.8.5
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.3
+        v0.8.5
       </li>
     </ul>
   </div>
@@ -2244,6 +2244,11 @@
 <li><strong>Example</strong>: <code>https://ivcap.example.com</code></li>
 </ul>
 <h2 id="openobserve-integration">OpenObserve Integration<a class="headerlink" href="#openobserve-integration" title="Permanent link">&para;</a></h2>
+<p>These variables are implemented by the underlying <code>ivcap-service</code> SDK. See
+its <a href="https://ivcap-works.github.io/ivcap-service-sdk-python/reference/environment-variables/#opentelemetry--openobserve-configuration">OpenTelemetry / OpenObserve environment variable
+reference</a>
+for the complete and authoritative list, including authentication,
+signal-specific headers, stream routing, and exporter controls.</p>
 <h3 id="openobserve_url">OPENOBSERVE_URL<a class="headerlink" href="#openobserve_url" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: String</li>
@@ -2286,7 +2291,9 @@
 <h3 id="otel_exporter_otlp_endpoint">OTEL_EXPORTER_OTLP_ENDPOINT<a class="headerlink" href="#otel_exporter_otlp_endpoint" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: String</li>
-<li><strong>Description</strong>: Custom OTLP endpoint for metrics and traces</li>
+<li><strong>Description</strong>: OTLP/HTTP endpoint for logs, metrics, and traces. Setting
+  this variable alone enables telemetry export and instrumentation; no
+  <code>OPENOBSERVE_*</code> variable or <code>--with-telemetry</code> flag is required</li>
 <li><strong>Example</strong>: <code>http://otel-collector:4318</code></li>
 </ul>
 <h3 id="otel_exporter_otlp_headers">OTEL_EXPORTER_OTLP_HEADERS<a class="headerlink" href="#otel_exporter_otlp_headers" title="Permanent link">&para;</a></h3>

@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.3
+        v0.8.5
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.3
+        v0.8.5
       </li>
     </ul>
   </div>
@@ -2015,7 +2015,11 @@
 <h2 id="sidecar-reporter">Sidecar Reporter<a class="headerlink" href="#sidecar-reporter" title="Permanent link">&para;</a></h2>
 <p>The component (from <code>ivcap-service</code>) that forwards progress events from the tool's execution thread to the IVCAP platform sidecar via HTTP.</p>
 <h2 id="opentelemetry-otel">OpenTelemetry / OTEL<a class="headerlink" href="#opentelemetry-otel" title="Permanent link">&para;</a></h2>
-<p>An open standard for exporting logs, metrics, and traces. Enabled with <code>--with-telemetry</code>; the FastAPI app is automatically instrumented.</p>
+<p>An open standard for exporting logs, metrics, and traces. Setting
+<code>OTEL_EXPORTER_OTLP_ENDPOINT</code> enables export and automatically instruments the
+FastAPI app; <code>--with-telemetry</code> and <code>--without-telemetry</code> provide explicit
+overrides. Exporter configuration is supplied by
+<a href="https://ivcap-works.github.io/ivcap-service-sdk-python/guides/observability/#opentelemetry--openobserve-integration"><code>ivcap-service</code></a>.</p>
 <h2 id="urn">URN<a class="headerlink" href="#urn" title="Permanent link">&para;</a></h2>
 <p>Uniform Resource Name. IVCAP uses URNs to identify resources. Format: <code>urn:ivcap:{type}:{uuid}</code>.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>

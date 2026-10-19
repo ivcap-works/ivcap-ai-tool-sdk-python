@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.3
+        v0.8.5
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.3
+        v0.8.5
       </li>
     </ul>
   </div>
@@ -1951,20 +1951,35 @@
 </table>
 <p>Custom events can be created by subclassing <code>BaseEvent</code> and defining a <code>SCHEMA</code> class variable.</p>
 <h2 id="openobserve-integration">OpenObserve Integration<a class="headerlink" href="#openobserve-integration" title="Permanent link">&para;</a></h2>
-<p>Configure environment variables to export logs and metrics automatically:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_URL</span><span class="o">=</span><span class="s2">&quot;https://observe.example.com&quot;</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_ORG</span><span class="o">=</span><span class="s2">&quot;myorg&quot;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_USERNAME</span><span class="o">=</span><span class="s2">&quot;service@example.com&quot;</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_TOKEN</span><span class="o">=</span><span class="s2">&quot;&lt;api-token&gt;&quot;</span>
+<p>Exporter/provider setup is supplied by the underlying <code>ivcap-service</code> SDK and
+is initialized automatically by <code>start_lambda_server()</code>. A standard OTLP
+endpoint is sufficient to export logs, metrics, and traces:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span><span class="s2">&quot;http://otel-collector:4318&quot;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>python<span class="w"> </span>my_service.py
 </code></pre></div>
-<p>All logs via <code>getLogger()</code> are automatically sent to OpenObserve. No code changes required.</p>
+<p>OpenObserve-specific variables are optional and add authentication, routing,
+and endpoint information:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_URL</span><span class="o">=</span><span class="s2">&quot;https://observe.example.com&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_ORG</span><span class="o">=</span><span class="s2">&quot;myorg&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_USERNAME</span><span class="o">=</span><span class="s2">&quot;service@example.com&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_TOKEN</span><span class="o">=</span><span class="s2">&quot;&lt;api-token&gt;&quot;</span>
+</code></pre></div>
+<p>All logs via <code>getLogger()</code> are then exported automatically. No
+<code>opentelemetry-instrument</code> wrapper or code changes are required.</p>
+<p>See the <a href="https://ivcap-works.github.io/ivcap-service-sdk-python/guides/observability/#opentelemetry--openobserve-integration"><code>ivcap-service</code> OpenTelemetry / OpenObserve
+integration</a>
+for the authoritative exporter behavior and configuration model.</p>
 <h2 id="opentelemetry-tracing">OpenTelemetry Tracing<a class="headerlink" href="#opentelemetry-tracing" title="Permanent link">&para;</a></h2>
-<p>Enable distributed tracing with the <code>--with-telemetry</code> flag:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--with-telemetry<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
-</code></pre></div>
-<p>Configure the OTLP exporter endpoint:</p>
+<p>Setting <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> automatically enables tracing and
+FastAPI instrumentation; no CLI flag is normally needed:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span><span class="s2">&quot;http://otel-collector:4318&quot;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
 </code></pre></div>
+<p>Use <code>--with-telemetry</code> to force-enable instrumentation when no endpoint is
+configured, or <code>--without-telemetry</code> to force-disable framework and outbound
+HTTP instrumentation. CLI flags take precedence over the
+<code>with_telemetry</code> argument, which takes precedence over endpoint-based
+auto-detection. Exporter configuration remains environment-driven.</p>
 <p>The SDK automatically:</p>
 <ul>
 <li>Creates spans for each HTTP request (FastAPI instrumentation)</li>
@@ -2013,6 +2028,7 @@
 <li><a href="../error-handling/">Error Handling Guide</a> — Reporting errors</li>
 <li><a href="../best-practices/">Best Practices</a> — Production patterns</li>
 <li><a href="../../reference/environment-variables/">Environment Variables</a> — OpenObserve and OTEL configuration</li>
+<li><a href="https://ivcap-works.github.io/ivcap-service-sdk-python/guides/observability/#opentelemetry--openobserve-integration"><code>ivcap-service</code> Observability Guide</a> — Authoritative exporter and OpenObserve configuration</li>
 </ul>
         <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
             <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>

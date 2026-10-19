@@ -102,7 +102,17 @@ Custom events can be created by subclassing `BaseEvent` and defining a `SCHEMA` 
 
 ## OpenObserve Integration
 
-Configure environment variables to export logs and metrics automatically:
+Exporter/provider setup is supplied by the underlying `ivcap-service` SDK and
+is initialized automatically by `start_lambda_server()`. A standard OTLP
+endpoint is sufficient to export logs, metrics, and traces:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+python my_service.py
+```
+
+OpenObserve-specific variables are optional and add authentication, routing,
+and endpoint information:
 
 ```bash
 export OPENOBSERVE_URL="https://observe.example.com"
@@ -111,21 +121,28 @@ export OPENOBSERVE_USERNAME="service@example.com"
 export OPENOBSERVE_TOKEN="<api-token>"
 ```
 
-All logs via `getLogger()` are automatically sent to OpenObserve. No code changes required.
+All logs via `getLogger()` are then exported automatically. No
+`opentelemetry-instrument` wrapper or code changes are required.
+
+See the [`ivcap-service` OpenTelemetry / OpenObserve
+integration](https://ivcap-works.github.io/ivcap-service-sdk-python/guides/observability/#opentelemetry--openobserve-integration)
+for the authoritative exporter behavior and configuration model.
 
 ## OpenTelemetry Tracing
 
-Enable distributed tracing with the `--with-telemetry` flag:
-
-```bash
-python my_service.py --with-telemetry --port 8090
-```
-
-Configure the OTLP exporter endpoint:
+Setting `OTEL_EXPORTER_OTLP_ENDPOINT` automatically enables tracing and
+FastAPI instrumentation; no CLI flag is normally needed:
 
 ```bash
 export OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+python my_service.py --port 8090
 ```
+
+Use `--with-telemetry` to force-enable instrumentation when no endpoint is
+configured, or `--without-telemetry` to force-disable framework and outbound
+HTTP instrumentation. CLI flags take precedence over the
+`with_telemetry` argument, which takes precedence over endpoint-based
+auto-detection. Exporter configuration remains environment-driven.
 
 The SDK automatically:
 
@@ -188,3 +205,4 @@ Use this for Kubernetes liveness/readiness probes.
 - [Error Handling Guide](error-handling.md) — Reporting errors
 - [Best Practices](best-practices.md) — Production patterns
 - [Environment Variables](../reference/environment-variables.md) — OpenObserve and OTEL configuration
+- [`ivcap-service` Observability Guide](https://ivcap-works.github.io/ivcap-service-sdk-python/guides/observability/#opentelemetry--openobserve-integration) — Authoritative exporter and OpenObserve configuration
