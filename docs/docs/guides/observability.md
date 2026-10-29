@@ -181,12 +181,14 @@ These helpers read the job context from the current thread's context variable, s
 
 ## Health Check
 
-The `/_healtz` endpoint is automatically registered. It returns the running service version when the service is ready, plus any info that tools report through their `is_ready` dict:
+The `/_healtz` endpoint is automatically registered. When the service is ready, it returns the service name and version from the `Service` object, plus any info that tools report through their `is_ready` dict:
 
 ```bash
 curl http://localhost:8090/_healtz
-# {"model": "resnet-50", "version": "1.2.3"}
+# {"model": "resnet-50", "name": "cas9-ivcap", "version": "0.1.0"}
 ```
+
+The `version` value is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`.
 
 If any tool registered with `is_ready` reports not-ready, `/_healtz` returns `503 Service Unavailable` instead, with a `Retry-After` header when the tool provided one. See [Tool Readiness](tool-functions.md#tool-readiness).
 

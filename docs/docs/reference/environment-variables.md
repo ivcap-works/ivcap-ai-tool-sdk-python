@@ -21,7 +21,7 @@ Complete reference of all environment variables used by `ivcap-lambda` and the u
 ### VERSION
 - **Type**: String
 - **Default**: `???`
-- **Description**: Service version, returned by `/_healtz` and the Swagger UI
+- **Description**: Service version, used by `/_healtz`, the Swagger UI, and the `Ivcap-Service-Version` header. It takes priority over `version` declared on `Service(...)`, which is used only when this variable is unset or empty.
 - **Example**: `1.2.3`
 
 ## IVCAP Platform

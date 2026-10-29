@@ -76,6 +76,41 @@ def test_add_none_handler_is_ignored(client):
     assert client.get("/_healtz").status_code == 200
 
 
+def test_declared_version_used_when_env_unset(monkeypatch):
+    monkeypatch.delenv("VERSION", raising=False)
+    app = FastAPI()
+    add_health_route(app, name="cas9-ivcap", version="0.1.0")
+    resp = TestClient(app).get("/_healtz")
+    assert resp.json() == {"name": "cas9-ivcap", "version": "0.1.0"}
+
+
+def test_env_version_takes_priority_over_declared(monkeypatch):
+    monkeypatch.setenv("VERSION", "env-version")
+    app = FastAPI()
+    add_health_route(app, name="cas9-ivcap", version="0.1.0")
+    resp = TestClient(app).get("/_healtz")
+    assert resp.json() == {"name": "cas9-ivcap", "version": "env-version"}
+
+
+def test_unknown_version_when_neither_set(monkeypatch):
+    monkeypatch.delenv("VERSION", raising=False)
+    app = FastAPI()
+    add_health_route(app, name="cas9-ivcap")
+    resp = TestClient(app).get("/_healtz")
+    assert resp.json() == {"name": "cas9-ivcap", "version": "???"}
+
+
+def test_service_identity_wins_over_dict_keys(monkeypatch):
+    monkeypatch.delenv("VERSION", raising=False)
+    app = FastAPI()
+    add_health_route(app, name="real", version="0.1.0")
+    add_ready_handler(lambda: {"name": "spoofed", "version": "spoofed"})
+    assert TestClient(app).get("/_healtz").json() == {
+        "name": "real",
+        "version": "0.1.0",
+    }
+
+
 def test_add_health_route_keeps_existing_route():
     app = FastAPI()
 

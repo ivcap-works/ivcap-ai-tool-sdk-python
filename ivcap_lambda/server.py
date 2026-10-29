@@ -34,7 +34,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from .builder import tools
 from .executor import Executor, get_job_context
 from .health_handler import add_health_route
-from .version import get_version
+from .version import get_version, resolve_service_version
 
 # shutdown pod cracefully
 signal(SIGTERM, lambda _1, _2: sys.exit(0))
@@ -78,7 +78,8 @@ def start_lambda_server(
 
     app = get_fast_app()
     app.title = service.name
-    app.version = service.version or os.environ.get("VERSION", "???")
+    service_version = resolve_service_version(service.version)
+    app.version = service_version
     app.contact = dict(service.contact) if service.contact else None
     app.license_info = dict(service.license) if service.license else None
 
@@ -202,7 +203,7 @@ def start_lambda_server(
         init_openobserve_from_env(
             logger=logger,
             service_name=service.name,
-            service_version=service.version,
+            service_version=service_version,
         )
     except Exception as exc:
         logger.warning("OpenTelemetry initialization failed: %s", exc)
@@ -236,7 +237,7 @@ def start_lambda_server(
         run_mcp_stdio(service.name, app.version)
         return
 
-    add_health_route(app)
+    add_health_route(app, name=service.name, version=service.version)
 
     if args.with_mcp:
         from .mcp import register_mcp
@@ -253,7 +254,9 @@ def start_lambda_server(
         from .version import __version__
 
         resp = await call_next(request)
-        resp.headers["Ivcap-AI-Tool-Version"] = __version__
+        resp.headers["Ivcap-Lambda-Version"] = __version__
+        resp.headers["Ivcap-Service-Name"] = service.name
+        resp.headers["Ivcap-Service-Version"] = service_version
         return resp
 
     app.middleware("http")(_add_version)

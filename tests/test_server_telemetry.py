@@ -71,6 +71,77 @@ def test_initializes_exporters_and_resolves_cli_precedence(
     assert instrument.call_args.args[0] is expected
 
 
+def _start_and_get_app(monkeypatch, service):
+    """Run start_lambda_server with uvicorn mocked and return the FastAPI app."""
+    config = Mock()
+    monkeypatch.setattr(server_module.uvicorn, "Config", config)
+    server_module.start_lambda_server(
+        service,
+        logger=logging.getLogger("test.server.headers"),
+        custom_args=lambda parser: parser.parse_args([]),
+        with_telemetry=False,
+    )
+    return config.call_args.args[0]
+
+
+def test_service_identity_headers_are_added(telemetry_startup, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from ivcap_lambda.version import __version__
+
+    service = Service(
+        name="cas9-ivcap",
+        version="0.1.0",
+        contact=ServiceContact(name="Test", email="test@example.com"),
+    )
+    app = _start_and_get_app(monkeypatch, service)
+    app.add_api_route("/ping", lambda: {"ok": True}, methods=["GET"])
+
+    resp = TestClient(app).get("/ping")
+
+    assert resp.headers["Ivcap-Lambda-Version"] == __version__
+    assert resp.headers["Ivcap-Service-Name"] == "cas9-ivcap"
+    assert resp.headers["Ivcap-Service-Version"] == "0.1.0"
+
+
+def test_service_version_header_unknown_when_none(telemetry_startup, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.delenv("VERSION", raising=False)
+    service = Service(
+        name="no-version",
+        version=None,
+        contact=ServiceContact(name="Test", email="test@example.com"),
+    )
+    app = _start_and_get_app(monkeypatch, service)
+    app.add_api_route("/ping", lambda: {"ok": True}, methods=["GET"])
+
+    resp = TestClient(app).get("/ping")
+
+    assert resp.headers["Ivcap-Service-Name"] == "no-version"
+    assert resp.headers["Ivcap-Service-Version"] == "???"
+
+
+def test_env_version_takes_priority_for_app_and_headers(telemetry_startup, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("VERSION", "2.0.0-env")
+    service = Service(
+        name="cas9-ivcap",
+        version="0.1.0",
+        contact=ServiceContact(name="Test", email="test@example.com"),
+    )
+    app = _start_and_get_app(monkeypatch, service)
+    app.add_api_route("/ping", lambda: {"ok": True}, methods=["GET"])
+
+    resp = TestClient(app).get("/ping")
+
+    assert app.version == "2.0.0-env"
+    assert resp.headers["Ivcap-Service-Version"] == "2.0.0-env"
+    init_openobserve = telemetry_startup[0]
+    assert init_openobserve.call_args.kwargs["service_version"] == "2.0.0-env"
+
+
 def test_exporter_initialization_failure_does_not_stop_server(telemetry_startup):
     init_openobserve, instrument = telemetry_startup
     init_openobserve.side_effect = RuntimeError("invalid telemetry config")

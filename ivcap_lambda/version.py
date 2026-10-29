@@ -4,18 +4,23 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 
-__version__ = "???"
-try:  # Python > 3.8+
-    from importlib_metadata import version
+import os
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _dist_version
 
-    __version__ = version("ivcap_lambda")
-except ImportError:
-    try:
-        import pkg_resources
+try:
+    __version__ = _dist_version("ivcap-lambda")
+except PackageNotFoundError:
+    __version__ = "???"
 
-        __version__ = pkg_resources.get_distribution("ivcap_lambda").version
-    except Exception:
-        pass
+
+def resolve_service_version(service_version: str | None) -> str:
+    """Return the service version to report.
+
+    Priority: the `VERSION` environment variable, then the version declared on
+    the `Service`, then "???". An empty `VERSION` counts as unset.
+    """
+    return os.environ.get("VERSION") or service_version or "???"
 
 
 def get_version():

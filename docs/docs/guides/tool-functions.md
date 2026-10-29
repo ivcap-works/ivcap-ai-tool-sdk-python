@@ -131,7 +131,7 @@ For each `@ivcap_lambda`-decorated function at path `{prefix}`, three routes are
 
 Additionally, the framework registers:
 
-- `GET /_healtz` — health check (returns `{"version": "..."}`)
+- `GET /_healtz` — health check (returns `{"name": "...", "version": "..."}` plus any `is_ready` info)
 - `GET /api` — Swagger/OpenAPI UI
 - `GET /mcp` — MCP endpoint (only if `--with-mcp` is passed at startup)
 
@@ -232,7 +232,7 @@ _model = load_model("model.pkl")
 
 | Return value | Meaning | `/_healtz` response |
 |---|---|---|
-| `True` | Ready (legacy form) | `200 OK` |
+| `True` | Ready (legacy form) | `200 OK` with `name` and `version` |
 | `dict[str, Any]` (may be empty) | Ready, and the dict's entries are reported | `200 OK` with the entries merged into the JSON |
 | pydantic `BaseModel` | Ready, and its fields are reported (serialised with `by_alias=True`) | `200 OK` with the fields merged into the JSON |
 | `False` or raise `NotReadyYet` | Not ready | `503 Service Unavailable` |
@@ -261,10 +261,10 @@ def predict(req: PredictRequest) -> PredictResult:
 When ready, `GET /_healtz` returns:
 
 ```json
-{"model": "resnet-50", "weights": "v2", "version": "1.2.3"}
+{"model": "resnet-50", "weights": "v2", "name": "cas9-ivcap", "version": "0.1.0"}
 ```
 
-`version` always comes from the `VERSION` environment variable. If a dict contains a `version` key, it is ignored.
+`name` comes from the `Service` object passed to `start_lambda_server`. `version` is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`. If a dict contains a `name` or `version` key, it is ignored.
 
 ### Signalling "Not Ready Yet" With a Retry Hint
 
