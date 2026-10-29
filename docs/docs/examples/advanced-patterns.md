@@ -4,7 +4,7 @@ Advanced usage patterns for production IVCAP lambda services.
 
 ## Model Loading with Readiness Check
 
-Load a machine-learning model at startup and prevent the health check from succeeding until loading is complete:
+Load a machine-learning model at startup and keep `/_healtz` returning `503` until loading is complete:
 
 ```python
 import time

@@ -228,6 +228,64 @@ def predict(req: PredictRequest) -> PredictResult:
 _model = load_model("model.pkl")
 ```
 
+`is_ready` may be a regular function or an `async` function. The server calls every registered readiness check on each `GET /_healtz`. Each check can return one of three things:
+
+| Return value | Meaning | `/_healtz` response |
+|---|---|---|
+| `True` | Ready (legacy form) | `200 OK` |
+| `dict[str, Any]` (may be empty) | Ready, and the dict's entries are reported | `200 OK` with the entries merged into the JSON |
+| `False` or raise `NotReadyYet` | Not ready | `503 Service Unavailable` |
+
+### Reporting Info When Ready
+
+Return a dict to publish details such as model or configuration names. An empty dict is valid and means ready:
+
+```python
+from ivcap_lambda import NotReadyYet, ToolOptions, ivcap_lambda
+
+_model_name = "resnet-50"
+_model = None
+
+def _model_info() -> dict:
+    if _model is None:
+        raise NotReadyYet(retry_after=30)
+    return {"model": _model_name, "weights": "v2"}
+
+@ivcap_lambda("/predict", opts=ToolOptions(is_ready=_model_info))
+def predict(req: PredictRequest) -> PredictResult:
+    """Run a prediction"""
+    ...
+```
+
+When ready, `GET /_healtz` returns:
+
+```json
+{"model": "resnet-50", "weights": "v2", "version": "1.2.3"}
+```
+
+`version` always comes from the `VERSION` environment variable. If a dict contains a `version` key, it is ignored.
+
+### Signalling "Not Ready Yet" With a Retry Hint
+
+Raise `NotReadyYet` to report not-ready. Pass `retry_after` (seconds) to tell callers roughly how long to wait. It is sent as a `Retry-After` header, rounded up to whole seconds:
+
+```python
+from ivcap_lambda import NotReadyYet
+
+def _model_info() -> dict:
+    if _model is None:
+        raise NotReadyYet(retry_after=30)
+    return {"model": _model_name}
+```
+
+### Multiple Tools
+
+Readiness checks from every tool are combined into one `/_healtz` reply:
+
+- Dict entries from all tools are merged. If two tools use the same key, the later one wins.
+- If any check is not ready, the response is `503`. The largest `retry_after` among the not-ready checks becomes the `Retry-After` header.
+- A check that raises any other exception is not caught and results in a `500` response, so keep checks simple and non-blocking.
+
 ## See Also
 
 - [`@ivcap_lambda` API](../api/decorators.md)

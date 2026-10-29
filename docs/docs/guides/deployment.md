@@ -165,8 +165,7 @@ spec:
             memory: "1Gi"
             cpu: "1000m"
         livenessProbe:
-          httpGet:
-            path: /_healtz
+          tcpSocket:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 30

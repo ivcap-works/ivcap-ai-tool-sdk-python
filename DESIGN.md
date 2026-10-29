@@ -41,7 +41,7 @@ flowchart TD
 | `ivcap_lambda/executor.py` | `Executor` — runs a tool function in a thread pool, bridges sync/async functions, manages the job-result cache (`TTLCache`), injects `JobContext` via a `contextvars.ContextVar`, propagates OTEL spans across threads |
 | `ivcap_lambda/server.py` | `start_lambda_server(...)` — CLI argument parsing, FastAPI app wiring, health check, OTEL instrumentation, lifecycle/shutdown handling, dispatches to the MCP HTTP/stdio entry points |
 | `ivcap_lambda/mcp.py` | Optional MCP adapter (see §4) built on the official `mcp` SDK |
-| `ivcap_lambda/health_handler.py` | Aggregates per-tool `is_ready` callbacks into the `/_healtz` endpoint |
+| `ivcap_lambda/health_handler.py` | `add_ready_handler` collects per-tool `is_ready` callbacks (called from `builder.add_tool_api_route`). `healtz_handler` evaluates them (sync or async): `True` and dict results count as ready, dict entries are merged into the reply, and `False` or `NotReadyYet` produce a 503 (largest `retry_after` becomes `Retry-After`). `NotReadyYet` is defined here. `add_health_route(app)` mounts `GET /_healtz` unless the path already exists; `server.py` calls it at startup |
 | `ivcap_lambda/service_definition.py` | Builds the `ServiceDefinition`/`ToolDefinition` JSON consumed by IVCAP's deployment tooling and agent frameworks |
 | `ivcap_lambda/logger.py` | `logging_init()` — structured JSON logging config shared with `ivcap-service` |
 | `ivcap_lambda/secret.py` | Deprecated re-export shim for `ivcap_service.secret.SecretMgrClient` |

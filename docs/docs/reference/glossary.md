@@ -30,6 +30,14 @@ A Pydantic model that configures per-tool behaviour: wait timeout, retry interva
 
 The asynchronous response pattern used by lambda services. When a job exceeds `max_wait_time`, the server returns `204 No Content` with `Location` and `Retry-Later` headers so the caller can poll `GET /jobs/{job_id}` later.
 
+## Readiness Check
+
+An optional `is_ready` callable set in `ToolOptions`. It returns `True`, a dict of info to publish on `GET /_healtz` (empty is fine), or raises `NotReadyYet` (optionally with `retry_after` seconds) while the tool is not ready. Sync or async.
+
+## NotReadyYet
+
+Exception raised from a readiness check to signal not-ready. Its optional `retry_after` value (seconds) is sent as the `Retry-After` header on the `503` response from `/_healtz`.
+
 ## Event / Progress Event
 
 A message sent during tool execution to report progress, errors, or other status information back to the IVCAP platform. Emitted via `JobContext.report`.

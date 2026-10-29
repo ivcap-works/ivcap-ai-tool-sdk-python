@@ -181,14 +181,16 @@ These helpers read the job context from the current thread's context variable, s
 
 ## Health Check
 
-The `/_healtz` endpoint is automatically registered and returns the running service version:
+The `/_healtz` endpoint is automatically registered. It returns the running service version when the service is ready, plus any info that tools report through their `is_ready` dict:
 
 ```bash
 curl http://localhost:8090/_healtz
-# {"version": "1.2.3"}
+# {"model": "resnet-50", "version": "1.2.3"}
 ```
 
-Use this for Kubernetes liveness/readiness probes.
+If any tool registered with `is_ready` reports not-ready, `/_healtz` returns `503 Service Unavailable` instead, with a `Retry-After` header when the tool provided one. See [Tool Readiness](tool-functions.md#tool-readiness).
+
+Use this for Kubernetes readiness probes. For liveness probes, prefer a TCP check so that a slow model load does not cause the pod to be restarted.
 
 ## Best Practices
 

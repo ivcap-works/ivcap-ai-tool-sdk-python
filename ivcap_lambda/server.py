@@ -33,7 +33,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 # from .context import set_context, otel_instrument
 from .builder import tools
 from .executor import Executor, get_job_context
-from .utils import find_first
+from .health_handler import add_health_route
 from .version import get_version
 
 # shutdown pod cracefully
@@ -236,13 +236,7 @@ def start_lambda_server(
         run_mcp_stdio(service.name, app.version)
         return
 
-    # Check for '_healtz' service
-    healtz = find_first(app.routes, lambda r: r.path == "/_healtz")
-    if healtz is None:
-
-        @app.get("/_healtz", tags=["System"])
-        def healtz():
-            return {"version": os.environ.get("VERSION", "???")}
+    add_health_route(app)
 
     if args.with_mcp:
         from .mcp import register_mcp
