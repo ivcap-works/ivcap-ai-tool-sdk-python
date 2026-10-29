@@ -15,6 +15,7 @@ These tests cover:
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pydantic import BaseModel, Field
 
 from ivcap_lambda import health_handler as health_module
 from ivcap_lambda.health_handler import NotReadyYet, add_health_route, add_ready_handler
@@ -178,6 +179,30 @@ def test_other_handlers_still_contribute_info_when_not_ready(client):
     resp = client.get("/_healtz")
     assert resp.status_code == 503
     assert resp.headers["Retry-After"] == "1"
+
+
+class _ModelInfo(BaseModel):
+    model: str
+    weights_version: str = Field(..., alias="weightsVersion")
+
+
+def test_pydantic_model_result_is_merged_into_reply(client):
+    add_ready_handler(lambda: _ModelInfo(model="resnet-50", weightsVersion="v2"))
+    resp = client.get("/_healtz")
+    assert resp.status_code == 200
+    assert resp.json() == {
+        "model": "resnet-50",
+        "weightsVersion": "v2",
+        "version": "1.2.3",
+    }
+
+
+def test_async_pydantic_model_result_is_merged(client):
+    async def info() -> _ModelInfo:
+        return _ModelInfo(model="async-model", weightsVersion="v3")
+
+    add_ready_handler(info)
+    assert client.get("/_healtz").json()["model"] == "async-model"
 
 
 def test_not_ready_yet_takes_precedence_over_ready_dict(client):

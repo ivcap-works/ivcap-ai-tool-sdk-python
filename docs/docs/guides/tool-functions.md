@@ -234,6 +234,7 @@ _model = load_model("model.pkl")
 |---|---|---|
 | `True` | Ready (legacy form) | `200 OK` |
 | `dict[str, Any]` (may be empty) | Ready, and the dict's entries are reported | `200 OK` with the entries merged into the JSON |
+| pydantic `BaseModel` | Ready, and its fields are reported (serialised with `by_alias=True`) | `200 OK` with the fields merged into the JSON |
 | `False` or raise `NotReadyYet` | Not ready | `503 Service Unavailable` |
 
 ### Reporting Info When Ready

@@ -32,7 +32,7 @@ The asynchronous response pattern used by lambda services. When a job exceeds `m
 
 ## Readiness Check
 
-An optional `is_ready` callable set in `ToolOptions`. It returns `True`, a dict of info to publish on `GET /_healtz` (empty is fine), or raises `NotReadyYet` (optionally with `retry_after` seconds) while the tool is not ready. Sync or async.
+An optional `is_ready` callable set in `ToolOptions`. It returns `True`, a dict or pydantic model of info to publish on `GET /_healtz` (empty dict is fine), or raises `NotReadyYet` (optionally with `retry_after` seconds) while the tool is not ready. Sync or async.
 
 ## NotReadyYet
 

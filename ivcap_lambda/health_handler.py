@@ -7,13 +7,15 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 from .utils import find_first
 
-# A readiness check returns True (ready), False (legacy not-ready), or a dict of
-# extra info to add to the health reply (ready). Raising NotReadyYet also means
-# not-ready. Sync or async.
-ReadyFn = Callable[[], bool | dict[str, Any] | Awaitable[bool | dict[str, Any]]]
+# A readiness check returns True (ready), False (legacy not-ready), a dict or a
+# pydantic model of extra info to add to the health reply (ready). Raising
+# NotReadyYet also means not-ready. Sync or async.
+ReadyResult = bool | dict[str, Any] | BaseModel
+ReadyFn = Callable[[], ReadyResult | Awaitable[ReadyResult]]
 
 # Global registry of readiness handlers
 _ready_handlers: list[ReadyFn] = []
@@ -67,6 +69,9 @@ async def healtz_handler() -> dict:
             if ex.retry_after is not None:
                 retry_after = max(retry_after or 0.0, ex.retry_after)
             continue
+
+        if isinstance(result, BaseModel):
+            result = result.model_dump(by_alias=True)
 
         if isinstance(result, dict):
             info.update(result)

@@ -65,11 +65,12 @@ class ToolOptions(BaseModel):
     service_id: str | None = Field(
         None, description="overriding the default service id"
     )
-    is_ready: Callable[[], bool | dict[str, Any]] | None = Field(
+    is_ready: Callable[[], bool | dict[str, Any] | BaseModel] | None = Field(
         None,
         description=(
-            "Readiness check. Return a dict of info to report on /_healtz (or True), "
-            "return False, or raise NotReadyYet(retry_after) while not ready"
+            "Readiness check. Return a dict or pydantic model of info to report on "
+            "/_healtz (or True), return False, or raise NotReadyYet(retry_after) "
+            "while not ready"
         ),
     )
 
