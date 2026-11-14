@@ -26,6 +26,9 @@ class RestController(BaseModel):
     image: str
     command: list[str] | str
     resources: Resources = Field(default_factory=Resources)
+    service_timeout: int | None = Field(
+        default=None, description="service timeout in seconds"
+    )
 
 def print_rest_service_definition(
     service_description: Service,
@@ -33,6 +36,7 @@ def print_rest_service_definition(
     service_id: str | None = None,
     name: str | None = None,
     path: str | None = None,
+    service_timeout: int | None = None,
 ):
     sd = create_rest_service_definition(
         service_description,
@@ -40,6 +44,7 @@ def print_rest_service_definition(
         service_id=service_id,
         name=name,
         path=path,
+        service_timeout=service_timeout,
     )
     print(sd.model_dump_json(indent=2, by_alias=True, exclude_none=True))
 
@@ -49,13 +54,23 @@ def create_rest_service_definition(
     service_id: str | None = None,
     name: str | None = None,
     path: str | None = None,
+    service_timeout: int | None = None,
 ) -> ServiceDefinition:
     # controller
     image = os.getenv("DOCKER_IMG", IMAGE_PLACEHOLDER)
 
     command = find_command()
     resources = find_resources_file()
-    controller = RestController(path=path, image=image, command=command, resources=resources)
+    env_timeout = os.getenv("IVCAP_SERVICE_TIMEOUT")
+    if env_timeout:
+        service_timeout = int(env_timeout)
+    controller = RestController(
+        path=path,
+        image=image,
+        command=command,
+        resources=resources,
+        service_timeout=service_timeout,
+    )
     if name is not None:
         service_description = service_description.model_copy(update={"name": name})
     return create_service_definition(service_description, fn, REST_CONTROLLER_SCHEMA, controller, service_id)

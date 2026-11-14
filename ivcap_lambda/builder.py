@@ -65,6 +65,10 @@ class ToolOptions(BaseModel):
     service_id: str | None = Field(
         None, description="overriding the default service id"
     )
+    service_timeout: int | None = Field(
+        None,
+        description="service timeout in seconds, included in the REST service description",
+    )
     is_ready: Callable[[], bool | dict[str, Any] | BaseModel] | None = Field(
         None,
         description=(
@@ -88,6 +92,7 @@ class ToolDescription:
     worker_fn: WorkerFn
     input: tuple[type[BaseModel] | None, dict[str, Any]]
     executor: Executor
+    service_timeout: int | None = None
 
 
 tools: list[ToolDescription] = []
@@ -155,6 +160,7 @@ def add_tool_api_route(
             worker_fn=worker_fn,
             input=get_input_type(worker_fn),
             executor=executor,
+            service_timeout=opts.service_timeout,
         )
     )
 

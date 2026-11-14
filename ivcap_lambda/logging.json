@@ -55,6 +55,12 @@
     "app": {
       "level": "DEBUG"
     },
+    "app.request": {
+      "level": "INFO"
+    },
+    "app.httpx": {
+      "level": "INFO"
+    },
     "event": {
       "level": "DEBUG"
     },

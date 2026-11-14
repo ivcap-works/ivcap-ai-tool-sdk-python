@@ -191,7 +191,11 @@ def start_lambda_server(
         tool_slug = tool.name.replace("_", "-")
         name = args.service_name or f"{service.name}-{tool_slug}"
         print_rest_service_definition(
-            service, tool.worker_fn, name=name, path=tool.path_prefix
+            service,
+            tool.worker_fn,
+            name=name,
+            path=tool.path_prefix,
+            service_timeout=tool.service_timeout,
         )
         sys.exit(0)
 
