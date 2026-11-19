@@ -1,0 +1,8 @@
+{
+  "$schema": "urn:sd:schema:ai-tester.request.1",
+  "consume_cpu": {
+    "duration_seconds": 10,
+    "target_cpu_percent": 10,
+    "throw_exception_at_end": true
+  }
+}

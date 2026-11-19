@@ -1,16 +1,13 @@
-ARG BUILD_PLATFORM=linux/amd64
-FROM --platform=${BUILD_PLATFORM} python:3.11-slim-bookworm
+FROM python:3.11-slim-bookworm
+
+# Install the latest published ivcap-lambda and ivcap-service releases (see
+# Dockerfile.local for building from the current source tree instead).
+RUN pip install --no-cache-dir \
+  "ivcap-lambda[mcp]>=0.8.3,<0.9.0" \
+  "ivcap-service>=0.7.0,<0.8.0" \
+  "openai>=1.95.1,<2.0.0"
 
 WORKDIR /app
-COPY pyproject.toml ./
-# Install poetry, patch local dev deps → PyPI versions, install deps, then remove poetry
-RUN pip install poetry \
-  && sed -i 's|ivcap-lambda = {path = "../..", develop = true, extras = \["mcp"\]}|ivcap-lambda = {version = ">=0.8.3,<0.9.0", extras = ["mcp"]}|' pyproject.toml \
-  && sed -i '/^ivcap-service = {path = /d' pyproject.toml \
-  && poetry config virtualenvs.create false \
-  && poetry install --no-root \
-  && pip uninstall -y poetry
-
 COPY tool-service.py ./
 
 # VERSION INFORMATION

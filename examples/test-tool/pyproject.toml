@@ -22,7 +22,7 @@ dependencies = [
 ivcap-lambda = {path = "../..", develop = true, extras = ["mcp"]}
 # ivcap_service.testkit requires >=0.7.0; use local path during development,
 # switching to the PyPI version constraint above for published builds.
-ivcap-service = {path = "../../../ivcap-service2-sdk-python", develop = true}
+ivcap-service = {path = "../../../ivcap-service-sdk-python", develop = true}
 
 [tool.poetry-plugin-ivcap]
 service-file = "tool-service.py"

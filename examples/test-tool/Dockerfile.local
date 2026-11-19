@@ -1,0 +1,31 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /tmp/src
+
+# Build context layout (see 'docker-build-local' in the Makefile):
+#   '.'               - the ivcap-lambda-sdk-python repository root
+#   'ivcap_service'   - the ivcap-service-sdk-python repository root (named context)
+#
+# Both are installed as regular (non-editable) packages, so the source copies
+# under /tmp can be removed again afterwards.
+COPY --from=ivcap_service pyproject.toml README.md /tmp/src/ivcap-service/
+COPY --from=ivcap_service ivcap_service /tmp/src/ivcap-service/ivcap_service
+COPY pyproject.toml README.md /tmp/src/ivcap-lambda/
+COPY ivcap_lambda /tmp/src/ivcap-lambda/ivcap_lambda
+
+RUN pip install --no-cache-dir \
+    /tmp/src/ivcap-service \
+    "/tmp/src/ivcap-lambda[mcp]" \
+    "openai>=1.95.1,<2.0.0" \
+  && rm -rf /tmp/src
+
+WORKDIR /app
+COPY examples/test-tool/tool-service.py ./
+
+# VERSION INFORMATION
+ARG VERSION=dev-local
+ENV VERSION=$VERSION
+ENV PORT=80
+
+# Command to run
+ENTRYPOINT ["python",  "/app/tool-service.py"]

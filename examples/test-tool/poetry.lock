@@ -1006,7 +1006,7 @@ yarl = ">=1.22.0"
 
 [[package]]
 name = "ivcap-lambda"
-version = "0.8.1"
+version = "0.8.10"
 description = "Helper functions for building lambda-style services on the IVCAP platform"
 optional = false
 python-versions = ">=3.11,<4.0"
@@ -1032,7 +1032,7 @@ url = "../.."
 
 [[package]]
 name = "ivcap-service"
-version = "0.7.0"
+version = "0.7.5"
 description = "SDK library for building services for the IVCAP platform"
 optional = false
 python-versions = ">=3.11,<4.0"
@@ -1052,7 +1052,7 @@ pydantic = "^2.11.4"
 
 [package.source]
 type = "directory"
-url = "../../../ivcap-service2-sdk-python"
+url = "../../../ivcap-service-sdk-python"
 
 [[package]]
 name = "jiter"
@@ -2736,4 +2736,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "bbe63ba71dad364c7b4e8a88c1848b0f9b9ec14c802c3801ea5f7d10c5a2a408"
+content-hash = "78577f361538479686bdf6ea6b7f4a9acadbfefe4f63b46ffcade0fc5e3842fd"

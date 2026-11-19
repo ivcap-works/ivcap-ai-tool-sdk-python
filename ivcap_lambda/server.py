@@ -4,6 +4,8 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 #
 import argparse
+import asyncio
+import json
 import os
 import sys
 from collections.abc import Callable
@@ -15,6 +17,8 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from ivcap_service import (
+    ExecutionError,
+    IvcapResult,
     Service,
     SidecarReporter,
     getLogger,
@@ -24,14 +28,16 @@ from ivcap_service import (
     service_log_config,
     set_context,
     set_event_reporter_factory,
+    set_sidecar_delivery_disabled,
 )
 from ivcap_service import (
     get_version as get_service_version,
 )
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from starlette.requests import Request as StarletteRequest
 
 # from .context import set_context, otel_instrument
-from .builder import tools
+from .builder import ToolDescription, tools
 from .executor import Executor, get_job_context
 from .health_handler import add_health_route
 from .version import get_version, resolve_service_version
@@ -51,6 +57,58 @@ def get_fast_app() -> FastAPI:
         FastAPI: The FastAPI app instance.
     """
     return _app
+
+
+def run_test_file(path: str, tool: ToolDescription) -> None:
+    """Run `tool` once on a job file in the ivcap-service batch format and print the result.
+
+    The job file has the same shape as the ones used by ivcap-service's
+    `--test-file`: `id`, `in-content-type` and `in-content`.
+
+    Args:
+        path (str): path to the job JSON file
+        tool (ToolDescription): the registered tool to execute
+    """
+    with open(path) as f:
+        job = json.load(f)
+    job_id = job.get("id", "unknown_job_id")
+    ct = job["in-content-type"]
+    if ct != "application/json":
+        raise ValueError(f"cannot handle content-type '{ct}'")
+    input_model, _ = tool.input
+    if input_model is None:
+        raise ValueError(f"tool '{tool.name}' has no input model")
+    param = input_model(**job["in-content"])
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "scheme": "http",
+        "server": ("localhost", 8090),
+        "path": "/",
+        "query_string": b"",
+        "headers": [],
+    }
+
+    async def _execute():
+        queue = await tool.executor.execute(
+            param, job_id, StarletteRequest(scope), report_result=False
+        )
+        return await queue.get()
+
+    res = asyncio.run(_execute())
+    if isinstance(res, IvcapResult):
+        content = res.content
+        try:
+            if not isinstance(content, (bytes, str)):
+                raise ValueError("content is not in-memory")
+            print(json.dumps(json.loads(content), indent=2))
+        except ValueError:
+            print(content)
+    else:
+        print(res.model_dump_json(indent=2))
+        if isinstance(res, ExecutionError):
+            sys.exit(1)
 
 
 def start_lambda_server(
@@ -152,6 +210,25 @@ def start_lambda_server(
         help=f"Print tool description to stdout [{','.join(tool_names)}]",
     )
 
+    parser.add_argument(
+        "--test-file",
+        type=str,
+        help=(
+            "Run the first tool on a job file (ivcap-service format with 'id', "
+            "'in-content-type' and 'in-content') and print the result, then exit"
+        ),
+    )
+    parser.add_argument(
+        "--test-without-sidecar",
+        action="store_true",
+        help=(
+            "Silently drop any attempt to deliver events or results to the "
+            "sidecar (no HTTP calls, no retries, no warnings). Useful for "
+            "local testing (typically together with --test-file) without a "
+            "reachable IVCAP_BASE_URL/sidecar."
+        ),
+    )
+
     if custom_args is not None:
         args = custom_args(parser)
     else:
@@ -218,6 +295,13 @@ def start_lambda_server(
     elif getattr(args, "with_telemetry", False):
         effective_with_telemetry = True
 
+    if args.test_without_sidecar:
+        logger.info(
+            "--test-without-sidecar set - events/results will not be delivered "
+            "to the sidecar"
+        )
+        set_sidecar_delivery_disabled(True)
+
     set_event_reporter_factory(SidecarReporter)  # type: ignore[arg-type]
 
     def get_context():
@@ -229,6 +313,10 @@ def start_lambda_server(
         return jctxt
 
     set_context(get_context)
+
+    if args.test_file is not None:
+        run_test_file(args.test_file, tools[0])
+        return
 
     if args.with_mcp_stdio:
         # Run as a stdio MCP server instead of the HTTP/uvicorn server: no

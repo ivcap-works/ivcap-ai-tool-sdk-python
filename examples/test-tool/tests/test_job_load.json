@@ -1,0 +1,12 @@
+{
+  "id": "urn:ivcap:job:1274df7e-6de4-4414-af83-897d3c8d8ad0",
+  "in-content-type": "application/json",
+  "in-content": {
+    "$schema": "urn:sd:schema:ai-tester.request.1",
+    "consume_cpu": {
+      "duration_seconds": 10,
+      "target_cpu_percent": 10,
+      "throw_exception_at_end": false
+    }
+  }
+}

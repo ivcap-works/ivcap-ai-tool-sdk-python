@@ -128,7 +128,7 @@ class Result(BaseModel):
     run_time: float = Field(description="time in seconds this job took")
 
 
-@ivcap_lambda("/", opts=ToolOptions(tags=["Test Tool"], service_id="/"))
+@ivcap_lambda("/", opts=ToolOptions(tags=["Test Tool"], service_id="/", service_timeout=120))
 def tester(req: Request, freq: FRequest, jobCtxt: JobContext) -> Result:
     """
     Run various tests

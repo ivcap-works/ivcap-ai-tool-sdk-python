@@ -33,6 +33,14 @@ run-with-proxy:
 		PORT=${PORT} \
 		poetry ivcap run
 
+TEST_FILE=tests/test_job_load.json
+run-test-as-service:
+	env VERSION=$(VERSION) \
+			PYTHONPATH=${PROJECT_DIR}/../.. \
+			poetry run python tool-service.py \
+			 --test-file ${TEST_FILE} \
+			 --test-without-sidecar
+
 run-litellm:
 	env $(shell cat .env | xargs) litellm --port 4000 -m gpt-3.5-turbo -m gpt-4
 
@@ -168,6 +176,27 @@ test-local-debug:
 		-H "Timeout: ${TIMEOUT}" \
 		--data @${PROJECT_DIR}/tests/${REQUEST} \
 		http://localhost:8088/1/services2/${SERVICE_ID}/jobs
+
+# Build using the latest published ivcap-lambda / ivcap-service releases
+DOCKER_TAG=test-tool:published
+docker-build:
+	docker build -f Dockerfile -t ${DOCKER_TAG} \
+		--build-arg VERSION=$(or $(VERSION),dev) \
+		${PROJECT_DIR}
+
+# Build using the current ivcap-lambda and ivcap-service source trees
+# (ivcap-lambda-sdk-python = build context, ivcap-service-sdk-python = named context 'ivcap_service')
+DOCKER_TAG_LOCAL=test-tool:local-src
+docker-build-local:
+	docker build -f Dockerfile.local -t ${DOCKER_TAG_LOCAL} \
+		--build-context ivcap_service=${PROJECT_DIR}/../../../ivcap-service-sdk-python \
+		--build-arg VERSION=$(or $(VERSION),dev-local) \
+		${PROJECT_DIR}/../..
+
+docker-run-test-file: docker-build-local
+	docker run --rm \
+		-v ${PROJECT_DIR}/tests:/app/tests \
+		${DOCKER_TAG_LOCAL} --test-file /app/tests/test_job_load.json --test-without-sidecar
 
 mcp-inspector:
 	npx @modelcontextprotocol/inspector --config mcp-inspector.config.json --server default
