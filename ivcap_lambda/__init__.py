@@ -23,6 +23,7 @@ from .executor import (
 )
 from .health_handler import NotReadyYet as NotReadyYet
 from .logger import logging_init as logging_init
+from .once import once_per_key as once_per_key
 from .secret import SecretMgrClient as SecretMgrClient
 from .server import (
     start_lambda_server as start_lambda_server,
