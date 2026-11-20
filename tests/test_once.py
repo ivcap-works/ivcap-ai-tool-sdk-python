@@ -202,6 +202,23 @@ def test_failing_reporter_does_not_affect_other_subscribers():
     assert good.names == ["start", "end"]
 
 
+def test_kwargs_are_passed_to_owner_run():
+    @once_per_key
+    def job(key, events, **kwargs):
+        return kwargs
+
+    assert job("k", device="cpu", batch=4) == {"device": "cpu", "batch": 4}
+
+
+def test_kwargs_of_later_callers_are_ignored():
+    @once_per_key
+    def job(key, events, **kwargs):
+        return kwargs
+
+    assert job("k", device="cpu") == {"device": "cpu"}
+    assert job("k", device="gpu") == {"device": "cpu"}
+
+
 def test_reporter_is_optional():
     @once_per_key
     def job(key, events):

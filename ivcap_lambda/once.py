@@ -47,13 +47,18 @@ class _FanOutReporter(EventReporter):
                 logger.exception("reporter %s failed", r.job_id)
 
 
-def once_per_key(fn: Callable[[Any, EventReporter], R]) -> Callable[..., R]:
+def once_per_key(fn: Callable[..., R]) -> Callable[..., R]:
     """Make `fn` run at most once per key, sharing its result and events.
 
-    The decorated function is called as `wrapper(key, reporter=None)`. The first
-    caller for a key (the owner) runs `fn(key, events)`, where `events` is an
-    `EventReporter` that forwards every event to all current subscribers. Other
-    callers with the same key wait for the owner and return the same result.
+    The decorated function is called as `wrapper(key, reporter=None, **kwargs)`.
+    The first caller for a key (the owner) runs `fn(key, events, **kwargs)`, where
+    `events` is an `EventReporter` that forwards every event to all current
+    subscribers. Other callers with the same key wait for the owner and return the
+    same result.
+
+    - Keyword arguments: only the owner's `**kwargs` are passed to `fn`. They are
+      not part of the cache key, so kwargs given to later or concurrent callers
+      for the same key are ignored.
 
     - Subscribers: a caller that passes `reporter` receives events emitted after
       it joined, including the owner's own reporter. Events are not replayed.
@@ -77,28 +82,29 @@ def once_per_key(fn: Callable[[Any, EventReporter], R]) -> Callable[..., R]:
     from ivcap_lambda import get_event_reporter, ivcap_lambda, once_per_key
 
     @once_per_key
-    def load_model(key: str, events: EventReporter) -> str:
+    def load_model(key: str, events: EventReporter, **kwargs: Any) -> str:
         events.emit(GenericEvent(name="loading", options={"model": key}))
         ...
         return "loaded"
 
     @ivcap_lambda("/predict")
     def predict(req: Request) -> Result:
-        status = load_model(req.model, reporter=get_event_reporter())
+        status = load_model(req.model, reporter=get_event_reporter(), device="cpu")
         ...
     ```
 
     Args:
-        fn: function taking `(key, events)` and returning the result for `key`.
+        fn: function taking `(key, events, **kwargs)` and returning the result for `key`.
 
     Returns:
-        A wrapper taking `key` and an optional `reporter` keyword argument.
+        A wrapper taking `key`, an optional `reporter` keyword argument, and any
+        extra keyword arguments, which are passed to `fn` when the caller owns the run.
     """
     lock = threading.Lock()
     entries: dict[Any, _Entry] = {}
 
     @wraps(fn)
-    def wrapper(key: Any, reporter: EventReporter | None = None) -> R:
+    def wrapper(key: Any, reporter: EventReporter | None = None, **kwargs: Any) -> R:
         with lock:
             entry = entries.get(key)
             is_owner = entry is None
@@ -109,7 +115,7 @@ def once_per_key(fn: Callable[[Any, EventReporter], R]) -> Callable[..., R]:
 
         if is_owner:
             try:
-                entry.value = fn(key, _FanOutReporter(key, entry, lock))
+                entry.value = fn(key, _FanOutReporter(key, entry, lock), **kwargs)
             except BaseException as e:
                 entry.error = e
                 with lock:
