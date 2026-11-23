@@ -219,13 +219,16 @@ def start_lambda_server(
         ),
     )
     parser.add_argument(
+        "--without-sidecar",
         "--test-without-sidecar",
+        dest="without_sidecar",
         action="store_true",
         help=(
             "Silently drop any attempt to deliver events or results to the "
             "sidecar (no HTTP calls, no retries, no warnings). Useful for "
             "local testing (typically together with --test-file) without a "
-            "reachable IVCAP_BASE_URL/sidecar."
+            "reachable IVCAP_BASE_URL/sidecar. Can also be set via the "
+            "IVCAP_WITHOUT_SIDECAR environment variable."
         ),
     )
 
@@ -295,10 +298,16 @@ def start_lambda_server(
     elif getattr(args, "with_telemetry", False):
         effective_with_telemetry = True
 
-    if args.test_without_sidecar:
+    env_without_sidecar = os.getenv("IVCAP_WITHOUT_SIDECAR", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    )
+    if args.without_sidecar or env_without_sidecar:
         logger.info(
-            "--test-without-sidecar set - events/results will not be delivered "
-            "to the sidecar"
+            "without-sidecar set - events/results will not be delivered to the sidecar"
         )
         set_sidecar_delivery_disabled(True)
 

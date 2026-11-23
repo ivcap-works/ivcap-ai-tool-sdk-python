@@ -1253,14 +1253,14 @@ yarl = ">=1.22.0"
 
 [[package]]
 name = "ivcap-service"
-version = "0.7.0"
+version = "0.7.6"
 description = "SDK library for building services for the IVCAP platform"
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "ivcap_service-0.7.0-py3-none-any.whl", hash = "sha256:b777aff309692c95a67dc955753d69e9b4825bf3d8150499abe24d21f35f4210"},
-    {file = "ivcap_service-0.7.0.tar.gz", hash = "sha256:458185434512793825ba0e76e25a83fa6478e61ae4478a12e4896516089f3cc4"},
+    {file = "ivcap_service-0.7.6-py3-none-any.whl", hash = "sha256:e14bf6b91c6a86ef26b851ec5ad9b684bb2b774c8b0bf082f1a72463b05b94cc"},
+    {file = "ivcap_service-0.7.6.tar.gz", hash = "sha256:ca8c6e9f80f8a24247ab288324273f53488cd4df7ea16fb4f81b5ccf35a92c37"},
 ]
 
 [package.dependencies]
@@ -3693,4 +3693,4 @@ mcp = ["mcp"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "e38bfca561aa7b73598a5081e1c6414254024965abcb7e5b57614f7a44bac7f1"
+content-hash = "205af2bc8845d141b585aca118a6c3fe9ff6494fc5d0b177b34f4e186ac6bc65"

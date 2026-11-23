@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ivcap-lambda"
-version = "0.8.13"
+version = "0.8.14"
 description = "Helper functions for building lambda-style services on the IVCAP platform"
 
 authors = ["Max Ott <max.ott@csiro.au>"]
@@ -14,7 +14,7 @@ python = ">=3.11,<4.0"
 uuid6 = "2024.7.10"
 cachetools = "^5.5.2"
 opentelemetry-instrumentation-fastapi = ">=0.57b0"
-ivcap-service = "^0.7.0"
+ivcap-service = "^0.7.6"
 fastapi = "^0.121.2"
 uvicorn = "^0.38.0"
 mcp = {version = "^2.3.0", optional = true}
