@@ -40,6 +40,7 @@ from pydantic import BaseModel
 from uuid6 import uuid6
 
 from .builder import ToolDescription, tools
+from .health_handler import NotReadyYet
 
 logger = getLogger("mcp")
 
@@ -165,13 +166,16 @@ def _make_mcp_tool(td: ToolDescription):
         authorization = headers.get("authorization")
         reporter = McpEventReporter(job_id, authorization, ctx, loop)
 
-        queue = await td.executor.execute(
-            req,
-            job_id,
-            shim_req,  # type: ignore[arg-type]
-            report_result=False,
-            reporter=reporter,
-        )
+        try:
+            queue = await td.executor.execute(
+                req,
+                job_id,
+                shim_req,  # type: ignore[arg-type]
+                report_result=False,
+                reporter=reporter,
+            )
+        except NotReadyYet as ex:
+            raise ToolError(f"tool '{td.name}' is not ready yet") from ex
         try:
             result = await asyncio.wait_for(queue.get(), timeout=MCP_CALL_TIMEOUT)
             queue.task_done()

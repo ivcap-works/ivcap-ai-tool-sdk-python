@@ -153,7 +153,7 @@ def process(req: MyRequest, jobCtxt: JobContext) -> MyResult:
 | `refresh_interval` | `3` | `Retry-Later` header value |
 | `service_id` | `None` | Overrides service ID in tool description; prepend `/` to auto-prefix URL |
 | `executor_opts` | `None` | `ExecutorOpts(max_workers, job_cache_size, job_cache_ttl)` |
-| `is_ready` | `None` | `Callable[[], bool \| dict[str, Any] \| BaseModel]` (sync or async) — readiness check. Return a dict or pydantic model (may be empty) when ready, and its fields are merged into `GET /_healtz`. Return `True` (legacy) when ready. Return `False` or raise `NotReadyYet(retry_after=seconds)` when not ready; this gives `503`, plus a `Retry-After` header if `retry_after` is set. Checks from all tools are aggregated. |
+| `is_ready` | `None` | `Callable[[], bool]` (sync or async) — per-tool readiness check. Return `True` when this tool can run. Return `False` or raise `NotReadyYet(retry_after=seconds)` while it cannot; the tool's `POST` then gives `503`, plus a `Retry-After` header if `retry_after` is set. It does not affect `GET /_healtz`. |
 | `post_route_opts` | `{}` | Extra kwargs for FastAPI route |
 
 ### 7. Using JobContext

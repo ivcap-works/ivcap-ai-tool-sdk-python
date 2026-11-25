@@ -22,6 +22,7 @@ from .executor import (
     get_job_id as get_job_id,
 )
 from .health_handler import NotReadyYet as NotReadyYet
+from .health_handler import ivcap_health_info as ivcap_health_info
 from .logger import logging_init as logging_init
 from .once import once_per_key as once_per_key
 from .secret import SecretMgrClient as SecretMgrClient

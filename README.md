@@ -2,7 +2,7 @@
 
 > **Package renamed:** `ivcap-ai-tool` has been renamed to `ivcap-lambda` to reflect that
 > the library is useful for any lambda-style IVCAP service, not just AI agent tools.
-> A [compatibility shim](./compat/) is published under the old name — existing apps
+> A [compatibility shim](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/compat/) is published under the old name — existing apps
 > will continue to work but will see a `DeprecationWarning` prompting migration.
 
 <a href="https://scan.coverity.com/projects/ivcap-works-ivcap-ai-tool-sdk-python">
@@ -27,17 +27,17 @@ Protocol) server**, from the same tool code. It sits on top of
 **🚀 New to the library?** Depending on your goal:
 
 - Building a service for the **IVCAP platform** (MCP optional) → see
-  [Track A](./docs/agents/track-a-ivcap-service.md) or the
+  [Track A](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-a-ivcap-service.md) or the
   [Quick Start guide](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/getting-started/quick-start/)
 - Building an **MCP server** first, with IVCAP deployment as a bonus → see
-  [Track B](./docs/agents/track-b-mcp-first.md) or the
+  [Track B](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-b-mcp-first.md) or the
   [MCP guide's MCP-first section](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/guides/mcp/#mcp-first-development)
 - Migrating an existing server built on the plain **`mcp` Python SDK** → see
-  [Track C](./docs/agents/track-c-migrate-from-mcp.md)
+  [Track C](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/docs/agents/track-c-migrate-from-mcp.md)
 - A ready-to-clone starter project →
   [ivcap-python-ai-tool-template](https://github.com/ivcap-works/ivcap-python-ai-tool-template)
 
-See [AGENTS.md](./AGENTS.md) for the full router between the three tracks above.
+See [AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md) for the full router between the three tracks above.
 
 ---
 
@@ -104,7 +104,7 @@ python my_service.py --with-mcp-stdio
 For everything else — defining tools, `ToolOptions`, `JobContext`, progress
 reporting, artifacts, MCP, project layout, deployment, Docker — see the
 **[full documentation](https://ivcap-works.github.io/ivcap-ai-tool-sdk-python/)**
-and **[AGENTS.md](./AGENTS.md)**. This README intentionally stays limited to
+and **[AGENTS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AGENTS.md)**. This README intentionally stays limited to
 installation/quick-start plus notes for anyone working on `ivcap-lambda`
 itself (below), to avoid duplicating content that's already maintained in the
 docs site.
@@ -127,14 +127,15 @@ The old `ivcap-ai-tool` package is a compatibility shim that re-exports everythi
 
 The sections below are for anyone extending, fixing, or releasing this
 library — not for consumers of the package. See also
-[CONTRIBUTING.md](./CONTRIBUTING.md), [DESIGN.md](./DESIGN.md) (internal
-architecture), and [CONDUCT.md](./CONDUCT.md).
+[CONTRIBUTING.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/CONTRIBUTING.md), [DESIGN.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/DESIGN.md) (internal
+architecture), and [CONDUCT.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/CONDUCT.md).
 
 ### Repository Layout
 
 ```
-ivcap-ai-tool/
+ivcap-ai-tool-sdk-python/
 ├── ivcap_lambda/    # the library itself
+│   └── agents/      # AGENTS.md + track docs, copied in by `make build`, shipped in the package
 ├── compat/          # ivcap-ai-tool deprecation shim (old package name)
 ├── docs/            # MkDocs documentation site (docs/docs) + build output (docs/site)
 ├── examples/        # runnable example services (test-tool, test-mcp)
@@ -175,5 +176,5 @@ build`/`poetry publish`.
 
 ### License
 
-Licensed under the BSD-style license in [LICENSE](./LICENSE). See
-[AUTHORS.md](./AUTHORS.md) for contributors.
+Licensed under the BSD-style license in [LICENSE](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/LICENSE). See
+[AUTHORS.md](https://github.com/ivcap-works/ivcap-ai-tool-sdk-python/blob/main/AUTHORS.md) for contributors.

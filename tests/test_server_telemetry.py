@@ -29,6 +29,7 @@ def telemetry_startup(monkeypatch):
     monkeypatch.setattr(server_module, "set_event_reporter_factory", Mock())
     monkeypatch.setattr(server_module, "set_context", Mock())
     monkeypatch.setattr(server_module.uvicorn, "Config", Mock())
+    monkeypatch.setattr(server_module, "_bind_listen_socket", Mock())
     monkeypatch.setattr(server_module.uvicorn.Server, "run", Mock())
 
     yield init_openobserve, instrument

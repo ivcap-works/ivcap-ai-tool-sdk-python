@@ -29,6 +29,8 @@ from opentelemetry import context, trace
 from opentelemetry.context.context import Context
 from pydantic import BaseModel, Field
 
+from .health_handler import check_tool_ready
+
 # Number of attempt to deliver job result before giving up
 MAX_DELIVER_RESULT_ATTEMPTS = 4
 
@@ -116,6 +118,7 @@ class Executor(Generic[T]):
         *,
         opts: ExecutorOpts | None,
         context: ExecutionContext | None = None,
+        is_ready: Callable[[], Any] | None = None,
     ):
         """
         Initialize the Executor with a function and an optional thread pool.
@@ -126,8 +129,11 @@ class Executor(Generic[T]):
              - job_cache_size: Optional size of job cache. Defaults to 1000
              - job_cache_ttl: Optional TTL of job entries in the job cache. Defaults to 600 sec
              - max_workers: Optional size of thread pool to use. If None, a new thread pool will be created for each execution.
+            is_ready: Optional per-tool readiness check. `execute()` refuses to start a
+                job while it reports not ready (returns False or raises NotReadyYet).
         """
         self.func = func
+        self.is_ready = is_ready
         if opts is None:
             opts = ExecutorOpts()
         self.job_cache: TTLCache = TTLCache(
@@ -178,7 +184,11 @@ class Executor(Generic[T]):
 
         Returns:
             An asyncio Queue that will contain either the result of type T or an ExecutionError
+
+        Raises:
+            NotReadyYet: if the tool's `is_ready` check reports not ready. No job is started.
         """
+        await check_tool_ready(self.is_ready)
         result_queue: asyncio.Queue[T | ExecutionError] = asyncio.Queue()
         event_loop = asyncio.get_running_loop()
         self.job_cache[job_id] = None

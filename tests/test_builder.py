@@ -277,3 +277,82 @@ def test_add_tool_api_route_with_none_opts_uses_defaults():
     resp = client.post("/process", json={"text": "hi"})
     assert resp.status_code == 200
     assert resp.json()["output"] == "HI"
+
+
+def test_tool_not_ready_returns_503_with_retry_after():
+    from ivcap_lambda.health_handler import NotReadyYet
+
+    app = _new_app()
+
+    def not_ready() -> bool:
+        raise NotReadyYet(retry_after=12)
+
+    def process(req: _Req) -> _Res:
+        """Process text"""
+        return _Res(output=req.text.upper())
+
+    add_tool_api_route(app, "/process", process, opts=ToolOptions(is_ready=not_ready))
+
+    resp = TestClient(app).post("/process", json={"text": "hi"})
+    assert resp.status_code == 503
+    assert resp.headers["Retry-After"] == "12"
+
+
+def test_tool_false_ready_check_returns_503_without_retry_header():
+    app = _new_app()
+
+    def process(req: _Req) -> _Res:
+        """Process text"""
+        return _Res(output=req.text.upper())
+
+    add_tool_api_route(
+        app, "/process", process, opts=ToolOptions(is_ready=lambda: False)
+    )
+
+    resp = TestClient(app).post("/process", json={"text": "hi"})
+    assert resp.status_code == 503
+    assert "Retry-After" not in resp.headers
+
+
+def test_tool_definition_served_while_tool_not_ready():
+    app = _new_app()
+
+    def process(req: _Req) -> _Res:
+        """Process text"""
+        return _Res(output=req.text.upper())
+
+    add_tool_api_route(
+        app, "/process", process, opts=ToolOptions(is_ready=lambda: False)
+    )
+    assert TestClient(app).get("/process").status_code == 200
+
+
+def test_tool_ready_check_passes_when_ready():
+    app = _new_app()
+
+    def process(req: _Req) -> _Res:
+        """Process text"""
+        return _Res(output=req.text.upper())
+
+    add_tool_api_route(
+        app, "/process", process, opts=ToolOptions(is_ready=lambda: True)
+    )
+    resp = TestClient(app).post("/process", json={"text": "hi"})
+    assert resp.status_code == 200
+    assert resp.json()["output"] == "HI"
+
+
+def test_tool_readiness_does_not_affect_healtz():
+    from ivcap_lambda.health_handler import add_health_route
+
+    app = _new_app()
+
+    def process(req: _Req) -> _Res:
+        """Process text"""
+        return _Res(output=req.text.upper())
+
+    add_tool_api_route(
+        app, "/process", process, opts=ToolOptions(is_ready=lambda: False)
+    )
+    add_health_route(app)
+    assert TestClient(app).get("/_healtz").status_code == 200

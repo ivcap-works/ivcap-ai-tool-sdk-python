@@ -54,7 +54,7 @@ The first paragraph of the docstring becomes the endpoint **summary**; the rest 
 | `service_id` | `None` | Overrides the service ID in the tool description |
 | `post_route_opts` | `{}` | Extra kwargs forwarded to the FastAPI route constructor |
 | `executor_opts` | `None` | `ExecutorOpts` (cache size/TTL, thread-pool size) |
-| `is_ready` | `None` | Callable that returns `False` while the tool is initialising |
+| `is_ready` | `None` | Callable returning `True` when the tool can run; `False` or `NotReadyYet` gives `503` on its `POST` endpoint |
 
 **`service_id`:** If set to a path (e.g. `"/"` or `"/greet"`), the server prepends the public URL prefix automatically, so agents receive a fully-qualified service ID.
 
@@ -131,7 +131,7 @@ For each `@ivcap_lambda`-decorated function at path `{prefix}`, three routes are
 
 Additionally, the framework registers:
 
-- `GET /_healtz` — health check (returns `{"name": "...", "version": "..."}` plus any `is_ready` info)
+- `GET /_healtz` — health check for the whole service (returns name, version and library versions, plus any `@ivcap_health_info` data)
 - `GET /api` — Swagger/OpenAPI UI
 - `GET /mcp` — MCP endpoint (only if `--with-mcp` is passed at startup)
 
@@ -211,81 +211,57 @@ Each tool gets its own `POST` and `GET` endpoints. The `--print-tool-description
 
 ## Tool Readiness
 
-If your tool requires initialisation (e.g., loading a model), use `is_ready` to hold back the health check until it's done:
-
-```python
-_model = None
-
-def _is_model_ready() -> bool:
-    return _model is not None
-
-@ivcap_lambda("/predict", opts=ToolOptions(tags=["ML"], is_ready=_is_model_ready))
-def predict(req: PredictRequest) -> PredictResult:
-    """Run a prediction"""
-    ...
-
-# Load model at startup
-_model = load_model("model.pkl")
-```
-
-`is_ready` may be a regular function or an `async` function. The server calls every registered readiness check on each `GET /_healtz`. Each check can return one of three things:
-
-| Return value | Meaning | `/_healtz` response |
-|---|---|---|
-| `True` | Ready (legacy form) | `200 OK` with `name` and `version` |
-| `dict[str, Any]` (may be empty) | Ready, and the dict's entries are reported | `200 OK` with the entries merged into the JSON |
-| pydantic `BaseModel` | Ready, and its fields are reported (serialised with `by_alias=True`) | `200 OK` with the fields merged into the JSON |
-| `False` or raise `NotReadyYet` | Not ready | `503 Service Unavailable` |
-
-### Reporting Info When Ready
-
-Return a dict to publish details such as model or configuration names. An empty dict is valid and means ready:
+If a tool needs initialisation (for example, loading a model), give it an `is_ready` check. The check only gates that tool: while it is not ready, the tool's `POST` endpoint returns `503`. It does not change `/_healtz`.
 
 ```python
 from ivcap_lambda import NotReadyYet, ToolOptions, ivcap_lambda
 
-_model_name = "resnet-50"
 _model = None
 
-def _model_info() -> dict:
+def _predictor_ready() -> bool:
     if _model is None:
         raise NotReadyYet(retry_after=30)
-    return {"model": _model_name, "weights": "v2"}
+    return True
 
-@ivcap_lambda("/predict", opts=ToolOptions(is_ready=_model_info))
+@ivcap_lambda("/predict", opts=ToolOptions(tags=["ML"], is_ready=_predictor_ready))
 def predict(req: PredictRequest) -> PredictResult:
     """Run a prediction"""
     ...
+```
+
+`is_ready` may be a regular or `async` function. It returns `True` when the tool can run. It returns `False`, or raises `NotReadyYet`, while it cannot. `NotReadyYet(retry_after=...)` adds a `Retry-After` header to the `503`, rounded up to whole seconds. Over MCP, the same condition is reported as a tool error.
+
+A tool's readiness is checked when a job starts, so `GET /{path}/jobs/{id}` and the tool description (`GET /{path}`) keep working while the tool is not ready.
+
+### Service-Wide Health Info
+
+To publish details on `GET /_healtz`, mark a function with `@ivcap_health_info`. It returns a dict or pydantic model, and its entries are merged into the reply once the service is ready:
+
+```python
+from ivcap_lambda import ivcap_health_info
+
+@ivcap_health_info
+def model_info() -> dict:
+    return {"model": _model_name, "weights": "v2"}
 ```
 
 When ready, `GET /_healtz` returns:
 
 ```json
-{"model": "resnet-50", "weights": "v2", "name": "cas9-ivcap", "version": "0.1.0"}
+{"model": "resnet-50", "weights": "v2", "name": "cas9-ivcap", "version": "0.1.0", "libraries": {"ivcap-lambda": "...", "ivcap-service": "..."}}
 ```
 
-`name` comes from the `Service` object passed to `start_lambda_server`. `version` is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`. If a dict contains a `name` or `version` key, it is ignored.
+`name` comes from the `Service` object passed to `start_lambda_server`. `version` is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`. `name`, `version` and `libraries` always win over keys of the same name from your info. A sync function runs in a worker thread so a slow probe does not block the server. If it raises, the error is logged and its entries are left out, but the reply is still `200`.
 
-### Signalling "Not Ready Yet" With a Retry Hint
+### Gating the Whole Service
 
-Raise `NotReadyYet` to report not-ready. Pass `retry_after` (seconds) to tell callers roughly how long to wait. It is sent as a `Retry-After` header, rounded up to whole seconds:
+To hold back `/_healtz` until something is ready, pass a function to `start_lambda_server` as `on_startup`. It runs in the background after the server starts, and `/_healtz` returns `503` until it completes:
 
 ```python
-from ivcap_lambda import NotReadyYet
-
-def _model_info() -> dict:
-    if _model is None:
-        raise NotReadyYet(retry_after=30)
-    return {"model": _model_name}
+start_lambda_server(service, on_startup=load_model)
 ```
 
-### Multiple Tools
-
-Readiness checks from every tool are combined into one `/_healtz` reply:
-
-- Dict entries from all tools are merged. If two tools use the same key, the later one wins.
-- If any check is not ready, the response is `503`. The largest `retry_after` among the not-ready checks becomes the `Retry-After` header.
-- A check that raises any other exception is not caught and results in a `500` response, so keep checks simple and non-blocking.
+If it raises, the error is logged and the service stays not ready.
 
 ## See Also
 

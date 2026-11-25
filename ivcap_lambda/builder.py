@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from uuid6 import uuid6
 
 from .executor import ExecutionContext, Executor, ExecutorOpts
-from .health_handler import add_ready_handler
+from .health_handler import NotReadyYet, not_ready_http_error
 from .utils import get_public_url_prefix, get_title_from_path
 
 
@@ -69,12 +69,14 @@ class ToolOptions(BaseModel):
         None,
         description="service timeout in seconds, included in the REST service description",
     )
-    is_ready: Callable[[], bool | dict[str, Any] | BaseModel] | None = Field(
+    is_ready: Callable[[], bool] | None = Field(
         None,
         description=(
-            "Readiness check. Return a dict or pydantic model of info to report on "
-            "/_healtz (or True), return False, or raise NotReadyYet(retry_after) "
-            "while not ready"
+            "Per-tool readiness check. Return True when this tool can run. Return False, "
+            "or raise NotReadyYet(retry_after), while it cannot: the tool's POST "
+            "endpoint then returns 503. It does not affect /_healtz; use "
+            "@ivcap_health_info for reporting and start_lambda_server(on_startup=...) "
+            "to gate the whole service"
         ),
     )
 
@@ -150,7 +152,7 @@ def add_tool_api_route(
 
     output_model = get_function_return_type(worker_fn)
     executor = Executor[output_model](  # type: ignore[valid-type]
-        worker_fn, opts=opts.executor_opts, context=context
+        worker_fn, opts=opts.executor_opts, context=context, is_ready=opts.is_ready
     )
 
     tools.append(
@@ -163,8 +165,6 @@ def add_tool_api_route(
             service_timeout=opts.service_timeout,
         )
     )
-
-    add_ready_handler(opts.is_ready if opts else None)
 
     _add_do_job_route(app, path_prefix, worker_fn, executor, opts)
     _add_get_job_route(app, path_prefix, worker_fn, executor, opts)
@@ -201,7 +201,10 @@ def _add_do_job_route(
             f"starting job {path_prefix}/jobs/{job_id} - timeout: {timeout} seconds"
         )
 
-        queue = await executor.execute(data, job_id, req)
+        try:
+            queue = await executor.execute(data, job_id, req)
+        except NotReadyYet as ex:
+            raise not_ready_http_error(ex.retry_after) from ex
         try:
             el = await asyncio.wait_for(queue.get(), timeout=timeout)
             queue.task_done()

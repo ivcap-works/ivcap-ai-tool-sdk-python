@@ -36,6 +36,61 @@ def process(req: MyRequest, jobCtxt: JobContext) -> MyResult:
     ...
 ```
 
+## The Event Reporter, Steps and Tracing
+
+Every job gets a `JobContext`. Declare it as a parameter and the SDK injects it; leave it out if the tool doesn't need it:
+
+```python
+from ivcap_service import JobContext
+
+@ivcap_lambda("/summarise")
+def summarise(req: SummariseRequest, jobCtxt: JobContext) -> SummariseResult:
+    ...
+```
+
+`JobContext` has three useful fields:
+
+- `job_id`: the ID of this job.
+- `report`: the event reporter. Use it to send progress to the platform.
+- `ivcap`: the IVCAP client, for artifacts and secrets.
+
+The canonical way to report progress is a **step**. A step is a context manager:
+
+```python
+with jobCtxt.report.step("my-step", "Doing the work") as step:
+    result = do_work()
+    step.finished("Work done")
+```
+
+Each step does two things at once:
+
+1. **Sends IVCAP events** to the platform: a start event when the block is entered, and a finish event when it exits. `step.finished(...)` sets the message and any extra fields on that finish event. If you don't call it, a default finish event is sent on exit.
+2. **Creates an OpenTelemetry span** named `ivcap.event:<step name>`. It is a child of the job's `RUN <tool name>` span, so it appears in your traces under the job. The step's `message` and any extra keyword arguments become span attributes (`ivcap.event.<key>`). Values that OTel can't represent, such as dicts, are skipped.
+
+If the block raises an exception, the step:
+
+- sends a step error event with the exception text and traceback,
+- records the exception on its span and marks the span as `ERROR`,
+- re-raises the exception, so the job fails as normal.
+
+To send an intermediate update without ending the step, call `step.info(...)` with a `GenericEvent` or a dict. Intermediate updates are events only; they don't create extra spans.
+
+This works the same over MCP: the tool's `JobContext` reports its steps through the MCP progress channel instead of the IVCAP sidecar. Tool code doesn't change.
+
+### Reporting Without a Step
+
+For a one-off event, use the reporter directly. This sends an event but creates no span:
+
+```python
+from ivcap_service.events import GenericEvent
+
+jobCtxt.report.emit(GenericEvent(name="cache-miss", options={"key": key}))
+```
+
+### Where the Reporter Comes From
+
+You usually don't create the reporter yourself. For REST jobs, the executor builds it per job and sends events to the IVCAP sidecar. For MCP tool calls, it's an MCP-backed reporter tied to that call. Either way, `jobCtxt.report` has the same interface, so the same step code works in both.
+
 ## Progress Reporting with Steps
 
 Use `jobCtxt.report.step()` to report structured progress back to the IVCAP platform. Steps are the recommended way to track long-running operations:
@@ -130,6 +185,8 @@ for the authoritative exporter behavior and configuration model.
 
 ## OpenTelemetry Tracing
 
+For how steps map onto spans, see [The Event Reporter, Steps and Tracing](#the-event-reporter-steps-and-tracing).
+
 Setting `OTEL_EXPORTER_OTLP_ENDPOINT` automatically enables tracing and
 FastAPI instrumentation; no CLI flag is normally needed:
 
@@ -181,16 +238,16 @@ These helpers read the job context from the current thread's context variable, s
 
 ## Health Check
 
-The `/_healtz` endpoint is automatically registered. When the service is ready, it returns the service name and version from the `Service` object, plus any info that tools report through their `is_ready` dict:
+The `/_healtz` endpoint is automatically registered. It describes the whole service. When the service is ready, it returns the service name and version from the `Service` object, the versions of `ivcap-lambda` and `ivcap-service` under `libraries`, plus any info published by functions marked with `@ivcap_health_info`:
 
 ```bash
 curl http://localhost:8090/_healtz
-# {"model": "resnet-50", "name": "cas9-ivcap", "version": "0.1.0"}
+# {"model": "resnet-50", "name": "cas9-ivcap", "version": "0.1.0", "libraries": {...}}
 ```
 
 The `version` value is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`.
 
-If any tool registered with `is_ready` reports not-ready, `/_healtz` returns `503 Service Unavailable` instead, with a `Retry-After` header when the tool provided one. See [Tool Readiness](tool-functions.md#tool-readiness).
+`/_healtz` returns `503 Service Unavailable` while the service is not ready, for example until an `on_startup` function given to `start_lambda_server` has completed. A tool's own `is_ready` check does not affect `/_healtz`; it only gates that tool's endpoint. See [Tool Readiness](tool-functions.md#tool-readiness).
 
 Use this for Kubernetes readiness probes. For liveness probes, prefer a TCP check so that a slow model load does not cause the pod to be restarted.
 

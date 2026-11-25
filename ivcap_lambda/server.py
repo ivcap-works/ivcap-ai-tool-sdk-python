@@ -7,8 +7,10 @@ import argparse
 import asyncio
 import json
 import os
+import socket
 import sys
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from logging import Logger
 from signal import SIGTERM, signal
 from threading import current_thread
@@ -39,7 +41,12 @@ from starlette.requests import Request as StarletteRequest
 # from .context import set_context, otel_instrument
 from .builder import ToolDescription, tools
 from .executor import Executor, get_job_context
-from .health_handler import add_health_route
+from .health_handler import (
+    add_health_route,
+    add_ready_handler,
+    describe_error,
+    startup_state,
+)
 from .version import get_version, resolve_service_version
 
 # shutdown pod cracefully
@@ -111,6 +118,33 @@ def run_test_file(path: str, tool: ToolDescription) -> None:
             sys.exit(1)
 
 
+# same default as uvicorn.Config.backlog
+_LISTEN_BACKLOG = 2048
+
+
+def _bind_listen_socket(host: str, port: int, logger: Logger) -> socket.socket:
+    """Bind the HTTP listening socket before anything else starts.
+
+    Binding here, rather than letting uvicorn bind later, means a port conflict is
+    reported before `on_startup` begins and before anything claims the service is up.
+    On failure this logs an actionable error and exits with status 1.
+    """
+    family = socket.AF_INET6 if ":" in host else socket.AF_INET
+    sock = socket.socket(family=family, type=socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.bind((host, port))
+    except OSError as ex:
+        sock.close()
+        logger.error(f"FATAL - Could not bind to port {port}: {ex.strerror or ex}")
+        logger.error(f"Please check for conflicting processes (lsof -i :{port})")
+        logger.error("Exiting with error code 1")
+        sys.exit(1)
+    sock.listen(_LISTEN_BACKLOG)
+    sock.set_inheritable(True)
+    return sock
+
+
 def start_lambda_server(
     service: Service,
     *,
@@ -118,6 +152,7 @@ def start_lambda_server(
     custom_args: Callable[[argparse.ArgumentParser], argparse.Namespace] | None = None,
     run_opts: dict[str, Any] | None = None,
     with_telemetry: bool | None = None,
+    on_startup: Callable[[], Any] | None = None,
 ):
     """A helper function to start a FastAPI server for a lambda-style IVCAP service.
 
@@ -128,6 +163,10 @@ def start_lambda_server(
         run_opts (Optional[Dict[str, Any]], optional): extra options forwarded to uvicorn.Config. Defaults to None.
         with_telemetry: (Optional[bool]): Tri-state control of OpenTelemetry
             instrumentation. CLI flags take precedence over this parameter.
+        on_startup (Optional[Callable[[], Any]], optional): sync or async callable run
+            in the background once the HTTP server is up. `/_healtz` returns 503
+            until it completes. If it raises, the error is logged and the service
+            stays not ready. Not run for --test-file or --with-mcp-stdio. Defaults to None.
     """
     if len(tools) == 0:
         raise ValueError(
@@ -340,6 +379,52 @@ def start_lambda_server(
 
     add_health_route(app, name=service.name, version=service.version)
 
+    if on_startup is not None:
+        # Fresh state for this server run; the gate reads it on every /_healtz.
+        startup_state.status = "loading"
+        startup_state.error = None
+
+        def _startup_ready() -> bool:
+            return startup_state.status == "ready"
+
+        add_ready_handler(_startup_ready)
+
+        async def _run_startup() -> None:
+            try:
+                if asyncio.iscoroutinefunction(on_startup):
+                    await on_startup()
+                else:
+                    # run sync startup code off the event loop so /_healtz keeps answering
+                    await asyncio.to_thread(on_startup)
+            except asyncio.CancelledError:
+                # shutdown while loading: not a failure, just stop
+                raise
+            except BaseException as ex:
+                # Any error (including SystemExit/KeyboardInterrupt raised by the hook)
+                # must not take the server down silently: record it and stay not ready.
+                startup_state.status = "failed"
+                startup_state.error = describe_error(ex)
+                logger.exception(
+                    "on_startup failed - service stays not ready: %s",
+                    startup_state.error,
+                )
+                return
+            startup_state.status = "ready"
+            logger.info("on_startup completed - service is ready")
+
+        previous_lifespan = app.router.lifespan_context
+
+        @asynccontextmanager
+        async def _startup_lifespan(app: FastAPI):
+            async with previous_lifespan(app):
+                task = asyncio.create_task(_run_startup())
+                try:
+                    yield
+                finally:
+                    task.cancel()
+
+        app.router.lifespan_context = _startup_lifespan
+
     if args.with_mcp:
         from .mcp import register_mcp
 
@@ -373,6 +458,8 @@ def start_lambda_server(
             Executor.wait_for_exit_ready()
             super().handle_exit(sig, frame)
 
+    listen_socket = _bind_listen_socket(args.host, args.port, logger)
+
     server = Server(
         config=uvicorn.Config(
             app,
@@ -383,8 +470,8 @@ def start_lambda_server(
         )
     )
 
-    # Start the server
-    server.run()
+    # Start the server on the socket bound above, so uvicorn does not bind again.
+    server.run(sockets=[listen_socket])
 
     # uvicorn.run(app, host=args.host, port=args.port, log_config=service_log_config(), **run_opts)
 

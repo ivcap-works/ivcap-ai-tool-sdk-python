@@ -2,6 +2,8 @@
 
 This document routes AI coding agents to the right playbook for building services with the `ivcap-lambda` library. There are three entry points, each in its own self-contained file under `docs/agents/` — read only the one matching the developer's goal; cross-references between them are explicit where needed.
 
+> **Installed copy:** the same files ship inside the `ivcap-lambda` package, under `ivcap_lambda/agents/` (this file as `ivcap_lambda/agents/AGENTS.md`, the tracks under `ivcap_lambda/agents/docs/agents/`). Their relative links resolve within that copy, so an agent can read the playbook from an installed package with `importlib.resources.files("ivcap_lambda") / "agents"`. The GitHub links below point at the same content on `main`.
+
 ## Overview
 
 `ivcap-lambda` turns a plain Python function into:

@@ -89,6 +89,7 @@ def test_test_file_flag_runs_tool_and_skips_server(tmp_path, monkeypatch, capsys
     monkeypatch.setattr(server_module, "set_event_reporter_factory", Mock())
     monkeypatch.setattr(server_module, "set_context", Mock())
     run_server = Mock()
+    monkeypatch.setattr(server_module, "_bind_listen_socket", Mock())
     monkeypatch.setattr(server_module.uvicorn.Server, "run", run_server)
 
     service = Service(

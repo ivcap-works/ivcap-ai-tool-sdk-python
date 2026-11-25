@@ -162,3 +162,29 @@ def test_mcp_tool_call_error_propagation():
             assert "bad input: hi" in result.content[0].text
 
     asyncio.run(run())
+
+
+def test_mcp_tool_not_ready_returns_tool_error():
+    """A tool whose is_ready reports not ready surfaces as an MCP tool error."""
+    from ivcap_lambda.health_handler import NotReadyYet
+    from ivcap_lambda.mcp import register_mcp
+
+    app = _build_app()
+
+    def not_ready() -> bool:
+        raise NotReadyYet(retry_after=5)
+
+    @ivcap_lambda("/gated", opts=ToolOptions(tags=["Test"], is_ready=not_ready))
+    def gated(req: _Req) -> _Res:
+        """Gated tool"""
+        return _Res(output=req.text)
+
+    mcp_server = register_mcp(app, "/mcp")
+
+    async def run():
+        async with mcp.Client(mcp_server) as client:
+            result = await client.call_tool("gated", {"req": {"text": "hi"}})
+            assert result.is_error is True
+            assert "not ready" in result.content[0].text
+
+    asyncio.run(run())

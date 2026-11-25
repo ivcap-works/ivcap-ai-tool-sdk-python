@@ -32,11 +32,15 @@ The asynchronous response pattern used by lambda services. When a job exceeds `m
 
 ## Readiness Check
 
-An optional `is_ready` callable set in `ToolOptions`. It returns `True`, a dict or pydantic model of info to publish on `GET /_healtz` (empty dict is fine), or raises `NotReadyYet` (optionally with `retry_after` seconds) while the tool is not ready. Sync or async.
+An optional `is_ready` callable set in `ToolOptions`. It returns `True` when the tool can run, or returns `False` or raises `NotReadyYet` while it cannot. A not-ready tool answers its `POST` with `503`. It does not affect `/_healtz`. Sync or async.
+
+## Health Info
+
+Functions marked with `@ivcap_health_info` return a dict or pydantic model. Their entries are merged into the `GET /_healtz` reply once the service is ready.
 
 ## NotReadyYet
 
-Exception raised from a readiness check to signal not-ready. Its optional `retry_after` value (seconds) is sent as the `Retry-After` header on the `503` response from `/_healtz`.
+Exception raised from a readiness check to signal not-ready. Its optional `retry_after` value (seconds) is sent as the `Retry-After` header on the `503` response.
 
 ## Event / Progress Event
 

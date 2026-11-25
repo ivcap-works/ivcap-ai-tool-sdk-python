@@ -7,6 +7,12 @@ SRC_DIR:=${ROOT_DIR}/src
 build: add-license
 	cd ${ROOT_DIR}
 	rm -rf ${ROOT_DIR}/dist/*
+	# copy the agent playbook into the package so it ships with the wheel and sdist
+	# mirror the repo layout so the relative links between AGENTS.md and the tracks still resolve
+	rm -rf ${ROOT_DIR}/ivcap_lambda/agents
+	mkdir -p ${ROOT_DIR}/ivcap_lambda/agents/docs/agents
+	cp ${ROOT_DIR}/AGENTS.md ${ROOT_DIR}/ivcap_lambda/agents/AGENTS.md
+	cp ${ROOT_DIR}/docs/agents/*.md ${ROOT_DIR}/ivcap_lambda/agents/docs/agents/
 	poetry build
 
 # https://www.digitalocean.com/community/tutorials/how-to-publish-python-packages-to-pypi-using-poetry-on-ubuntu-22-04
