@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -1225,6 +1225,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#once-per-key-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Once-per-Key Execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ivcap_lambda.once.once_per_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        once_per_key
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1744,6 +1766,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#once-per-key-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Once-per-Key Execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ivcap_lambda.once.once_per_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        once_per_key
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1783,21 +1827,21 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ivcap_lambda/logger.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-37">37</a></span>
-<span class="normal"><a href="#__codelineno-0-38">38</a></span>
-<span class="normal"><a href="#__codelineno-0-39">39</a></span>
-<span class="normal"><a href="#__codelineno-0-40">40</a></span>
-<span class="normal"><a href="#__codelineno-0-41">41</a></span>
-<span class="normal"><a href="#__codelineno-0-42">42</a></span>
-<span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="k">def</span><span class="w"> </span><span class="nf">logging_init</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">cfg_path</span><span class="p">:</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39"></a>        <span class="n">script_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40"></a>        <span class="n">cfg_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">script_dir</span><span class="p">,</span> <span class="s2">&quot;logging.json&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41"></a>
-<a id="__codelineno-0-42" name="__codelineno-0-42"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43"></a>        <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44"></a>        <span class="n">set_service_log_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-40">40</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-41">41</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-42">42</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-43">43</a></span>
+<span class="normal"><a href="#ivcap_lambda.logger.logging_init--source--__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-37" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-37"></a><span class="k">def</span><span class="w"> </span><span class="nf">logging_init</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-38" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-38"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">cfg_path</span><span class="p">:</span>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-39" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-39"></a>        <span class="n">script_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-40" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-40"></a>        <span class="n">cfg_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">script_dir</span><span class="p">,</span> <span class="s2">&quot;logging.json&quot;</span><span class="p">)</span>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-41" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-41"></a>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-42" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-42"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-43" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-43"></a>        <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+<a id="ivcap_lambda.logger.logging_init--source--__codelineno-0-44" name="ivcap_lambda.logger.logging_init--source--__codelineno-0-44"></a>        <span class="n">set_service_log_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1823,13 +1867,13 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ivcap_lambda/executor.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-70">70</a></span>
-<span class="normal"><a href="#__codelineno-0-71">71</a></span>
-<span class="normal"><a href="#__codelineno-0-72">72</a></span>
-<span class="normal"><a href="#__codelineno-0-73">73</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_event_reporter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">EventReporter</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current event reporter from the job context.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="n">jctxt</span> <span class="o">=</span> <span class="n">job_context</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">return</span> <span class="n">jctxt</span><span class="o">.</span><span class="n">report</span> <span class="k">if</span> <span class="n">jctxt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-73">73</a></span>
+<span class="normal"><a href="#ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-74">74</a></span>
+<span class="normal"><a href="#ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-75">75</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-72" name="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-72"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_event_reporter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">EventReporter</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-73" name="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-73"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current event reporter from the job context.&quot;&quot;&quot;</span>
+<a id="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-74" name="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-74"></a>    <span class="n">jctxt</span> <span class="o">=</span> <span class="n">job_context</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<a id="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-75" name="ivcap_lambda.executor.get_event_reporter--source--__codelineno-0-75"></a>    <span class="k">return</span> <span class="n">jctxt</span><span class="o">.</span><span class="n">report</span> <span class="k">if</span> <span class="n">jctxt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1852,13 +1896,13 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ivcap_lambda/executor.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-76">76</a></span>
-<span class="normal"><a href="#__codelineno-0-77">77</a></span>
-<span class="normal"><a href="#__codelineno-0-78">78</a></span>
-<span class="normal"><a href="#__codelineno-0-79">79</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_job_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current job ID from the job context.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="n">jctxt</span> <span class="o">=</span> <span class="n">job_context</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="k">return</span> <span class="n">jctxt</span><span class="o">.</span><span class="n">job_id</span> <span class="k">if</span> <span class="n">jctxt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.executor.get_job_id--source--__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#ivcap_lambda.executor.get_job_id--source--__codelineno-0-79">79</a></span>
+<span class="normal"><a href="#ivcap_lambda.executor.get_job_id--source--__codelineno-0-80">80</a></span>
+<span class="normal"><a href="#ivcap_lambda.executor.get_job_id--source--__codelineno-0-81">81</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.executor.get_job_id--source--__codelineno-0-78" name="ivcap_lambda.executor.get_job_id--source--__codelineno-0-78"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_job_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="ivcap_lambda.executor.get_job_id--source--__codelineno-0-79" name="ivcap_lambda.executor.get_job_id--source--__codelineno-0-79"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current job ID from the job context.&quot;&quot;&quot;</span>
+<a id="ivcap_lambda.executor.get_job_id--source--__codelineno-0-80" name="ivcap_lambda.executor.get_job_id--source--__codelineno-0-80"></a>    <span class="n">jctxt</span> <span class="o">=</span> <span class="n">job_context</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<a id="ivcap_lambda.executor.get_job_id--source--__codelineno-0-81" name="ivcap_lambda.executor.get_job_id--source--__codelineno-0-81"></a>    <span class="k">return</span> <span class="n">jctxt</span><span class="o">.</span><span class="n">job_id</span> <span class="k">if</span> <span class="n">jctxt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1939,41 +1983,335 @@ absent uses the request's <code>base_ur;</code> variable.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ivcap_lambda/utils.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span>
-<span class="normal"><a href="#__codelineno-0-64">64</a></span>
-<span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span>
-<span class="normal"><a href="#__codelineno-0-69">69</a></span>
-<span class="normal"><a href="#__codelineno-0-70">70</a></span>
-<span class="normal"><a href="#__codelineno-0-71">71</a></span>
-<span class="normal"><a href="#__codelineno-0-72">72</a></span>
-<span class="normal"><a href="#__codelineno-0-73">73</a></span>
-<span class="normal"><a href="#__codelineno-0-74">74</a></span>
-<span class="normal"><a href="#__codelineno-0-75">75</a></span>
-<span class="normal"><a href="#__codelineno-0-76">76</a></span>
-<span class="normal"><a href="#__codelineno-0-77">77</a></span>
-<span class="normal"><a href="#__codelineno-0-78">78</a></span>
-<span class="normal"><a href="#__codelineno-0-79">79</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_public_url_prefix</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the public url prefix for `req`.</span>
-<a id="__codelineno-0-64" name="__codelineno-0-64"></a>
-<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">    First checks for a `Forwarded` http header and if</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">    absent uses the request&#39;s `base_ur;` variable.</span>
-<a id="__codelineno-0-67" name="__codelineno-0-67"></a>
-<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">        req (Request): A FastAPI request instance</span>
-<a id="__codelineno-0-70" name="__codelineno-0-70"></a>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">        str: A url as string</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="n">fw</span> <span class="o">=</span> <span class="n">get_forwarded_header</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
-<a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">if</span> <span class="n">fw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76"></a>        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proto&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;http&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">:://</span><span class="si">{</span><span class="n">fw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;for&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>        <span class="n">prefix</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="k">return</span> <span class="n">prefix</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-73">73</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-74">74</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-75">75</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-76">76</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-77">77</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-79">79</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-62" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-62"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_public_url_prefix</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-63" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-63"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the public url prefix for `req`.</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-64" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-64"></a>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-65" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-65"></a><span class="sd">    First checks for a `Forwarded` http header and if</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-66" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-66"></a><span class="sd">    absent uses the request&#39;s `base_ur;` variable.</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-67" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-67"></a>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-68" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-68"></a><span class="sd">    Args:</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-69" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-69"></a><span class="sd">        req (Request): A FastAPI request instance</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-70" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-70"></a>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-71" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-71"></a><span class="sd">    Returns:</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-72" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-72"></a><span class="sd">        str: A url as string</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-73" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-73"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-74" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-74"></a>    <span class="n">fw</span> <span class="o">=</span> <span class="n">get_forwarded_header</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-75" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-75"></a>    <span class="k">if</span> <span class="n">fw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-76" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-76"></a>        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proto&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;http&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">:://</span><span class="si">{</span><span class="n">fw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;for&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-77" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-77"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-78" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-78"></a>        <span class="n">prefix</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<a id="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-79" name="ivcap_lambda.utils.get_public_url_prefix--source--__codelineno-0-79"></a>    <span class="k">return</span> <span class="n">prefix</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div><hr />
+<h2 id="once-per-key-execution">Once-per-Key Execution<a class="headerlink" href="#once-per-key-execution" title="Permanent link">&para;</a></h2>
+<p><code>once_per_key</code> runs a function at most once per key. Concurrent callers with the same key share the result and the progress events from that single run.</p>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="ivcap_lambda.once.once_per_key" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">once_per_key</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></code>
+
+<a href="#ivcap_lambda.once.once_per_key" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Make <code>fn</code> run at most once per key, sharing its result and events.</p>
+<p>The decorated function is called as <code>wrapper(key, reporter=None, **kwargs)</code>.
+The first caller for a key (the owner) runs <code>fn(key, events, **kwargs)</code>, where
+<code>events</code> is an <code>EventReporter</code> that forwards every event to all current
+subscribers. Other callers with the same key wait for the owner and return the
+same result.</p>
+<ul>
+<li>
+<p>Keyword arguments: only the owner's <code>**kwargs</code> are passed to <code>fn</code>. They are
+  not part of the cache key, so kwargs given to later or concurrent callers
+  for the same key are ignored.</p>
+</li>
+<li>
+<p>Subscribers: a caller that passes <code>reporter</code> receives events emitted after
+  it joined, including the owner's own reporter. Events are not replayed.</p>
+</li>
+<li>Late callers: once the job has finished, the result is returned from the
+  cache and a passed <code>reporter</code> is not registered, so it receives nothing.</li>
+<li>Failures: an exception from <code>fn</code> is not cached. It is raised to the owner and
+  every caller waiting on that run, and the next call for the key runs <code>fn</code> again.</li>
+<li>Reporter errors: an exception raised by one subscriber is logged and
+  ignored, so it cannot fail the job or stop other subscribers.</li>
+<li>Lock use: the internal lock covers only the key table and subscriber list,
+  so a slow subscriber does not block other keys.</li>
+<li>Retention: successful results are kept for the lifetime of the process
+  (there is no eviction).</li>
+</ul>
+<p>Typical use is a lambda tool where several requests need the same expensive
+operation at once. Pass the request's reporter from <code>get_event_reporter()</code>
+so that each caller still sees the progress events:</p>
+<div class="highlight"><pre><span></span><code><a id="ivcap_lambda.once.once_per_key--__codelineno-0-1" name="ivcap_lambda.once.once_per_key--__codelineno-0-1" href="#ivcap_lambda.once.once_per_key--__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-2" name="ivcap_lambda.once.once_per_key--__codelineno-0-2" href="#ivcap_lambda.once.once_per_key--__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_event_reporter</span><span class="p">,</span> <span class="n">ivcap_lambda</span><span class="p">,</span> <span class="n">once_per_key</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-3" name="ivcap_lambda.once.once_per_key--__codelineno-0-3" href="#ivcap_lambda.once.once_per_key--__codelineno-0-3"></a>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-4" name="ivcap_lambda.once.once_per_key--__codelineno-0-4" href="#ivcap_lambda.once.once_per_key--__codelineno-0-4"></a><span class="nd">@once_per_key</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-5" name="ivcap_lambda.once.once_per_key--__codelineno-0-5" href="#ivcap_lambda.once.once_per_key--__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">EventReporter</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-6" name="ivcap_lambda.once.once_per_key--__codelineno-0-6" href="#ivcap_lambda.once.once_per_key--__codelineno-0-6"></a>    <span class="n">events</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;loading&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">}))</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-7" name="ivcap_lambda.once.once_per_key--__codelineno-0-7" href="#ivcap_lambda.once.once_per_key--__codelineno-0-7"></a>    <span class="o">...</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-8" name="ivcap_lambda.once.once_per_key--__codelineno-0-8" href="#ivcap_lambda.once.once_per_key--__codelineno-0-8"></a>    <span class="k">return</span> <span class="s2">&quot;loaded&quot;</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-9" name="ivcap_lambda.once.once_per_key--__codelineno-0-9" href="#ivcap_lambda.once.once_per_key--__codelineno-0-9"></a>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-10" name="ivcap_lambda.once.once_per_key--__codelineno-0-10" href="#ivcap_lambda.once.once_per_key--__codelineno-0-10"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/predict&quot;</span><span class="p">)</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-11" name="ivcap_lambda.once.once_per_key--__codelineno-0-11" href="#ivcap_lambda.once.once_per_key--__codelineno-0-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-12" name="ivcap_lambda.once.once_per_key--__codelineno-0-12" href="#ivcap_lambda.once.once_per_key--__codelineno-0-12"></a>    <span class="n">status</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">reporter</span><span class="o">=</span><span class="n">get_event_reporter</span><span class="p">(),</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+<a id="ivcap_lambda.once.once_per_key--__codelineno-0-13" name="ivcap_lambda.once.once_per_key--__codelineno-0-13" href="#ivcap_lambda.once.once_per_key--__codelineno-0-13"></a>    <span class="o">...</span>
+</code></pre></div>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fn</code>
+            </td>
+            <td>
+                  <code><span title="collections.abc.Callable">Callable</span>[..., <span title="ivcap_lambda.once.R">R</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>function taking <code>(key, events, **kwargs)</code> and returning the result for <code>key</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="collections.abc.Callable">Callable</span>[..., <span title="ivcap_lambda.once.R">R</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A wrapper taking <code>key</code>, an optional <code>reporter</code> keyword argument, and any
+extra keyword arguments, which are passed to <code>fn</code> when the caller owns the run.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>ivcap_lambda/once.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-50"> 50</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-51"> 51</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-52"> 52</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-53"> 53</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-54"> 54</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-55"> 55</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-56"> 56</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-57"> 57</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-58"> 58</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-59"> 59</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-60"> 60</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-61"> 61</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-62"> 62</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-63"> 63</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-64"> 64</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-65"> 65</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-66"> 66</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-67"> 67</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-68"> 68</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-69"> 69</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-70"> 70</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-71"> 71</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-72"> 72</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-73"> 73</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-74"> 74</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-75"> 75</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-76"> 76</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-77"> 77</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-78"> 78</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-79"> 79</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-80"> 80</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-81"> 81</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-82"> 82</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-83"> 83</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-84"> 84</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-85"> 85</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-86"> 86</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-87"> 87</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-88"> 88</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-89"> 89</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-90"> 90</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-91"> 91</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-92"> 92</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-93"> 93</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-94"> 94</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-95"> 95</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-96"> 96</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-97"> 97</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-98"> 98</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-99"> 99</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-100">100</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-101">101</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-102">102</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-104">104</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-105">105</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-106">106</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-107">107</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-110">110</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-111">111</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-112">112</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-113">113</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-118">118</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-122">122</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-123">123</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-124">124</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-125">125</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-126">126</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-127">127</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-128">128</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-129">129</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-130">130</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-131">131</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-132">132</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-133">133</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-134">134</a></span>
+<span class="normal"><a href="#ivcap_lambda.once.once_per_key--source--__codelineno-0-135">135</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-50" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-50"></a><span class="k">def</span><span class="w"> </span><span class="nf">once_per_key</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">R</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">R</span><span class="p">]:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-51" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-51"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Make `fn` run at most once per key, sharing its result and events.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-52" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-52"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-53" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-53"></a><span class="sd">    The decorated function is called as `wrapper(key, reporter=None, **kwargs)`.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-54" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-54"></a><span class="sd">    The first caller for a key (the owner) runs `fn(key, events, **kwargs)`, where</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-55" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-55"></a><span class="sd">    `events` is an `EventReporter` that forwards every event to all current</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-56" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-56"></a><span class="sd">    subscribers. Other callers with the same key wait for the owner and return the</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-57" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-57"></a><span class="sd">    same result.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-58" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-58"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-59" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-59"></a><span class="sd">    - Keyword arguments: only the owner&#39;s `**kwargs` are passed to `fn`. They are</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-60" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-60"></a><span class="sd">      not part of the cache key, so kwargs given to later or concurrent callers</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-61" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-61"></a><span class="sd">      for the same key are ignored.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-62" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-62"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-63" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-63"></a><span class="sd">    - Subscribers: a caller that passes `reporter` receives events emitted after</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-64" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-64"></a><span class="sd">      it joined, including the owner&#39;s own reporter. Events are not replayed.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-65" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-65"></a><span class="sd">    - Late callers: once the job has finished, the result is returned from the</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-66" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-66"></a><span class="sd">      cache and a passed `reporter` is not registered, so it receives nothing.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-67" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-67"></a><span class="sd">    - Failures: an exception from `fn` is not cached. It is raised to the owner and</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-68" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-68"></a><span class="sd">      every caller waiting on that run, and the next call for the key runs `fn` again.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-69" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-69"></a><span class="sd">    - Reporter errors: an exception raised by one subscriber is logged and</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-70" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-70"></a><span class="sd">      ignored, so it cannot fail the job or stop other subscribers.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-71" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-71"></a><span class="sd">    - Lock use: the internal lock covers only the key table and subscriber list,</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-72" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-72"></a><span class="sd">      so a slow subscriber does not block other keys.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-73" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-73"></a><span class="sd">    - Retention: successful results are kept for the lifetime of the process</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-74" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-74"></a><span class="sd">      (there is no eviction).</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-75" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-75"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-76" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-76"></a><span class="sd">    Typical use is a lambda tool where several requests need the same expensive</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-77" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-77"></a><span class="sd">    operation at once. Pass the request&#39;s reporter from `get_event_reporter()`</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-78" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-78"></a><span class="sd">    so that each caller still sees the progress events:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-79" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-79"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-80" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-80"></a><span class="sd">    ```python</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-81" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-81"></a><span class="sd">    from ivcap_service import GenericEvent</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-82" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-82"></a><span class="sd">    from ivcap_lambda import get_event_reporter, ivcap_lambda, once_per_key</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-83" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-83"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-84" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-84"></a><span class="sd">    @once_per_key</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-85" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-85"></a><span class="sd">    def load_model(key: str, events: EventReporter, **kwargs: Any) -&gt; str:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-86" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-86"></a><span class="sd">        events.emit(GenericEvent(name=&quot;loading&quot;, options={&quot;model&quot;: key}))</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-87" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-87"></a><span class="sd">        ...</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-88" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-88"></a><span class="sd">        return &quot;loaded&quot;</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-89" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-89"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-90" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-90"></a><span class="sd">    @ivcap_lambda(&quot;/predict&quot;)</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-91" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-91"></a><span class="sd">    def predict(req: Request) -&gt; Result:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-92" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-92"></a><span class="sd">        status = load_model(req.model, reporter=get_event_reporter(), device=&quot;cpu&quot;)</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-93" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-93"></a><span class="sd">        ...</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-94" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-94"></a><span class="sd">    ```</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-95" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-95"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-96" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-96"></a><span class="sd">    Args:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-97" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-97"></a><span class="sd">        fn: function taking `(key, events, **kwargs)` and returning the result for `key`.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-98" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-98"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-99" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-99"></a><span class="sd">    Returns:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-100" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-100"></a><span class="sd">        A wrapper taking `key`, an optional `reporter` keyword argument, and any</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-101" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-101"></a><span class="sd">        extra keyword arguments, which are passed to `fn` when the caller owns the run.</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-102" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-102"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-103" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-103"></a>    <span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-104" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-104"></a>    <span class="n">entries</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">_Entry</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-105" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-105"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-106" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-106"></a>    <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-107" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-107"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">reporter</span><span class="p">:</span> <span class="n">EventReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">R</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-108" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-108"></a>        <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-109" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-109"></a>            <span class="n">entry</span> <span class="o">=</span> <span class="n">entries</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-110" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-110"></a>            <span class="n">is_owner</span> <span class="o">=</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-111" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-111"></a>            <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-112" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-112"></a>                <span class="n">entry</span> <span class="o">=</span> <span class="n">entries</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_Entry</span><span class="p">()</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-113" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-113"></a>            <span class="k">if</span> <span class="n">reporter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">done</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-114" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-114"></a>                <span class="n">entry</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reporter</span><span class="p">)</span>  <span class="c1"># owner and late joiners alike</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-115" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-115"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-116" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-116"></a>        <span class="k">if</span> <span class="n">is_owner</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-117" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-117"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-118" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-118"></a>                <span class="n">entry</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">_FanOutReporter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">lock</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-119" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-119"></a>            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-120" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-120"></a>                <span class="n">entry</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">e</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-121" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-121"></a>                <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-122" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-122"></a>                    <span class="k">del</span> <span class="n">entries</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>  <span class="c1"># don&#39;t cache failures</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-123" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-123"></a>                <span class="k">raise</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-124" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-124"></a>            <span class="k">finally</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-125" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-125"></a>                <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-126" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-126"></a>                    <span class="n">entry</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>  <span class="c1"># drop references; later callers get no events</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-127" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-127"></a>                    <span class="n">entry</span><span class="o">.</span><span class="n">done</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-128" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-128"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-129" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-129"></a>            <span class="n">entry</span><span class="o">.</span><span class="n">done</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-130" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-130"></a>            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-131" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-131"></a>                <span class="k">raise</span> <span class="n">entry</span><span class="o">.</span><span class="n">error</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-132" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-132"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-133" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-133"></a>        <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">value</span>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-134" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-134"></a>
+<a id="ivcap_lambda.once.once_per_key--source--__codelineno-0-135" name="ivcap_lambda.once.once_per_key--source--__codelineno-0-135"></a>    <span class="k">return</span> <span class="n">wrapper</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2070,10 +2408,10 @@ absent uses the request's <code>base_ur;</code> variable.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

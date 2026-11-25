@@ -645,7 +645,7 @@ The first paragraph of the docstring becomes the endpoint **summary**; the rest 
 | `service_id` | `None` | Overrides the service ID in the tool description |
 | `post_route_opts` | `{}` | Extra kwargs forwarded to the FastAPI route constructor |
 | `executor_opts` | `None` | `ExecutorOpts` (cache size/TTL, thread-pool size) |
-| `is_ready` | `None` | Callable that returns `False` while the tool is initialising |
+| `is_ready` | `None` | Callable returning `True` when the tool can run; `False` or `NotReadyYet` gives `503` on its `POST` endpoint |
 
 **`service_id`:** If set to a path (e.g. `"/"` or `"/greet"`), the server prepends the public URL prefix automatically, so agents receive a fully-qualified service ID.
 
@@ -722,7 +722,7 @@ For each `@ivcap_lambda`-decorated function at path `{prefix}`, three routes are
 
 Additionally, the framework registers:
 
-- `GET /_healtz` — health check (returns `{"version": "..."}`)
+- `GET /_healtz` — health check for the whole service (returns name, version and library versions, plus any `@ivcap_health_info` data)
 - `GET /api` — Swagger/OpenAPI UI
 - `GET /mcp` — MCP endpoint (only if `--with-mcp` is passed at startup)
 
@@ -802,22 +802,57 @@ Each tool gets its own `POST` and `GET` endpoints. The `--print-tool-description
 
 ## Tool Readiness
 
-If your tool requires initialisation (e.g., loading a model), use `is_ready` to hold back the health check until it's done:
+If a tool needs initialisation (for example, loading a model), give it an `is_ready` check. The check only gates that tool: while it is not ready, the tool's `POST` endpoint returns `503`. It does not change `/_healtz`.
 
 ```python
+from ivcap_lambda import NotReadyYet, ToolOptions, ivcap_lambda
+
 _model = None
 
-def _is_model_ready() -> bool:
-    return _model is not None
+def _predictor_ready() -> bool:
+    if _model is None:
+        raise NotReadyYet(retry_after=30)
+    return True
 
-@ivcap_lambda("/predict", opts=ToolOptions(tags=["ML"], is_ready=_is_model_ready))
+@ivcap_lambda("/predict", opts=ToolOptions(tags=["ML"], is_ready=_predictor_ready))
 def predict(req: PredictRequest) -> PredictResult:
     """Run a prediction"""
     ...
-
-# Load model at startup
-_model = load_model("model.pkl")
 ```
+
+`is_ready` may be a regular or `async` function. It returns `True` when the tool can run. It returns `False`, or raises `NotReadyYet`, while it cannot. `NotReadyYet(retry_after=...)` adds a `Retry-After` header to the `503`, rounded up to whole seconds. Over MCP, the same condition is reported as a tool error.
+
+A tool's readiness is checked when a job starts, so `GET /{path}/jobs/{id}` and the tool description (`GET /{path}`) keep working while the tool is not ready.
+
+### Service-Wide Health Info
+
+To publish details on `GET /_healtz`, mark a function with `@ivcap_health_info`. It returns a dict or pydantic model, and its entries are merged into the reply once the service is ready:
+
+```python
+from ivcap_lambda import ivcap_health_info
+
+@ivcap_health_info
+def model_info() -> dict:
+    return {"model": _model_name, "weights": "v2"}
+```
+
+When ready, `GET /_healtz` returns:
+
+```json
+{"model": "resnet-50", "weights": "v2", "name": "cas9-ivcap", "version": "0.1.0", "libraries": {"ivcap-lambda": "...", "ivcap-service": "..."}}
+```
+
+`name` comes from the `Service` object passed to `start_lambda_server`. `version` is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`. `name`, `version` and `libraries` always win over keys of the same name from your info. A sync function runs in a worker thread so a slow probe does not block the server. If it raises, the error is logged and its entries are left out, but the reply is still `200`.
+
+### Gating the Whole Service
+
+To hold back `/_healtz` until something is ready, pass a function to `start_lambda_server` as `on_startup`. It runs in the background after the server starts, and `/_healtz` returns `503` until it completes:
+
+```python
+start_lambda_server(service, on_startup=load_model)
+```
+
+If it raises, the error is logged and the service stays not ready.
 
 ## See Also
 
@@ -1525,6 +1560,61 @@ def process(req: MyRequest, jobCtxt: JobContext) -> MyResult:
     ...
 ```
 
+## The Event Reporter, Steps and Tracing
+
+Every job gets a `JobContext`. Declare it as a parameter and the SDK injects it; leave it out if the tool doesn't need it:
+
+```python
+from ivcap_service import JobContext
+
+@ivcap_lambda("/summarise")
+def summarise(req: SummariseRequest, jobCtxt: JobContext) -> SummariseResult:
+    ...
+```
+
+`JobContext` has three useful fields:
+
+- `job_id`: the ID of this job.
+- `report`: the event reporter. Use it to send progress to the platform.
+- `ivcap`: the IVCAP client, for artifacts and secrets.
+
+The canonical way to report progress is a **step**. A step is a context manager:
+
+```python
+with jobCtxt.report.step("my-step", "Doing the work") as step:
+    result = do_work()
+    step.finished("Work done")
+```
+
+Each step does two things at once:
+
+1. **Sends IVCAP events** to the platform: a start event when the block is entered, and a finish event when it exits. `step.finished(...)` sets the message and any extra fields on that finish event. If you don't call it, a default finish event is sent on exit.
+2. **Creates an OpenTelemetry span** named `ivcap.event:<step name>`. It is a child of the job's `RUN <tool name>` span, so it appears in your traces under the job. The step's `message` and any extra keyword arguments become span attributes (`ivcap.event.<key>`). Values that OTel can't represent, such as dicts, are skipped.
+
+If the block raises an exception, the step:
+
+- sends a step error event with the exception text and traceback,
+- records the exception on its span and marks the span as `ERROR`,
+- re-raises the exception, so the job fails as normal.
+
+To send an intermediate update without ending the step, call `step.info(...)` with a `GenericEvent` or a dict. Intermediate updates are events only; they don't create extra spans.
+
+This works the same over MCP: the tool's `JobContext` reports its steps through the MCP progress channel instead of the IVCAP sidecar. Tool code doesn't change.
+
+### Reporting Without a Step
+
+For a one-off event, use the reporter directly. This sends an event but creates no span:
+
+```python
+from ivcap_service.events import GenericEvent
+
+jobCtxt.report.emit(GenericEvent(name="cache-miss", options={"key": key}))
+```
+
+### Where the Reporter Comes From
+
+You usually don't create the reporter yourself. For REST jobs, the executor builds it per job and sends events to the IVCAP sidecar. For MCP tool calls, it's an MCP-backed reporter tied to that call. Either way, `jobCtxt.report` has the same interface, so the same step code works in both.
+
 ## Progress Reporting with Steps
 
 Use `jobCtxt.report.step()` to report structured progress back to the IVCAP platform. Steps are the recommended way to track long-running operations:
@@ -1619,6 +1709,8 @@ for the authoritative exporter behavior and configuration model.
 
 ## OpenTelemetry Tracing
 
+For how steps map onto spans, see [The Event Reporter, Steps and Tracing](#the-event-reporter-steps-and-tracing).
+
 Setting `OTEL_EXPORTER_OTLP_ENDPOINT` automatically enables tracing and
 FastAPI instrumentation; no CLI flag is normally needed:
 
@@ -1670,14 +1762,18 @@ These helpers read the job context from the current thread's context variable, s
 
 ## Health Check
 
-The `/_healtz` endpoint is automatically registered and returns the running service version:
+The `/_healtz` endpoint is automatically registered. It describes the whole service. When the service is ready, it returns the service name and version from the `Service` object, the versions of `ivcap-lambda` and `ivcap-service` under `libraries`, plus any info published by functions marked with `@ivcap_health_info`:
 
 ```bash
 curl http://localhost:8090/_healtz
-# {"version": "1.2.3"}
+# {"model": "resnet-50", "name": "cas9-ivcap", "version": "0.1.0", "libraries": {...}}
 ```
 
-Use this for Kubernetes liveness/readiness probes.
+The `version` value is resolved in this order: the `VERSION` environment variable, then `Service.version`, then `???`.
+
+`/_healtz` returns `503 Service Unavailable` while the service is not ready, for example until an `on_startup` function given to `start_lambda_server` has completed. A tool's own `is_ready` check does not affect `/_healtz`; it only gates that tool's endpoint. See [Tool Readiness](tool-functions.md#tool-readiness).
+
+Use this for Kubernetes readiness probes. For liveness probes, prefer a TCP check so that a slow model load does not cause the pod to be restarted.
 
 ## Best Practices
 
@@ -1927,6 +2023,8 @@ ivcap service register service.json
 --with-telemetry             Force-enable OpenTelemetry instrumentation
 --without-telemetry          Force-disable OpenTelemetry instrumentation
 --with-mcp                   Expose an MCP endpoint at /mcp
+--test-file PATH             Run the first tool on a job file (ivcap-service format) and exit
+--without-sidecar            Silently drop event/result delivery to the sidecar (also: IVCAP_WITHOUT_SIDECAR=1)
 --list-services              List the names of all registered services/tools and exit
 --print-tool-description     Print the tool description JSON and exit
 --print-service-description  Print the full service description JSON and exit
@@ -1998,8 +2096,7 @@ spec:
             memory: "1Gi"
             cpu: "1000m"
         livenessProbe:
-          httpGet:
-            path: /_healtz
+          tcpSocket:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 30
@@ -2454,6 +2551,14 @@ These helpers let you access the current job's context from anywhere in your cod
 
 ::: ivcap_lambda.utils.get_public_url_prefix
 
+---
+
+## Once-per-Key Execution
+
+`once_per_key` runs a function at most once per key. Concurrent callers with the same key share the result and the progress events from that single run.
+
+::: ivcap_lambda.once.once_per_key
+
 
 # Examples
 
@@ -2704,11 +2809,12 @@ Advanced usage patterns for production IVCAP lambda services.
 
 ## Model Loading with Readiness Check
 
-Load a machine-learning model at startup and prevent the health check from succeeding until loading is complete:
+Load a machine-learning model in the background with `on_startup`. The server starts without waiting for the load. `/_healtz` returns `503` until loading completes, and `on_startup` runs in a worker thread so a slow load does not block the server:
 
 ```python
 import time
-from ivcap_lambda import ivcap_lambda, ToolOptions, start_lambda_server, logging_init
+from pydantic import BaseModel, Field
+from ivcap_lambda import ivcap_lambda, ivcap_health_info, ToolOptions, start_lambda_server, logging_init
 from ivcap_service import Service, ServiceContact, with_schema, getLogger
 
 logging_init()
@@ -2719,21 +2825,26 @@ service = Service(
     contact=ServiceContact(name="ML Team", email="ml@example.com"),
 )
 
-# ── Model loading ─────────────────────────────────────────────────────────────
+# Model loading
 
 _model = None
-_model_ready = False
-
-def is_ready() -> bool:
-    return _model_ready
 
 def load_model():
-    global _model, _model_ready
+    """Runs once in a worker thread; /_healtz stays 503 until it returns."""
+    global _model
     logger.info("Loading model…")
     time.sleep(2)  # simulate load
     _model = {"type": "mock"}
-    _model_ready = True
     logger.info("Model ready")
+
+def model_loaded() -> bool:
+    """Per-tool gate: /predict returns 503 until the model is loaded."""
+    return _model is not None
+
+@ivcap_health_info
+def model_info() -> dict:
+    # only called once the service is ready, so the model is loaded
+    return {"model": _model["type"]}
 
 
 @with_schema("urn:example:schema:predict.request.1")
@@ -2749,24 +2860,20 @@ class PredictResult(BaseModel):
 
 @ivcap_lambda(
     "/predict",
-    opts=ToolOptions(tags=["ML"], is_ready=is_ready, max_wait_time=30.0),
+    opts=ToolOptions(tags=["ML"], is_ready=model_loaded, max_wait_time=30.0),
 )
 def predict(req: PredictRequest) -> PredictResult:
     """Classify text using the loaded model
 
     Returns a label and confidence score for the provided text.
-    The service will report 503 until the model is fully loaded.
+    The endpoint returns 503 until the model is fully loaded.
     """
-    # Use the pre-loaded model
     label = "positive" if len(req.text) % 2 == 0 else "negative"
     return PredictResult(label=label, confidence=0.95)
 
 
-# Load model at module level, before start_lambda_server
-load_model()
-
 if __name__ == "__main__":
-    start_lambda_server(service)
+    start_lambda_server(service, on_startup=load_model)
 ```
 
 ## Custom CLI Arguments

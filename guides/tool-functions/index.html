@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -894,6 +894,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Tool Readiness">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-wide-health-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service-Wide Health Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gating-the-whole-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gating the Whole Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1887,6 +1915,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Tool Readiness">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-wide-health-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service-Wide Health Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gating-the-whole-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gating the Whole Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2003,7 +2059,7 @@
 <tr>
 <td><code>is_ready</code></td>
 <td><code>None</code></td>
-<td>Callable that returns <code>False</code> while the tool is initialising</td>
+<td>Callable returning <code>True</code> when the tool can run; <code>False</code> or <code>NotReadyYet</code> gives <code>503</code> on its <code>POST</code> endpoint</td>
 </tr>
 </tbody>
 </table>
@@ -2108,7 +2164,7 @@
 </table>
 <p>Additionally, the framework registers:</p>
 <ul>
-<li><code>GET /_healtz</code> — health check (returns <code>{"version": "..."}</code>)</li>
+<li><code>GET /_healtz</code> — health check for the whole service (returns name, version and library versions, plus any <code>@ivcap_health_info</code> data)</li>
 <li><code>GET /api</code> — Swagger/OpenAPI UI</li>
 <li><code>GET /mcp</code> — MCP endpoint (only if <code>--with-mcp</code> is passed at startup)</li>
 </ul>
@@ -2167,20 +2223,40 @@
 </code></pre></div>
 <p>Each tool gets its own <code>POST</code> and <code>GET</code> endpoints. The <code>--print-tool-description</code> flag accepts the tool name to select which one to print.</p>
 <h2 id="tool-readiness">Tool Readiness<a class="headerlink" href="#tool-readiness" title="Permanent link">&para;</a></h2>
-<p>If your tool requires initialisation (e.g., loading a model), use <code>is_ready</code> to hold back the health check until it's done:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+<p>If a tool needs initialisation (for example, loading a model), give it an <code>is_ready</code> check. The check only gates that tool: while it is not ready, the tool's <code>POST</code> endpoint returns <code>503</code>. It does not change <code>/_healtz</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">NotReadyYet</span><span class="p">,</span> <span class="n">ToolOptions</span><span class="p">,</span> <span class="n">ivcap_lambda</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">_is_model_ready</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="k">return</span> <span class="n">_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/predict&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="n">ToolOptions</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ML&quot;</span><span class="p">],</span> <span class="n">is_ready</span><span class="o">=</span><span class="n">_is_model_ready</span><span class="p">))</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">PredictRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PredictResult</span><span class="p">:</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a prediction&quot;&quot;&quot;</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="o">...</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c1"># Load model at startup</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="n">_model</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;model.pkl&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">_predictor_ready</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="k">if</span> <span class="n">_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        <span class="k">raise</span> <span class="n">NotReadyYet</span><span class="p">(</span><span class="n">retry_after</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="k">return</span> <span class="kc">True</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/predict&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="n">ToolOptions</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ML&quot;</span><span class="p">],</span> <span class="n">is_ready</span><span class="o">=</span><span class="n">_predictor_ready</span><span class="p">))</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">PredictRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PredictResult</span><span class="p">:</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a prediction&quot;&quot;&quot;</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>    <span class="o">...</span>
 </code></pre></div>
+<p><code>is_ready</code> may be a regular or <code>async</code> function. It returns <code>True</code> when the tool can run. It returns <code>False</code>, or raises <code>NotReadyYet</code>, while it cannot. <code>NotReadyYet(retry_after=...)</code> adds a <code>Retry-After</code> header to the <code>503</code>, rounded up to whole seconds. Over MCP, the same condition is reported as a tool error.</p>
+<p>A tool's readiness is checked when a job starts, so <code>GET /{path}/jobs/{id}</code> and the tool description (<code>GET /{path}</code>) keep working while the tool is not ready.</p>
+<h3 id="service-wide-health-info">Service-Wide Health Info<a class="headerlink" href="#service-wide-health-info" title="Permanent link">&para;</a></h3>
+<p>To publish details on <code>GET /_healtz</code>, mark a function with <code>@ivcap_health_info</code>. It returns a dict or pydantic model, and its entries are merged into the reply once the service is ready:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">ivcap_health_info</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nd">@ivcap_health_info</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">model_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">_model_name</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p>When ready, <code>GET /_healtz</code> returns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;resnet-50&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cas9-ivcap&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;libraries&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;ivcap-lambda&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ivcap-service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">}}</span>
+</code></pre></div>
+<p><code>name</code> comes from the <code>Service</code> object passed to <code>start_lambda_server</code>. <code>version</code> is resolved in this order: the <code>VERSION</code> environment variable, then <code>Service.version</code>, then <code>???</code>. <code>name</code>, <code>version</code> and <code>libraries</code> always win over keys of the same name from your info. A sync function runs in a worker thread so a slow probe does not block the server. If it raises, the error is logged and its entries are left out, but the reply is still <code>200</code>.</p>
+<h3 id="gating-the-whole-service">Gating the Whole Service<a class="headerlink" href="#gating-the-whole-service" title="Permanent link">&para;</a></h3>
+<p>To hold back <code>/_healtz</code> until something is ready, pass a function to <code>start_lambda_server</code> as <code>on_startup</code>. It runs in the background after the server starts, and <code>/_healtz</code> returns <code>503</code> until it completes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">on_startup</span><span class="o">=</span><span class="n">load_model</span><span class="p">)</span>
+</code></pre></div>
+<p>If it raises, the error is logged and the service stays not ready.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../api/decorators/"><code>@ivcap_lambda</code> API</a></li>
@@ -2279,10 +2355,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

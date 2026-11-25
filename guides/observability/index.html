@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -856,6 +856,45 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-event-reporter-steps-and-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Event Reporter, Steps and Tracing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Event Reporter, Steps and Tracing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reporting-without-a-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting Without a Step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-the-reporter-comes-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the Reporter Comes From
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1734,6 +1773,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-event-reporter-steps-and-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Event Reporter, Steps and Tracing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Event Reporter, Steps and Tracing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reporting-without-a-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting Without a Step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-the-reporter-comes-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the Reporter Comes From
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#progress-reporting-with-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1881,50 +1959,90 @@
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">job_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting processing&quot;</span><span class="p">)</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="o">...</span>
 </code></pre></div>
+<h2 id="the-event-reporter-steps-and-tracing">The Event Reporter, Steps and Tracing<a class="headerlink" href="#the-event-reporter-steps-and-tracing" title="Permanent link">&para;</a></h2>
+<p>Every job gets a <code>JobContext</code>. Declare it as a parameter and the SDK injects it; leave it out if the tool doesn't need it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">JobContext</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/summarise&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">summarise</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">SummariseRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SummariseResult</span><span class="p">:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="o">...</span>
+</code></pre></div>
+<p><code>JobContext</code> has three useful fields:</p>
+<ul>
+<li><code>job_id</code>: the ID of this job.</li>
+<li><code>report</code>: the event reporter. Use it to send progress to the platform.</li>
+<li><code>ivcap</code>: the IVCAP client, for artifacts and secrets.</li>
+</ul>
+<p>The canonical way to report progress is a <strong>step</strong>. A step is a context manager:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;my-step&quot;</span><span class="p">,</span> <span class="s2">&quot;Doing the work&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">do_work</span><span class="p">()</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="s2">&quot;Work done&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Each step does two things at once:</p>
+<ol>
+<li><strong>Sends IVCAP events</strong> to the platform: a start event when the block is entered, and a finish event when it exits. <code>step.finished(...)</code> sets the message and any extra fields on that finish event. If you don't call it, a default finish event is sent on exit.</li>
+<li><strong>Creates an OpenTelemetry span</strong> named <code>ivcap.event:&lt;step name&gt;</code>. It is a child of the job's <code>RUN &lt;tool name&gt;</code> span, so it appears in your traces under the job. The step's <code>message</code> and any extra keyword arguments become span attributes (<code>ivcap.event.&lt;key&gt;</code>). Values that OTel can't represent, such as dicts, are skipped.</li>
+</ol>
+<p>If the block raises an exception, the step:</p>
+<ul>
+<li>sends a step error event with the exception text and traceback,</li>
+<li>records the exception on its span and marks the span as <code>ERROR</code>,</li>
+<li>re-raises the exception, so the job fails as normal.</li>
+</ul>
+<p>To send an intermediate update without ending the step, call <code>step.info(...)</code> with a <code>GenericEvent</code> or a dict. Intermediate updates are events only; they don't create extra spans.</p>
+<p>This works the same over MCP: the tool's <code>JobContext</code> reports its steps through the MCP progress channel instead of the IVCAP sidecar. Tool code doesn't change.</p>
+<h3 id="reporting-without-a-step">Reporting Without a Step<a class="headerlink" href="#reporting-without-a-step" title="Permanent link">&para;</a></h3>
+<p>For a one-off event, use the reporter directly. This sends an event but creates no span:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;cache-miss&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">}))</span>
+</code></pre></div>
+<h3 id="where-the-reporter-comes-from">Where the Reporter Comes From<a class="headerlink" href="#where-the-reporter-comes-from" title="Permanent link">&para;</a></h3>
+<p>You usually don't create the reporter yourself. For REST jobs, the executor builds it per job and sends events to the IVCAP sidecar. For MCP tool calls, it's an MCP-backed reporter tied to that call. Either way, <code>jobCtxt.report</code> has the same interface, so the same step code works in both.</p>
 <h2 id="progress-reporting-with-steps">Progress Reporting with Steps<a class="headerlink" href="#progress-reporting-with-steps" title="Permanent link">&para;</a></h2>
 <p>Use <code>jobCtxt.report.step()</code> to report structured progress back to the IVCAP platform. Steps are the recommended way to track long-running operations:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/analyse&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">analyse</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">AnalyseRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnalyseResult</span><span class="p">:</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyse data&quot;&quot;&quot;</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="s2">&quot;Loading data...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>        <span class="n">data</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> records&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;process&quot;</span><span class="p">,</span> <span class="s2">&quot;Processing records&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">record</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_record</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>            <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>                <span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>                <span class="n">step</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;progress&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>                    <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;processed&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)}</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>                <span class="p">))</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> records&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="k">return</span> <span class="n">AnalyseResult</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/analyse&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">analyse</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">AnalyseRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnalyseResult</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyse data&quot;&quot;&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="s2">&quot;Loading data...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        <span class="n">data</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> records&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="k">with</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="s2">&quot;process&quot;</span><span class="p">,</span> <span class="s2">&quot;Processing records&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">step</span><span class="p">:</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">record</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_record</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>            <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>                <span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>                <span class="n">step</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;progress&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>                    <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;processed&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)}</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>                <span class="p">))</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>        <span class="n">step</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> records&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>    <span class="k">return</span> <span class="n">AnalyseResult</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">))</span>
 </code></pre></div>
 <h2 id="emitting-events-directly">Emitting Events Directly<a class="headerlink" href="#emitting-events-directly" title="Permanent link">&para;</a></h2>
 <p>For fine-grained control, emit events without a step context manager:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span><span class="p">,</span> <span class="n">GenericErrorEvent</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/pipeline&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">PipelineRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PipelineResult</span><span class="p">:</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run analysis pipeline&quot;&quot;&quot;</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">report</span> <span class="o">=</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="c1"># Start a named step</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">report</span><span class="o">.</span><span class="n">step_started</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Initialising pipeline&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>        <span class="n">init_pipeline</span><span class="p">()</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>        <span class="n">report</span><span class="o">.</span><span class="n">step_finished</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Pipeline ready&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>        <span class="n">report</span><span class="o">.</span><span class="n">step_error</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;Init failed&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>        <span class="k">raise</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    <span class="c1"># Emit a one-off generic event</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="n">report</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pipeline-started&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0&quot;</span><span class="p">}))</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="o">...</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_service.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericEvent</span><span class="p">,</span> <span class="n">GenericErrorEvent</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nd">@ivcap_lambda</span><span class="p">(</span><span class="s2">&quot;/pipeline&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">PipelineRequest</span><span class="p">,</span> <span class="n">jobCtxt</span><span class="p">:</span> <span class="n">JobContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PipelineResult</span><span class="p">:</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run analysis pipeline&quot;&quot;&quot;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">report</span> <span class="o">=</span> <span class="n">jobCtxt</span><span class="o">.</span><span class="n">report</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="c1"># Start a named step</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">report</span><span class="o">.</span><span class="n">step_started</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Initialising pipeline&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>        <span class="n">init_pipeline</span><span class="p">()</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        <span class="n">report</span><span class="o">.</span><span class="n">step_finished</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Pipeline ready&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>        <span class="n">report</span><span class="o">.</span><span class="n">step_error</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;Init failed&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>        <span class="k">raise</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="c1"># Emit a one-off generic event</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>    <span class="n">report</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pipeline-started&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0&quot;</span><span class="p">}))</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>    <span class="o">...</span>
 </code></pre></div>
 <h2 id="available-event-types">Available Event Types<a class="headerlink" href="#available-event-types" title="Permanent link">&para;</a></h2>
 <p>From <code>ivcap_service.events</code>:</p>
@@ -1954,15 +2072,15 @@
 <p>Exporter/provider setup is supplied by the underlying <code>ivcap-service</code> SDK and
 is initialized automatically by <code>start_lambda_server()</code>. A standard OTLP
 endpoint is sufficient to export logs, metrics, and traces:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span><span class="s2">&quot;http://otel-collector:4318&quot;</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>python<span class="w"> </span>my_service.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span><span class="s2">&quot;http://otel-collector:4318&quot;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python<span class="w"> </span>my_service.py
 </code></pre></div>
 <p>OpenObserve-specific variables are optional and add authentication, routing,
 and endpoint information:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_URL</span><span class="o">=</span><span class="s2">&quot;https://observe.example.com&quot;</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_ORG</span><span class="o">=</span><span class="s2">&quot;myorg&quot;</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_USERNAME</span><span class="o">=</span><span class="s2">&quot;service@example.com&quot;</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_TOKEN</span><span class="o">=</span><span class="s2">&quot;&lt;api-token&gt;&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_URL</span><span class="o">=</span><span class="s2">&quot;https://observe.example.com&quot;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_ORG</span><span class="o">=</span><span class="s2">&quot;myorg&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_USERNAME</span><span class="o">=</span><span class="s2">&quot;service@example.com&quot;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENOBSERVE_TOKEN</span><span class="o">=</span><span class="s2">&quot;&lt;api-token&gt;&quot;</span>
 </code></pre></div>
 <p>All logs via <code>getLogger()</code> are then exported automatically. No
 <code>opentelemetry-instrument</code> wrapper or code changes are required.</p>
@@ -1970,10 +2088,11 @@ and endpoint information:</p>
 integration</a>
 for the authoritative exporter behavior and configuration model.</p>
 <h2 id="opentelemetry-tracing">OpenTelemetry Tracing<a class="headerlink" href="#opentelemetry-tracing" title="Permanent link">&para;</a></h2>
+<p>For how steps map onto spans, see <a href="#the-event-reporter-steps-and-tracing">The Event Reporter, Steps and Tracing</a>.</p>
 <p>Setting <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> automatically enables tracing and
 FastAPI instrumentation; no CLI flag is normally needed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span><span class="s2">&quot;http://otel-collector:4318&quot;</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OTEL_EXPORTER_OTLP_ENDPOINT</span><span class="o">=</span><span class="s2">&quot;http://otel-collector:4318&quot;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>python<span class="w"> </span>my_service.py<span class="w"> </span>--port<span class="w"> </span><span class="m">8090</span>
 </code></pre></div>
 <p>Use <code>--with-telemetry</code> to force-enable instrumentation when no endpoint is
 configured, or <code>--without-telemetry</code> to force-disable framework and outbound
@@ -1988,31 +2107,33 @@ auto-detection. Exporter configuration remains environment-driven.</p>
 <li>Propagates trace context across thread-pool boundaries</li>
 </ul>
 <p>You can also control telemetry programmatically:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Force-enable telemetry</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">with_telemetry</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Force-disable telemetry (e.g. in tests)</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">with_telemetry</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Force-enable telemetry</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">with_telemetry</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Force-disable telemetry (e.g. in tests)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">start_lambda_server</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">with_telemetry</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="getting-the-current-event-reporter">Getting the Current Event Reporter<a class="headerlink" href="#getting-the-current-event-reporter" title="Permanent link">&para;</a></h2>
 <p>In code that doesn't have direct access to <code>JobContext</code>, use the helpers from <code>ivcap_lambda</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_event_reporter</span><span class="p">,</span> <span class="n">get_job_id</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">some_helper</span><span class="p">():</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">reporter</span> <span class="o">=</span> <span class="n">get_event_reporter</span><span class="p">()</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="k">if</span> <span class="n">reporter</span><span class="p">:</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="n">reporter</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;helper-called&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{}))</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">job_id</span> <span class="o">=</span> <span class="n">get_job_id</span><span class="p">()</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running in job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ivcap_lambda</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_event_reporter</span><span class="p">,</span> <span class="n">get_job_id</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">some_helper</span><span class="p">():</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">reporter</span> <span class="o">=</span> <span class="n">get_event_reporter</span><span class="p">()</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="k">if</span> <span class="n">reporter</span><span class="p">:</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="n">reporter</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">GenericEvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;helper-called&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{}))</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="n">job_id</span> <span class="o">=</span> <span class="n">get_job_id</span><span class="p">()</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running in job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>These helpers read the job context from the current thread's context variable, so they work correctly in the thread-pool execution environment.</p>
 <h2 id="health-check">Health Check<a class="headerlink" href="#health-check" title="Permanent link">&para;</a></h2>
-<p>The <code>/_healtz</code> endpoint is automatically registered and returns the running service version:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>http://localhost:8090/_healtz
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># {&quot;version&quot;: &quot;1.2.3&quot;}</span>
+<p>The <code>/_healtz</code> endpoint is automatically registered. It describes the whole service. When the service is ready, it returns the service name and version from the <code>Service</code> object, the versions of <code>ivcap-lambda</code> and <code>ivcap-service</code> under <code>libraries</code>, plus any info published by functions marked with <code>@ivcap_health_info</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>http://localhost:8090/_healtz
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># {&quot;model&quot;: &quot;resnet-50&quot;, &quot;name&quot;: &quot;cas9-ivcap&quot;, &quot;version&quot;: &quot;0.1.0&quot;, &quot;libraries&quot;: {...}}</span>
 </code></pre></div>
-<p>Use this for Kubernetes liveness/readiness probes.</p>
+<p>The <code>version</code> value is resolved in this order: the <code>VERSION</code> environment variable, then <code>Service.version</code>, then <code>???</code>.</p>
+<p><code>/_healtz</code> returns <code>503 Service Unavailable</code> while the service is not ready, for example until an <code>on_startup</code> function given to <code>start_lambda_server</code> has completed. A tool's own <code>is_ready</code> check does not affect <code>/_healtz</code>; it only gates that tool's endpoint. See <a href="../tool-functions/#tool-readiness">Tool Readiness</a>.</p>
+<p>Use this for Kubernetes readiness probes. For liveness probes, prefer a TCP check so that a slow model load does not cause the pod to be restarted.</p>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Call <code>logging_init()</code> once at module level</strong> — before any loggers are created</li>
@@ -2121,10 +2242,10 @@ auto-detection. Exporter configuration remains environment-driven.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

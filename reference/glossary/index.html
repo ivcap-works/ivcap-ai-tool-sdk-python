@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -1484,6 +1484,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#readiness-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Readiness Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#health-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health Info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notreadyyet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NotReadyYet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#event-progress-event" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1855,6 +1888,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#readiness-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Readiness Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#health-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health Info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notreadyyet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NotReadyYet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#event-progress-event" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2000,6 +2066,12 @@
 <p>A Pydantic model that configures per-tool behaviour: wait timeout, retry interval, OpenAPI tags, service ID, executor options, and readiness check.</p>
 <h2 id="try-later-204-semantics">Try-Later / 204 Semantics<a class="headerlink" href="#try-later-204-semantics" title="Permanent link">&para;</a></h2>
 <p>The asynchronous response pattern used by lambda services. When a job exceeds <code>max_wait_time</code>, the server returns <code>204 No Content</code> with <code>Location</code> and <code>Retry-Later</code> headers so the caller can poll <code>GET /jobs/{job_id}</code> later.</p>
+<h2 id="readiness-check">Readiness Check<a class="headerlink" href="#readiness-check" title="Permanent link">&para;</a></h2>
+<p>An optional <code>is_ready</code> callable set in <code>ToolOptions</code>. It returns <code>True</code> when the tool can run, or returns <code>False</code> or raises <code>NotReadyYet</code> while it cannot. A not-ready tool answers its <code>POST</code> with <code>503</code>. It does not affect <code>/_healtz</code>. Sync or async.</p>
+<h2 id="health-info">Health Info<a class="headerlink" href="#health-info" title="Permanent link">&para;</a></h2>
+<p>Functions marked with <code>@ivcap_health_info</code> return a dict or pydantic model. Their entries are merged into the <code>GET /_healtz</code> reply once the service is ready.</p>
+<h2 id="notreadyyet">NotReadyYet<a class="headerlink" href="#notreadyyet" title="Permanent link">&para;</a></h2>
+<p>Exception raised from a readiness check to signal not-ready. Its optional <code>retry_after</code> value (seconds) is sent as the <code>Retry-After</code> header on the <code>503</code> response.</p>
 <h2 id="event-progress-event">Event / Progress Event<a class="headerlink" href="#event-progress-event" title="Permanent link">&para;</a></h2>
 <p>A message sent during tool execution to report progress, errors, or other status information back to the IVCAP platform. Emitted via <code>JobContext.report</code>.</p>
 <h2 id="step">Step<a class="headerlink" href="#step" title="Permanent link">&para;</a></h2>
@@ -2087,10 +2159,10 @@ overrides. Exporter configuration is supplied by
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

@@ -4,11 +4,12 @@ Advanced usage patterns for production IVCAP lambda services.
 
 ## Model Loading with Readiness Check
 
-Load a machine-learning model at startup and prevent the health check from succeeding until loading is complete:
+Load a machine-learning model in the background with `on_startup`. The server starts without waiting for the load. `/_healtz` returns `503` until loading completes, and `on_startup` runs in a worker thread so a slow load does not block the server:
 
 ```python
 import time
-from ivcap_lambda import ivcap_lambda, ToolOptions, start_lambda_server, logging_init
+from pydantic import BaseModel, Field
+from ivcap_lambda import ivcap_lambda, ivcap_health_info, ToolOptions, start_lambda_server, logging_init
 from ivcap_service import Service, ServiceContact, with_schema, getLogger
 
 logging_init()
@@ -19,21 +20,26 @@ service = Service(
     contact=ServiceContact(name="ML Team", email="ml@example.com"),
 )
 
-# ── Model loading ─────────────────────────────────────────────────────────────
+# Model loading
 
 _model = None
-_model_ready = False
-
-def is_ready() -> bool:
-    return _model_ready
 
 def load_model():
-    global _model, _model_ready
+    """Runs once in a worker thread; /_healtz stays 503 until it returns."""
+    global _model
     logger.info("Loading model…")
     time.sleep(2)  # simulate load
     _model = {"type": "mock"}
-    _model_ready = True
     logger.info("Model ready")
+
+def model_loaded() -> bool:
+    """Per-tool gate: /predict returns 503 until the model is loaded."""
+    return _model is not None
+
+@ivcap_health_info
+def model_info() -> dict:
+    # only called once the service is ready, so the model is loaded
+    return {"model": _model["type"]}
 
 
 @with_schema("urn:example:schema:predict.request.1")
@@ -49,24 +55,20 @@ class PredictResult(BaseModel):
 
 @ivcap_lambda(
     "/predict",
-    opts=ToolOptions(tags=["ML"], is_ready=is_ready, max_wait_time=30.0),
+    opts=ToolOptions(tags=["ML"], is_ready=model_loaded, max_wait_time=30.0),
 )
 def predict(req: PredictRequest) -> PredictResult:
     """Classify text using the loaded model
 
     Returns a label and confidence score for the provided text.
-    The service will report 503 until the model is fully loaded.
+    The endpoint returns 503 until the model is fully loaded.
     """
-    # Use the pre-loaded model
     label = "positive" if len(req.text) % 2 == 0 else "negative"
     return PredictResult(label=label, confidence=0.95)
 
 
-# Load model at module level, before start_lambda_server
-load_model()
-
 if __name__ == "__main__":
-    start_lambda_server(service)
+    start_lambda_server(service, on_startup=load_model)
 ```
 
 ## Custom CLI Arguments

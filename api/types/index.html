@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -196,7 +196,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -422,7 +422,7 @@
     ivcap-ai-tool-sdk-python
     <ul class="md-source__facts">
       <li class="md-source__fact md-source__fact--version">
-        v0.8.5
+        v0.8.16
       </li>
     </ul>
   </div>
@@ -1752,11 +1752,11 @@
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>ivcap_lambda/builder.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-30">30</a></span>
-<span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="k">class</span><span class="w"> </span><span class="nc">ErrorModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31"></a>    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">int</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.builder.ErrorModel--source--__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#ivcap_lambda.builder.ErrorModel--source--__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#ivcap_lambda.builder.ErrorModel--source--__codelineno-0-32">32</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.builder.ErrorModel--source--__codelineno-0-30" name="ivcap_lambda.builder.ErrorModel--source--__codelineno-0-30"></a><span class="k">class</span><span class="w"> </span><span class="nc">ErrorModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="ivcap_lambda.builder.ErrorModel--source--__codelineno-0-31" name="ivcap_lambda.builder.ErrorModel--source--__codelineno-0-31"></a>    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span>
+<a id="ivcap_lambda.builder.ErrorModel--source--__codelineno-0-32" name="ivcap_lambda.builder.ErrorModel--source--__codelineno-0-32"></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">int</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -1807,13 +1807,13 @@
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>ivcap_lambda/builder.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span>
-<span class="normal"><a href="#__codelineno-0-38">38</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExecutionErrorModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36"></a>    <span class="n">jschema</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">&quot;urn:ivcap:schema.ai-tool.error.1&quot;</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;$schema&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37"></a>    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38"></a>    <span class="n">traceback</span><span class="p">:</span> <span class="nb">str</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-38">38</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-35" name="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-35"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExecutionErrorModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-36" name="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-36"></a>    <span class="n">jschema</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">&quot;urn:ivcap:schema.ai-tool.error.1&quot;</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;$schema&quot;</span><span class="p">)</span>
+<a id="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-37" name="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-37"></a>    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span>
+<a id="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-38" name="ivcap_lambda.builder.ExecutionErrorModel--source--__codelineno-0-38"></a>    <span class="n">traceback</span><span class="p">:</span> <span class="nb">str</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -1966,10 +1966,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

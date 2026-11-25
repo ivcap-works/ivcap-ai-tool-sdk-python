@@ -94,6 +94,8 @@ ivcap service register service.json
 --with-telemetry             Force-enable OpenTelemetry instrumentation
 --without-telemetry          Force-disable OpenTelemetry instrumentation
 --with-mcp                   Expose an MCP endpoint at /mcp
+--test-file PATH             Run the first tool on a job file (ivcap-service format) and exit
+--without-sidecar            Silently drop event/result delivery to the sidecar (also: IVCAP_WITHOUT_SIDECAR=1)
 --list-services              List the names of all registered services/tools and exit
 --print-tool-description     Print the tool description JSON and exit
 --print-service-description  Print the full service description JSON and exit
@@ -165,8 +167,7 @@ spec:
             memory: "1Gi"
             cpu: "1000m"
         livenessProbe:
-          httpGet:
-            path: /_healtz
+          tcpSocket:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 30
